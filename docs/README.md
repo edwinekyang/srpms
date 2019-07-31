@@ -8,6 +8,9 @@ Django 2.2
 PostgreSQL 11.*
 ```
 
+Free free to use `setup.sh` to setup the development environment, please note
+that the script does not configure postgres server for you.
+
 ## Deployment environment
 
 TBA
