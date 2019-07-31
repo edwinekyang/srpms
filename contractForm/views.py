@@ -1,8 +1,21 @@
 from django.shortcuts import render
-
-# Create your views here.
 from django.http import HttpResponse
+
+from .forms import ContractForm
 
 
 def index(request):
-    return HttpResponse("Hello, world. You're at the contractForm index.")
+    form = ContractForm()
+    context = {
+        'form': form
+    }
+    return render(request, 'contractForm/index.html', context)
+
+
+def detail(request, contract_id):
+    return HttpResponse("Detail %s" % contract_id)
+
+
+def result(request, contract_id):
+    response = "Manage %s"
+    return HttpResponse(response % contract_id)
