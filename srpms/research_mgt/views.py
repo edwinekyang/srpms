@@ -9,7 +9,7 @@ def index(request):
     context = {
         'form': form
     }
-    return render(request, 'contractForm/index.html', context)
+    return render(request, 'research_mgt/index.html', context)
 
 
 def detail(request, contract_id):

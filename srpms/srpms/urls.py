@@ -18,6 +18,6 @@ from django.urls import path
 from django.urls import include
 
 urlpatterns = [
-    path('contractForm/', include('contractForm.urls')),
+    path('research_mgt/', include('research_mgt.urls')),
     path('admin/', admin.site.urls),
 ]
