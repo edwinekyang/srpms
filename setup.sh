@@ -1,7 +1,15 @@
 #!/bin/bash
 
+set -e  # exit on error
+
 # This setup will install nodejs as well, which is not being used for the current
 # phase, and would probably change in the future.
+
+echo "Checking conda installation..."
+if ! type conda > /dev/null; then
+    echo "Please install conda"
+    exit 1
+fi
 
 echo "Creating development environment for SRPMS project ..."
 echo "Please specify the name for your new conda environment:"
@@ -12,11 +20,14 @@ echo "Setting up environment..."
 conda create -n ${ENV_NAME} \
     python=3.7 \
     django=2.2 \
-    postgresql=9 \
+    postgresql=11 \
     psycopg2 \
     ipython \
     ldap3 \
     nodejs=10
+
+# Allow conda activate in this script
+source "$(dirname $(dirname $(which conda)))/etc/profile.d/conda.sh"
 
 echo "Activating new environment..."
 conda activate ${ENV_NAME}

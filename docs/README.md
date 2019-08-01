@@ -14,3 +14,7 @@ that the script does not configure postgres server for you.
 ## Deployment environment
 
 TBA
+
+## Coding Style
+
+Please refer to `example_google.py` as an example.
