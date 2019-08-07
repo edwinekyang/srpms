@@ -17,7 +17,7 @@ read ENV_NAME
 
 echo "Setting up environment..."
 # ipython for easy access
-conda create -n ${ENV_NAME} \
+conda create -n -y ${ENV_NAME} \
     python=3.7 \
     django=2.2 \
     postgresql=11 \
@@ -31,6 +31,11 @@ source "$(dirname $(dirname $(which conda)))/etc/profile.d/conda.sh"
 
 echo "Activating new environment..."
 conda activate ${ENV_NAME}
+
+echo "Installing Django rest framework..."
+pip install djangorestframework
+pip install markdown       # Markdown support for the browsable API.
+pip install django-filter  # Filtering support
 
 echo "Setting environment specific variables..."
 cd ${CONDA_PREFIX}
@@ -51,4 +56,4 @@ cat > ./etc/conda/deactivate.d/nodejs_vars.sh << EOF
 unset NODE_PATH
 EOF
 
-echo "Finished!"
+echo "Finished! Please activate the environment by \"conda activate ${CONDA_PREFIX}\""
