@@ -35,3 +35,9 @@
 - Documentation is a one-way communication
   - Collecting feedback from the receiver is not as easy as user story.
   - User story may looks like more casual sometimes, but it is available publicly for internal team, and categories by stakeholder to allow them easily give feedback. 
+
+# Resources
+
+- [12 Advantages of Agile SoftwareDevelopment](https://cs.anu.edu.au/courses/comp3120/public_docs/WP_PM_AdvantagesofAgile.pdf), Alan Koch, Global Knowledge Training, 2011
+- [The Benefits You Get by Doing Agile Project Management](https://apiumhub.com/tech-blog-barcelona/benefits-of-agile-project-management/), Ekaterina Novoseltseva, Apiumhub, 2019
+
