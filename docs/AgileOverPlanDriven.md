@@ -35,9 +35,13 @@
 - Documentation is a one-way communication
   - Collecting feedback from the receiver is not as easy as user story.
   - User story may looks like more casual sometimes, but it is available publicly for internal team, and categories by stakeholder to allow them easily give feedback. 
+- User stories are the new requirements document
+  - User stories have emerged as the best and most popular form of product backlog items.
+  - A use case is a series of interactions by the user with the system and the response of the system.
 
 # Resources
 
 - [12 Advantages of Agile SoftwareDevelopment](https://cs.anu.edu.au/courses/comp3120/public_docs/WP_PM_AdvantagesofAgile.pdf), Alan Koch, Global Knowledge Training, 2011
 - [The Benefits You Get by Doing Agile Project Management](https://apiumhub.com/tech-blog-barcelona/benefits-of-agile-project-management/), Ekaterina Novoseltseva, Apiumhub, 2019
+- [Agile Development: User stories are the new requirements document](https://medium.com/@LazaroIbanez/agile-development-user-stories-are-the-new-requirements-document-c105947c9291), Lazaro Ibanez, 2018
 
