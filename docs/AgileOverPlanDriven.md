@@ -21,7 +21,8 @@
 
 - As of today, plan-driven only used in projects that does not allow easy change of implementation, or life critical
   - For example, hardware design, embedded system, space program
-- For most software project, people find that plan-driven often does not deliver the thing they actually want
+  - Large scale project would use agile-plan-driven hybrid method to collaborate with remote teams
+- For most software projects, people find that plan-driven often does not deliver the thing they actually want
 - Agile then emerge, on the purpose of reflecting user's need rather than the implementation more accurately
 
 ## Why not document requirements
@@ -38,6 +39,8 @@
 - User stories are the new requirements document
   - User stories have emerged as the best and most popular form of product backlog items.
   - A use case is a series of interactions by the user with the system and the response of the system.
+- Agile doesn't mean no documentation
+  - usually a hybrid way would be used, and design & implementation & deployment would still be documented for maintenance purpose
 
 # Resources
 
