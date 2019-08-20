@@ -56,3 +56,21 @@
 - Sprint 04 would last for 2 weeks since we have lots of tutorial to finish.
 - Length of the sprint might change back to 1 week after sprint 04
 
+## Aug 16
+
+- Showing progress for the projcet
+  - Clear arrow to indicate the progress
+  - The information page also need to show the current status
+  - The last date the status have change need to be recorded
+- User feedback can be useful in our report
+  - Possible contact students for their feedback
+  - Maybe 10 students
+  - Also the application for next semester may going on right now, so we may ask potential students
+  - Also ask Weifa to use our system
+- Contrast our current paper-based system
+
+- Presentation
+  - Edwin: Current problem
+  - Edwin: System architecture
+  - Cooper: Administration process
+  - Cooper: Agile project management
