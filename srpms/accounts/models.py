@@ -9,14 +9,14 @@ class AuthMethods(Enum):
     SIT = "Site"  # Use the password stored in this site's database
 
 
-class UserSRPMS(models.Model):
+class SrpmsUser(models.Model):
     """
     Table for additional user attributes for application use
 
     Note that the default User model already include fields like last name,
     first name, email, etc.
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name='srpms', on_delete=models.CASCADE)
     uni_id = models.CharField("Uni ID", max_length=8, blank=True)
     auth_method = models.CharField(
             max_length=10,
