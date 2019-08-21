@@ -2,7 +2,8 @@ from rest_framework import status
 from rest_framework import generics
 from rest_framework import serializers
 from rest_framework.response import Response
-from django.contrib.auth import authenticate, login
+from rest_framework.request import Request
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 
 from .models import SrpmsUser
@@ -20,7 +21,7 @@ class LoginView(generics.GenericAPIView):
     authentication_classes = ()
     permission_classes = ()
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: Request, *args, **kwargs):
         serializer: serializers.ModelSerializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
@@ -37,4 +38,13 @@ class LoginView(generics.GenericAPIView):
 
 
 class LogoutView(generics.GenericAPIView):
-    pass
+    """
+    API View that log the current account out.
+    """
+
+    def get(self, request: Request, *args, **kwargs):
+        if request.user.is_authenticated:
+            logout(request)
+            return Response("You've logout from the current session.")
+        else:
+            return Response("You're not login yet.")
