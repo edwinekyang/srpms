@@ -6,9 +6,7 @@ from rest_framework.request import Request
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 
-from .models import SrpmsUser
-from .serializers import SrpmsUserSerializer, LoginSerializer
-from .permissions import IsOwnerOrReadOnly
+from .serializers import LoginSerializer
 
 
 class LoginView(generics.GenericAPIView):
@@ -30,9 +28,10 @@ class LoginView(generics.GenericAPIView):
             if user is not None:
                 login(request, user)
                 # TODO: return user profile on success login
-                return Response("Successfully login as {}".format(serializer.data['username']))
+                return Response(
+                        {'message': 'Successfully login as {}'.format(serializer.data['username'])})
 
-        return Response("Unable to log in with provided credentials",
+        return Response({'message': 'Unable to log in with provided credentials'},
                         status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -44,6 +43,6 @@ class LogoutView(generics.GenericAPIView):
     def get(self, request: Request, *args, **kwargs):
         if request.user.is_authenticated:
             logout(request)
-            return Response("You've logout from the current session.")
+            return Response({'message': 'You\'ve logout from the current session.'})
         else:
-            return Response("You're not login yet.")
+            return Response({'message': 'You\'re not login yet.'})
