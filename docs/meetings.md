@@ -16,7 +16,12 @@
     - Decouple client and server
     - Data is not tight to method
     - Can handle multiple type of code (i.e. can have different client design)
-    - Good for future extension/maintenance
+    - Good for future extension/maintenancel
+
+## Aug 22
+- Double check with Peter about the MVP's scope
+- Ask about suggestion for the final presentation
+- Schedule release 2 & 3 tomorrow
 
 # Sprint meetings
 
