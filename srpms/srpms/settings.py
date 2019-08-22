@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import ldap
+from django_auth_ldap.config import LDAPSearch
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -129,3 +131,24 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ),
 }
+
+AUTHENTICATION_BACKENDS = [
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend'  # Django default
+]
+
+# TODO: we don't know yet whether anonymous search would work after deploy
+# If not, we need to give a DN and its PASSWORD to authenticate
+AUTH_LDAP_SERVER_URI = "ldap://localhost"  # For development purpose only
+AUTH_LDAP_BIND_DN = ""
+AUTH_LDAP_BIND_PASSWORD = ""
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+        "ou=People,o=anu.edu.au", ldap.SCOPE_ONELEVEL, "(uid=%(user)s)"
+)
+
+# Explicitly specify that SRPMS should update user information on every login
+AUTH_LDAP_ALWAYS_UPDATE_USER = True
+
+# Cache distinguished names and group memberships for an hour to minimize
+# LDAP traffic.
+AUTH_LDAP_CACHE_TIMEOUT = 3600

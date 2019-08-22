@@ -5,6 +5,10 @@ set -e  # exit on error
 # This setup will install nodejs as well, which is not being used for the current
 # phase, and would probably change in the future.
 
+# TODO: is there any way we can include this in conda?
+echo "Installing dependencies for LDAP authentication backend ..."
+sudo apt install -y libsasl2-dev libldap2-dev
+
 echo "Checking conda installation..."
 if ! type conda > /dev/null; then
     echo "Please install conda"
