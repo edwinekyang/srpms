@@ -55,4 +55,7 @@ for configuring the LDAP authentication backend to use ANU's authentication serv
 
 In the current development, only staff can be assigned as supervisor or examinor.
 
-
+TODO:
+- SRPMS would update account information on every success login, however what's the case that
+  the student graduate? Does ANU still keep the LDAP entry for the student? What about the
+  case that a professor make some career change?
