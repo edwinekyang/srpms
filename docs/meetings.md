@@ -18,6 +18,18 @@
     - Can handle multiple type of code (i.e. can have different client design)
     - Good for future extension/maintenance
 
+## Aug 23
+
+- This is not a research project, but we need to present some more content about the alternatives in our report.
+- We'll maintain a list of approved supervisor, and students can only nominate supervisor within this list
+  - List would be maintained by course convenor
+- Supervisor would confirm again once the examinor agree, then the contract would go to the course convenor
+- Have some defaults for the form
+- Project output
+  - Be able to extract csv & pdf format of the contract from the system
+  - Be able to export contracts in batch
+- Ask Bob about SSL certificate
+
 # Sprint meetings
 
 ## Aug 09
