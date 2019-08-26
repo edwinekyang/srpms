@@ -12,6 +12,8 @@ services:
     env_file:
       - config.dev/db-postgres.env
       - config.dev/django-gunicorn.env
+    command:
+      ["gunicorn", "--reload", "--bind", ":8000", "srpms.wsgi:application"]
     networks:
       - srpms_network
     depends_on:
