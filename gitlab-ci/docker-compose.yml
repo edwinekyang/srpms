@@ -1,0 +1,10 @@
+# This compose file is for the Runner of the GitLab CI pipeline
+version: '3'
+
+services:
+  runner:
+    image: gitlab/gitlab-runner:alpine
+    restart: always
+    volumes:
+      - /srv/gitlab-runner/config:/etc/gitlab-runer
+      - /var/run/docker.sock:/var/run/docker.sock

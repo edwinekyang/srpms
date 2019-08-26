@@ -93,8 +93,6 @@ docker-compose -f docker-compose.prod.yml -d up
 ```
 
 
-
-
 ## Caveats
 
 ### Disable the REST browsable API on production
@@ -112,21 +110,26 @@ REST_FRAMEWORK = {
 
 # Reference 
 
+## Docker
+
+- Environment Variable priorities when using compose
+  1. Compose file
+  2. Shell environment variables
+  3. Environment file
+  4. Dockerfile
+  5. Variable is not defined
+
+[Building Django Docker Image with Alpine](https://medium.com/c0d1um/building-django-docker-image-with-alpine-32de65d2706)
+
 [Docker Compose with NginX, Django, Gunicorn and multiple Postgres databases](
 https://pawamoy.github.io/2018/02/01/docker-compose-django-postgres-nginx.html
 )
 
 [Understanding Docker Networking Drivers and their use cases](https://blog.docker.com/2016/12/understanding-docker-networking-drivers-use-cases/)
 
+[Deploying Gunicorn](http://docs.gunicorn.org/en/latest/deploy.html)
+
 [Deploying nginx + django + python 3](https://tutos.readthedocs.io/en/latest/source/ndg.html)
-
-[How to Setup a SSL Certificate on Nginx for a Django Application](https://simpleisbetterthancomplex.com/tutorial/2016/05/11/how-to-setup-ssl-certificate-on-nginx-for-django-application.html)
-
-[Nginx and Let’s Encrypt with Docker in Less Than 5 Minutes](https://medium.com/@pentacent/nginx-and-lets-encrypt-with-docker-in-less-than-5-minutes-b4b8a60d3a71)
-
-[Certificates for localhost](https://letsencrypt.org/docs/certificates-for-localhost/)
-
-## Docker
 
 ## SSL certificates
 
@@ -141,13 +144,17 @@ openssl req -x509 -out localhost.crt -keyout localhost.key \
 
 This self-sign certificate would not accept by chrome, as such, you need to go to `chrome://flags/#allow-insecure-localhost`, and set it to `enable`
 
-## Environment Variable priorities
 
-1. Compose file
-2. Shell environment variables
-3. Environment file
-4. Dockerfile
-5. Variable is not defined
+
+[How to Setup a SSL Certificate on Nginx for a Django Application](https://simpleisbetterthancomplex.com/tutorial/2016/05/11/how-to-setup-ssl-certificate-on-nginx-for-django-application.html)
+
+[Nginx and Let’s Encrypt with Docker in Less Than 5 Minutes](https://medium.com/@pentacent/nginx-and-lets-encrypt-with-docker-in-less-than-5-minutes-b4b8a60d3a71)
+
+[Certificates for localhost](https://letsencrypt.org/docs/certificates-for-localhost/)
+
+## CI/CD
+
+[Getting started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
 
 ## Server iptables rule
 
