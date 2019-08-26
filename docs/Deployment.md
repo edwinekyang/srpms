@@ -11,8 +11,7 @@ sudo systemctl stop postgresql.service
 sudo pkill -U tomcat8
 ```
 
-TODO: The VM currently have too many unrelated packages installed, need to 
-further clean up the environment.
+TODO: The VM currently have too many unrelated packages installed, need to further clean up the environment.
 
 ## Install docker
 
@@ -74,14 +73,17 @@ REST_FRAMEWORK = {
 }
 ```
 
-[Refer to here](http://masnun.com/2016/04/20/django-rest-framework-remember-to-disable-web-browsable-api-in-production.html)
-for the reason of doing so.
+[Refer to here](http://masnun.com/2016/04/20/django-rest-framework-remember-to-disable-web-browsable-api-in-production.html) for the reason of doing so.
 
 # Reference 
 
 [Docker Compose with NginX, Django, Gunicorn and multiple Postgres databases](
 https://pawamoy.github.io/2018/02/01/docker-compose-django-postgres-nginx.html
 )
+
+[Understanding Docker Networking Drivers and their use cases](https://blog.docker.com/2016/12/understanding-docker-networking-drivers-use-cases/)
+
+
 
 ## Server iptables rule
 
@@ -164,7 +166,9 @@ https://pawamoy.github.io/2018/02/01/docker-compose-django-postgres-nginx.html
 # SSH
 -A INPUT -p tcp -m tcp --dport 22 -j LOG --log-prefix "[SSH] "
 -A INPUT -p tcp -m tcp --dport 22 -j app-limit
-# HTTPS, does not currently apply any connection limit
+# HTTP/HTTPS, does not currently apply any connection limit
+-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+-A INPUT -p udp -m udp --dport 80 -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
 -A INPUT -p udp -m udp --dport 443 -j ACCEPT
 # Limit connection frequency to 10 hits per 30s, after that block the client for 5 minutes
