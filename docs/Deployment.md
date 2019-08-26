@@ -56,28 +56,35 @@ sudo systemctl restart docker.service
 sudo systemctl restart netfilter-persistent
 ```
 
-## First time deploy
+## Database migration
 
+**WARNING: Please make sure there is no database under the same name before operate**
 
+- If you already have a database dump name `<db_dump>`, you can import it to the database container by
+  1. Copy to the database container
+     `docker cp <db_dump> srpms_db-postgres:/`
+  2. Import to the database
+     `docker-compose -f <compose file> run db-postgres psql -U <db_name> < /<db_dump>`
+- If you wants to initialize a new database
+  `docker-compose -f <compose file> run django-gunicorn python manage.py migrate`
 
 # Deploy - Development
 
 ```bash
-docker-compose run django-gunicorn python manage.py collectstatic --no-input
-
-# If you don't have a database yet, please also run the following command
-# docker-compose run django-gunicorn python manage.py migrate
-
+# Start
 docker-compose -f docker-compose.dev.yml up
+
+# Clean-up containers
+docker-compose -f docker-compose.dev.yml down
 ```
 
-# Deploy - Production 
+# Deploy - Production
+
+**Under construction, do NOT attempt**
 
 ```bash
+# Collect static files
 docker-compose run django-gunicorn python manage.py collectstatic --no-input
-
-# If you don't have a database yet, please also run the following command
-# docker-compose run django-gunicorn python manage.py migrate
 
 docker-compose -f docker-compose.prod.yml -d up
 ```
@@ -108,7 +115,24 @@ https://pawamoy.github.io/2018/02/01/docker-compose-django-postgres-nginx.html
 
 [Understanding Docker Networking Drivers and their use cases](https://blog.docker.com/2016/12/understanding-docker-networking-drivers-use-cases/)
 
+[How to Setup a SSL Certificate on Nginx for a Django Application](https://simpleisbetterthancomplex.com/tutorial/2016/05/11/how-to-setup-ssl-certificate-on-nginx-for-django-application.html)
+
+[Certificates for localhost](https://letsencrypt.org/docs/certificates-for-localhost/)
+
 ## Docker
+
+## SSL certificates
+
+To generate a self-signed SSL certificate for `localhost` (for development purpose)
+
+```
+openssl req -x509 -out localhost.crt -keyout localhost.key \
+  -newkey rsa:2048 -nodes -sha256 \
+  -subj '/CN=localhost' -extensions EXT -config <( \
+   printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+```
+
+This self-sign certificate would not accept by chrome, as such, you need to go to `chrome://flags/#allow-insecure-localhost`, and set it to `enable`
 
 ## Environment Variable priorities
 
