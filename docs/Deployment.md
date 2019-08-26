@@ -1,8 +1,11 @@
 # First time configuration
 
+**NOTICE: If you are doing this on your own machine, please start from [Database migration](#database-migration)**
+
 ## VM Clean up
 
 ```bash
+# For srpms.cecs.anu.edu.au only
 # Since we are using docker, we'll disable un-necessary services
 sudo systemctl disable nginx.service
 sudo systemctl stop nginx.service
@@ -11,7 +14,7 @@ sudo systemctl stop postgresql.service
 sudo pkill -U tomcat8
 ```
 
-TODO: The VM currently have too many unrelated packages installed, need to further clean up the environment.
+TODO: The VM currently has too many unrelated packages installed, need to further clean up the environment.
 
 ## Install docker
 
@@ -71,7 +74,7 @@ sudo systemctl restart netfilter-persistent
 # Deploy - Development
 
 ```bash
-# Start
+# Start, use -d if you want to run in background
 docker-compose -f docker-compose.dev.yml up
 
 # Clean-up containers
@@ -115,7 +118,11 @@ https://pawamoy.github.io/2018/02/01/docker-compose-django-postgres-nginx.html
 
 [Understanding Docker Networking Drivers and their use cases](https://blog.docker.com/2016/12/understanding-docker-networking-drivers-use-cases/)
 
+[Deploying nginx + django + python 3](https://tutos.readthedocs.io/en/latest/source/ndg.html)
+
 [How to Setup a SSL Certificate on Nginx for a Django Application](https://simpleisbetterthancomplex.com/tutorial/2016/05/11/how-to-setup-ssl-certificate-on-nginx-for-django-application.html)
+
+[Nginx and Let’s Encrypt with Docker in Less Than 5 Minutes](https://medium.com/@pentacent/nginx-and-lets-encrypt-with-docker-in-less-than-5-minutes-b4b8a60d3a71)
 
 [Certificates for localhost](https://letsencrypt.org/docs/certificates-for-localhost/)
 
