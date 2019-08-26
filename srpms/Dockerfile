@@ -23,7 +23,6 @@ RUN pip install psycopg2==2.7 \
 
 # copy our project code
 COPY . /djangoproj/srpms/
-RUN python manage.py collectstatic --noinput
 
 # expose the port 8000
 EXPOSE 8000
