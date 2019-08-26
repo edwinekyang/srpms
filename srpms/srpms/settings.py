@@ -157,3 +157,9 @@ AUTH_LDAP_ALWAYS_UPDATE_USER = True
 # Cache distinguished names and group memberships for an hour to minimize
 # LDAP traffic.
 AUTH_LDAP_CACHE_TIMEOUT = 3600
+
+# HTTPS related settings
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True

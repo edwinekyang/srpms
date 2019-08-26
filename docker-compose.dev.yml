@@ -24,9 +24,11 @@ services:
     ports:
       #  Map host 8000 to container 80
       - 8000:80
+      - 8001:443
     volumes:
       # Ngnix configuration file
       - ./config.dev/nginx/conf.d:/etc/nginx/conf.d
+      - ./config.dev/ssl:/etc/ssl
       - static_volume:/djangoproj/srpms/static
       - media_volume:/djangoproj/srpms/media
     networks:
