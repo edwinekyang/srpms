@@ -54,10 +54,35 @@ sudo systemctl restart docker.service
 
 # Reload the configuration
 sudo systemctl restart netfilter-persistent
-
 ```
 
-# Production environment configuration
+## First time deploy
+
+
+
+# Deploy - Development
+
+```bash
+docker-compose run django-gunicorn python manage.py collectstatic --no-input
+
+# If you don't have a database yet, please also run the following command
+# docker-compose run django-gunicorn python manage.py migrate
+
+docker-compose -f docker-compose.dev.yml up
+```
+
+# Deploy - Production 
+
+```bash
+docker-compose run django-gunicorn python manage.py collectstatic --no-input
+
+# If you don't have a database yet, please also run the following command
+# docker-compose run django-gunicorn python manage.py migrate
+
+docker-compose -f docker-compose.prod.yml -d up
+```
+
+
 
 
 ## Caveats
@@ -83,7 +108,15 @@ https://pawamoy.github.io/2018/02/01/docker-compose-django-postgres-nginx.html
 
 [Understanding Docker Networking Drivers and their use cases](https://blog.docker.com/2016/12/understanding-docker-networking-drivers-use-cases/)
 
+## Docker
 
+## Environment Variable priorities
+
+1. Compose file
+2. Shell environment variables
+3. Environment file
+4. Dockerfile
+5. Variable is not defined
 
 ## Server iptables rule
 
