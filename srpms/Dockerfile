@@ -19,6 +19,7 @@ RUN apk add --no-cache --virtual .build-deps \
                    django-auth-ldap==2.0 \
                    django-filter==2.2 \
                    markdown==3.1 \
+                   ipython \
     && find /usr/local \
         \( -type d -a -name test -o -name tests \) \
         -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \

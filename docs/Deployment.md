@@ -59,6 +59,44 @@ sudo systemctl restart docker.service
 sudo systemctl restart netfilter-persistent
 ```
 
+## Configure repository for group access
+
+```bash
+# Create folder at root for group access
+sudo mkdir /srpms
+sudo addgroup srpms
+sudo chown root:srpms /srpms
+sudo chmod g+w /srpms
+
+# Download source code
+git clone https://gitlab.cecs.anu.edu.au/u6513788/comp8755-srpms.git .
+# Configure git for group access
+git config core.sharedRepository group
+# Change file ownership and permission to allow group access
+chgrp -R srpms .
+chmod -R g+w .
+# Git pack files should be immutable
+chmod g-w objects/pack/*
+# Configure new file to inherit directory's group id
+find -type d -exec chmod g+s {} +
+```
+
+## CI/CD
+
+**NOTICE: For this project we only consider docker as [executor](https://docs.gitlab.com/runner/executors/)**
+
+```bash
+# Pull gitlab runner image
+docker image pull gitlab/gitlab-runner:alpine
+
+# Register, you'll need token from "Settings" -> "CI/CD" -> "Runner" page of the srpms repo in order to register a runner.
+cd /srpms/gitlab-ci
+docker-compose run runner register
+
+# Start the runner
+docker-compose up -d
+```
+
 ## Database migration
 
 **WARNING: Please make sure there is no database under the same name before operate**
@@ -73,6 +111,8 @@ sudo systemctl restart netfilter-persistent
 
 # Deploy - Development
 
+**Please make sure you are under the project directory when using following commands**
+
 ```bash
 # Start, use -d if you want to run in background
 docker-compose -f docker-compose.dev.yml up
@@ -80,6 +120,22 @@ docker-compose -f docker-compose.dev.yml up
 # Clean-up containers
 docker-compose -f docker-compose.dev.yml down
 ```
+
+The about command would
+
+- Listen at `localhost:8000` for HTTP
+- Listen at `localhost:8001` for HTTPS
+- `/media/`, `/static/`, `/api/` would be directed to Django container
+- All other requests would be directed to the Angular container
+
+To attach to a running container, use `docker exec -it <service_name> <command>`
+
+- For example, to attach to the Django container for debugging, use command
+  `docker exec -it django-gunicorn_1 /bin/sh`
+
+To run a single container with some command, use `docker-compose -f <compose file> run <service_name> <command>`
+
+- Using this command has the advantage over regular `docker run`, as it will apply settings specified in the docker-compose file
 
 # Deploy - Production
 
@@ -109,6 +165,10 @@ REST_FRAMEWORK = {
 [Refer to here](http://masnun.com/2016/04/20/django-rest-framework-remember-to-disable-web-browsable-api-in-production.html) for the reason of doing so.
 
 # Reference 
+
+[How to configure an existing git repo to be shared by a UNIX group](https://stackoverflow.com/questions/3242282/how-to-configure-an-existing-git-repo-to-be-shared-by-a-unix-group)
+
+[How To Get Angular and Nginx Working Together Properly for Development](https://medium.com/better-programming/how-to-properly-get-angular-and-nginx-working-together-for-development-3e5d158734bf)
 
 ## Docker
 
@@ -155,6 +215,10 @@ This self-sign certificate would not accept by chrome, as such, you need to go t
 ## CI/CD
 
 [Getting started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
+
+[Run GitLab Runner in a container](https://docs.gitlab.com/runner/install/docker.html)
+
+[Register Runners](https://docs.gitlab.com/runner/register/index.html#docker)
 
 ## Server iptables rule
 
