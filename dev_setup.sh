@@ -5,9 +5,20 @@ set -e  # exit on error
 # This setup will install nodejs as well, which is not being used for the current
 # phase, and would probably change in the future.
 
+echo
+echo " ----------------------- IMPORTANT NOTICE ---------------------- "
+echo "| This script is used for setting up local development envir-   |"
+echo "| onment for the SRPMS project, do NOT use this for production. |"
+echo " --------------------------------------------------------------- "
+echo
+
+# TODO: is there any way we can include this in conda?
+echo "Installing dependencies for LDAP authentication backend ..."
+sudo apt-get install -y libsasl2-dev libldap2-dev
+
 echo "Checking conda installation..."
 if ! type conda > /dev/null; then
-    echo "Please install conda"
+    echo "Please install conda first, refer https://docs.conda.io/en/latest/miniconda.html"
     exit 1
 fi
 
@@ -17,7 +28,7 @@ read ENV_NAME
 
 echo "Setting up environment..."
 # ipython for easy access
-conda create -n ${ENV_NAME} \
+conda create -y -n ${ENV_NAME} \
     python=3.7 \
     django=2.2 \
     postgresql=11 \
@@ -31,6 +42,12 @@ source "$(dirname $(dirname $(which conda)))/etc/profile.d/conda.sh"
 
 echo "Activating new environment..."
 conda activate ${ENV_NAME}
+
+echo "Installing Django rest framework..."
+pip install djangorestframework
+pip install markdown       # Markdown support for the browsable API.
+pip install django-filter  # Filtering support
+pip install django-auth-ldap  # LDAP authentication support
 
 echo "Setting environment specific variables..."
 cd ${CONDA_PREFIX}
@@ -51,4 +68,4 @@ cat > ./etc/conda/deactivate.d/nodejs_vars.sh << EOF
 unset NODE_PATH
 EOF
 
-echo "Finished!"
+echo "Finished! Please activate the environment by \"conda activate ${ENV_NAME}\""

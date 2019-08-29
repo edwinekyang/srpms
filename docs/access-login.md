@@ -15,9 +15,47 @@ for more information.
 
 
 
-# ANU LDAP Server information
+# ANU LDAP Server
 
-```
-url:  ldap.anu.edu.au
-port: 636
-```
+- Server address
+  ```
+  url:  ldap.anu.edu.au
+  port: 389
+  ```
+- For remote development purpose, use ssh tunneling to access the ldap server through the VM:
+  
+  `ssh -L 389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au`
+
+  Note that you need `sudo` privilege for mapping ports below 1024
+
+## Access user information
+
+The following command would give the information regarding the given uid
+
+`ldapsearch -h localhost -x -b ou=People,o=anu.edu.au -LLL "(uid=uXXXXXXX)"`
+
+`-b` specifies the base directory that we are going to do the search
+
+Search result:
+- For students, it would return: `affiliation: student`
+- For staff, it would return `affiliation: staff`
+- An account may have multiple affiliation, for example, tutors would usually
+  have both `affiliation: student` and `affiliation: staff`
+
+Caveats:
+- It appears that ANU does not distinguish very detail position of a given
+  account, for example, both tutor and course convenor have the `staff` affiliation.
+- However, course convenor does not have other affiliation to indicate that he/she
+  has higher privilege. 
+  
+## LDAP authentication backend in SRPMS
+
+We use the [django-auth-ldap](https://github.com/django-auth-ldap/django-auth-ldap) module
+for configuring the LDAP authentication backend to use ANU's authentication service.
+
+In the current development, only staff can be assigned as supervisor or examinor.
+
+TODO:
+- SRPMS would update account information on every success login, however what's the case that
+  the student graduate? Does ANU still keep the LDAP entry for the student? What about the
+  case that a professor make some career change?

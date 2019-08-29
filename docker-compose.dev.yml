@@ -1,0 +1,58 @@
+# Please note that this compose file is for development only, please
+# use docker-compose.production.yml for production override
+version: '3'
+
+services:
+  django-gunicorn:
+    build: ./srpms
+    volumes:
+      - ./srpms:/djangoproj/srpms
+    env_file:
+      - config.dev/db-postgres.env
+      - config.dev/django-gunicorn.env
+    command:
+      ["gunicorn", "--reload", "--bind", ":8000", "srpms.wsgi:application"]
+    networks:
+      - srpms_network
+    depends_on:
+      - db-postgres
+
+  # For development purpose only
+  angular-client:
+    build: ./srpms-client
+    volumes:
+      - ./srpms-client:/app/srpms-client
+    networks:
+      - srpms_network
+
+  nginx:
+    image: nginx:1.17-alpine
+    ports:
+      # Map host 8000 to container 80
+      - 8000:80
+      - 8001:443
+    volumes:
+      # Ngnix configuration file
+      - ./config.dev/nginx/conf.d:/etc/nginx/conf.d
+      - ./config.dev/ssl:/etc/ssl
+    networks:
+      - srpms_network
+    depends_on:
+      - django-gunicorn
+      - angular-client
+
+  db-postgres:
+    image: postgres:11.5-alpine
+    volumes:
+      - db_postgres_volume:/var/lib/postgresql/data
+    env_file:
+      - config.dev/db-postgres.env
+    networks:
+      - srpms_network
+
+networks:
+  srpms_network:
+    driver: bridge
+
+volumes:
+  db_postgres_volume:
