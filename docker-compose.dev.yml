@@ -11,7 +11,7 @@ services:
       - config.dev/db-postgres.env
       - config.dev/django-gunicorn.env
     command:
-      ["gunicorn", "--reload", "--bind", ":8000", "srpms.wsgi:application"]
+      ["./dev_start.sh"]
     networks:
       - srpms_network
     depends_on:
@@ -22,6 +22,8 @@ services:
     build: ./srpms-client
     volumes:
       - ./srpms-client:/app/srpms-client
+    command:
+      ["./dev_start.sh"]
     networks:
       - srpms_network
 
