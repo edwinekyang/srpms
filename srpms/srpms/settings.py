@@ -144,7 +144,7 @@ AUTHENTICATION_BACKENDS = [
 
 # TODO: we don't know yet whether anonymous search would work after deploy
 # If not, we need to give a DN and its PASSWORD to authenticate
-AUTH_LDAP_SERVER_URI = "ldap://localhost"  # For development purpose only
+AUTH_LDAP_SERVER_URI = os.environ.get('LDAP_ADDR')
 AUTH_LDAP_BIND_DN = ""
 AUTH_LDAP_BIND_PASSWORD = ""
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
