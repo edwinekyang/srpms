@@ -137,6 +137,22 @@ To run a single container with some command, use `docker-compose -f <compose fil
 
 - Using this command has the advantage over regular `docker run`, as it will apply settings specified in the docker-compose file
 
+## Access ANU LDAP outside campus
+
+- For Mac:
+
+  - `sudo 389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au`
+
+- For Linux:
+
+  - ```bash
+    # Obtain srpms network name by `docker network ls`, normally it should be 'srpms_srpms_network'
+    DOCKER_GATEWAY="$(docker network inspect <srpms network name> --format='{{(index .IPAM.Config 0).Gateway}}')"
+    sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
+    ```
+
+  - You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked.
+
 # Deploy - Production
 
 **Under construction, do NOT attempt**
