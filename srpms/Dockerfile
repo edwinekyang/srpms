@@ -35,7 +35,7 @@ RUN apk add --no-cache --virtual .build-deps \
     && apk del .build-deps
 
 # copy our project code
-COPY . /djangoproj/srpms/
+COPY ./* ./
 
 # expose the port 8000
 EXPOSE 8000

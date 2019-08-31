@@ -6,7 +6,8 @@ if [ "$DEBUG" == "False" ]; then
 
     echo "LDAP server point to $LDAP_ADDR"
 
-    # Collect static files in production, these files are serve by gunicorn during development
+    # Collect static files in production, these files are serve by gunicorn during development.
+    # Consider moving this to Dockerfile if it takes too long to collect.
     python manage.py collectstatic
     gunicorn --bind :8000 srpms.wsgi:application
 

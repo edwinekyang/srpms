@@ -18,13 +18,15 @@ services:
 
   # For development purpose only
   angular-client:
-    build: ./srpms-client
+    build:
+      context: .
+      dockerfile: ./srpms-client/Dockerfile
+      args:
+        - DEBUG=True
     env_file:
       - config.dev/general.env
     volumes:
       - ./srpms-client:/app/srpms-client
-    command:
-      ["./dev_start.sh"]
     networks:
       - srpms_network
 

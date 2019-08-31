@@ -14,6 +14,19 @@ services:
     depends_on:
       - db-postgres
 
+  # Copy the built front-end to volume and exit
+  angular-client:
+    build:
+      context: .
+      dockerfile: ./srpms-client/Dockerfile
+      args:
+        - DEBUG=False
+    env_file:
+      - config.dev/general.env
+    volumes:
+      - angular_volume:/dist
+    network_mode: none
+
   nginx:
     image: nginx:1.17-alpine
     env_file:
@@ -27,6 +40,7 @@ services:
       - ./config.prod/nginx/conf.d:/etc/nginx/conf.d
       - ./config.prod/ssl:/etc/ssl
       - ./config.prod/nginx_start.sh:./nginx_start.sh
+      - angular_volume:/dist
       - static_volume:/djangoproj/srpms/static
       - media_volume:/djangoproj/srpms/media
       - letsencrypt_volume:/etc/letsencrypt
@@ -70,6 +84,7 @@ networks:
 
 volumes:
   db_postgres_volume:
+  angular_volume:
   static_volume:
   media_volume:
   letsencrypt_volume:
