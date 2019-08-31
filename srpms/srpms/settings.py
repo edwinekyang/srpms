@@ -26,7 +26,10 @@ SECRET_KEY = 's0bpsthvxi%f9#l9$bi9f4ro!x61m_5)dvslifkgi1$-o59^(n'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.environ.get('DJANGO_DEBUG_MODE') == 'True' else False
 
-ALLOWED_HOSTS = []
+if DEBUG:
+    ALLOWED_HOSTS = ['localhost']
+else:
+    ALLOWED_HOSTS = ['srpms.cecs.anu.edu.au']
 
 # Application definition
 

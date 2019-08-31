@@ -1,1 +1,76 @@
-# TODO: production override
+version: '3'
+
+services:
+  django-gunicorn:
+    build: ./srpms
+    volumes:
+      - ./srpms:/djangoproj/srpms
+      - static_volume:/djangoproj/srpms/static
+      - media_volume:/djangoproj/srpms/media
+    env_file:
+      - config.prod/db-postgres.env
+      - config.prod/django-gunicorn.env
+    networks:
+      - srpms_network
+    depends_on:
+      - db-postgres
+
+  nginx:
+    image: nginx:1.17-alpine
+    env_file:
+      - config.prod/ssl.env
+    ports:
+      # Map host 80 to container 80
+      - 80:80
+      - 443:443
+    volumes:
+      # Ngnix configuration file
+      - ./config.prod/nginx/conf.d:/etc/nginx/conf.d
+      - ./config.prod/ssl:/etc/ssl
+      - ./config.prod/nginx_start.sh:./nginx_start.sh
+      - static_volume:/djangoproj/srpms/static
+      - media_volume:/djangoproj/srpms/media
+      - letsencrypt_volume:/etc/letsencrypt
+      - certbot_volume:/var/www/certbot
+    command: ["./nginx_setup.sh"]
+    networks:
+      - srpms_network
+    depends_on:
+      - certbot
+      - django-gunicorn
+
+  db-postgres:
+    image: postgres:11.5-alpine
+    volumes:
+      - db_postgres_volume:/var/lib/postgresql/data
+    env_file:
+      - config.prod/db-postgres.env
+    networks:
+      - srpms_network
+
+  # Manage Let's Encrypt SSL certificate
+  #
+  # Note that this container is not part of the srpms network, but
+  # connect to the host in order to support docker-compose-in-docker.
+  # By doing this we can renew certificate, and reload nginx within
+  # this container.
+  certbot:
+    build: ./certbot
+    env_file:
+      - config.prod/ssl.env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - letsencrypt_volume:/etc/letsencrypt
+      - certbot_volume:/var/www/certbot
+    network_mode: host
+
+networks:
+  srpms_network:
+    driver: bridge
+
+volumes:
+  db_postgres_volume:
+  static_volume:
+  media_volume:
+  letsencrypt_volume:
+  certbot_volume:
