@@ -27,6 +27,7 @@ services:
       - config.dev/general.env
     volumes:
       - ./srpms-client:/app/srpms-client
+      - angular_volume:/app/srpms-client/dist
     networks:
       - srpms_network
 
@@ -40,6 +41,7 @@ services:
       # Ngnix configuration file
       - ./config.dev/nginx/conf.d:/etc/nginx/conf.d
       - ./config.dev/ssl:/etc/ssl
+      - angular_volume:/dist
     networks:
       - srpms_network
     depends_on:
@@ -61,3 +63,4 @@ networks:
 
 volumes:
   db_postgres_volume:
+  angular_volume:
