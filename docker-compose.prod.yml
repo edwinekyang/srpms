@@ -4,7 +4,6 @@ services:
   django-gunicorn:
     build: ./srpms
     volumes:
-      - ./srpms:/djangoproj/srpms
       - static_volume:/djangoproj/srpms/static
       - media_volume:/djangoproj/srpms/media
     env_file:
@@ -58,6 +57,7 @@ services:
     build: ./certbot
     env_file:
       - config.prod/certbot.env
+      - config.prod/general.env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - letsencrypt_volume:/etc/letsencrypt

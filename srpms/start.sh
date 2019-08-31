@@ -2,7 +2,7 @@
 
 set -e
 
-if [ "$DJANGO_DEBUG_MODE" == "False" ]; then
+if [ "$DEBUG" == "False" ]; then
 
     echo "LDAP server point to $LDAP_ADDR"
 
@@ -10,7 +10,7 @@ if [ "$DJANGO_DEBUG_MODE" == "False" ]; then
     python manage.py collectstatic
     gunicorn --bind :8000 srpms.wsgi:application
 
-elif [ "$DJANGO_DEBUG_MODE" == "True" ]; then
+elif [ "$DEBUG" == "True" ]; then
 
     IP_PREFIX=$(awk -v addr="$(wget -qO - ipinfo.io/ip)" 'BEGIN{split(addr,ip,"."); print ip[1] "." ip[2]}')
 
@@ -34,7 +34,7 @@ elif [ "$DJANGO_DEBUG_MODE" == "True" ]; then
     gunicorn --reload --bind :8000 srpms.wsgi:application
 
 else
-    echo "Unknown setting '$DJANGO_DEBUG_MODE' for DJANGO_DEBUG_MODE"
+    echo "Unknown setting '$DEBUG' for DJANGO_DEBUG_MODE"
     exit 1
 fi
 

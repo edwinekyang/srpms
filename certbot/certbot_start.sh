@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-if [ $DRY_RUN != "0" ]; then
+if [ $DEBUG == "True" ]; then
     staging_arg="--dry-run"
     purge_cmd="find"
 else
