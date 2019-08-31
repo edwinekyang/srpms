@@ -10,8 +10,6 @@ services:
     env_file:
       - config.dev/db-postgres.env
       - config.dev/django-gunicorn.env
-    command:
-      ["./dev_start.sh"]
     networks:
       - srpms_network
     depends_on:

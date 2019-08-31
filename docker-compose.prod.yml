@@ -18,7 +18,7 @@ services:
   nginx:
     image: nginx:1.17-alpine
     env_file:
-      - config.prod/ssl.env
+      - config.prod/certbot.env
     ports:
       # Map host 80 to container 80
       - 80:80
@@ -57,7 +57,7 @@ services:
   certbot:
     build: ./certbot
     env_file:
-      - config.prod/ssl.env
+      - config.prod/certbot.env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - letsencrypt_volume:/etc/letsencrypt
