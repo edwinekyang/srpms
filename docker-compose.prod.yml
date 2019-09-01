@@ -51,6 +51,7 @@ services:
     depends_on:
       - certbot
       - django-gunicorn
+      - angular-client
 
   db-postgres:
     image: postgres:11.5-alpine
@@ -73,6 +74,7 @@ services:
       - config.prod/certbot.env
       - config.prod/general.env
     volumes:
+      - ./:/srpms
       - /var/run/docker.sock:/var/run/docker.sock
       - letsencrypt_volume:/etc/letsencrypt
       - certbot_volume:/var/www/certbot

@@ -1,5 +1,7 @@
 FROM certbot/certbot
 
+ENTRYPOINT ["/bin/sh"]
+
 # Copy docker and docker-compose binary
 COPY --from=docker/compose:1.24.1 /usr/local/bin/* /usr/local/bin/
 
@@ -18,7 +20,7 @@ RUN apk update && \
     apk del curl
 
 WORKDIR /srpms
-COPY ./certbot_start.sh .
+COPY ./certbot_start.sh /certbot_start.sh
 RUN chmod u+x ./certbot_start.sh
 
-CMD ["./certbot_start.sh"]
+CMD ["/certbot_start.sh"]

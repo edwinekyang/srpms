@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 
-if [ $DEBUG == "True" ]; then
+set -e
+
+if [ $DRY_RUN != 0 ]; then
     staging_arg="--dry-run"
     purge_cmd="find"
 else
@@ -8,6 +10,12 @@ else
 fi
 
 echo "### Check certificate for $DOMAINS ..."
+
+while [ ! -e "$LETS_ENC_PATH/live/$DOMAINS/fullchain.pem" ]; do
+    echo "Can't find certificate, wait for 3s ..."
+    sleep 3s
+done
+
 CERT_CN_RAW=$(openssl x509 -noout -subject -in "$LETS_ENC_PATH/live/$DOMAINS/fullchain.pem")
 CERT_CN=$(awk -v cn_raw="$CERT_CN_RAW" 'BEGIN{split(cn_raw,info," "); print info[3]}')
 
@@ -41,7 +49,7 @@ if [ "$CERT_CN" == "localhost" ]; then
         --agree-tos \
         --force-renewal
 else
-    echo "No dummy certificates detected."
+    echo "No dummy certificate detected."
     certbot renew $staging_arg
 fi
 
@@ -49,6 +57,6 @@ echo "### Start renew daemon ..."
 while :; do
     certbot renew $staging_arg --deploy-hook "\
         echo \"Certificates renewed, reloading nginx ...\" && \
-        docker-compose exec nginx nginx -s reload"
+        docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload"
     sleep 12h
 done
