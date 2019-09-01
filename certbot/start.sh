@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+cleanup() {
+    echo "Exiting ..."
+    exit
+}
+
+trap cleanup INT TERM
+
 set -e
 
 # Convert the array to actually bash array
@@ -56,7 +63,6 @@ if [ "$CERT_CN" == "localhost" ]; then
         --force-renewal
 else
     echo "No dummy certificate detected."
-    certbot renew $staging_arg
 fi
 
 echo "### Start renew daemon ..."

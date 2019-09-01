@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+cleanup() {
+    echo "Exiting ..."
+    exit
+}
+
+trap cleanup INT TERM
+
+set -e
+
 eval DOMAINS=$DOMAINS
 
 mkdir -p "$CERTBOT_PATH"

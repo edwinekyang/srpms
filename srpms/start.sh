@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+cleanup() {
+    echo "Exiting ..."
+    exit
+}
+
+trap cleanup INT TERM
+
 set -e
 
 if [ "$DEBUG" == "False" ]; then

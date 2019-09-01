@@ -1,5 +1,12 @@
 #!/usr/bin/env sh
 
+cleanup() {
+    echo "Exiting ..."
+    exit
+}
+
+trap cleanup INT TERM
+
 set -e
 
 if [ "$DEBUG" == "True" ]; then
