@@ -11,7 +11,7 @@ set -e
 
 if [ "$DEBUG" == "True" ]; then
     npm install
-    ng build --watch
+    ng build --watch --output-path /dist/srpms-client
 else
     # Clean up and copy file to volume
     rm -rf /dist/*

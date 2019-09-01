@@ -27,7 +27,7 @@ services:
       - config.dev/general.env
     volumes:
       - ./srpms-client:/app/srpms-client
-      - angular_volume:/app/srpms-client/dist
+      - angular_volume:/dist
     networks:
       - srpms_network
 
