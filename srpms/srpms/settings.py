@@ -14,6 +14,27 @@ import os
 import ldap
 from django_auth_ldap.config import LDAPSearch
 
+
+def get_env(env_name: str, env_file: str = None) -> str:
+    """
+    Read environment variable, if is empty then try the env_file.
+
+    This function is to support docker secrets, which would normally provide
+    a env variable suffix with '_FILE'. The function does not auto suffix in
+    case other suffix convention appears.
+    """
+
+    env_var = os.environ.get(env_name)
+
+    if not env_var and env_file:
+        with open(env_file) as env_file_handle:
+            env_var = env_file_handle.read()
+    else:
+        env_var = ''
+
+    return env_var
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -24,7 +45,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 's0bpsthvxi%f9#l9$bi9f4ro!x61m_5)dvslifkgi1$-o59^(n'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.environ.get('DEBUG') == 'True' else False
+DEBUG = True if get_env('DEBUG') == 'True' else False
 
 if DEBUG:
     ALLOWED_HOSTS = ['localhost']
@@ -80,10 +101,10 @@ WSGI_APPLICATION = 'srpms.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': os.environ.get('POSTGRES_HOST'),
+        'NAME': get_env('POSTGRES_DB', 'POSTGRES_DB_FILE'),
+        'USER': get_env('POSTGRES_USER', 'POSTGRES_USER_FILE'),
+        'PASSWORD': get_env('POSTGRES_PASSWORD', 'POSTGRES_PASSWORD_FILE'),
+        'HOST': get_env('POSTGRES_HOST'),
         'PORT': '5432',
     }
 }
@@ -147,7 +168,7 @@ AUTHENTICATION_BACKENDS = [
 
 # TODO: we don't know yet whether anonymous search would work after deploy
 # If not, we need to give a DN and its PASSWORD to authenticate
-AUTH_LDAP_SERVER_URI = os.environ.get('LDAP_ADDR')
+AUTH_LDAP_SERVER_URI = get_env('LDAP_ADDR')
 AUTH_LDAP_BIND_DN = ""
 AUTH_LDAP_BIND_PASSWORD = ""
 AUTH_LDAP_USER_SEARCH = LDAPSearch(

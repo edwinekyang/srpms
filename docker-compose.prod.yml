@@ -13,6 +13,10 @@ services:
       - srpms_network
     depends_on:
       - db-postgres
+    secrets:
+      - postgres_db
+      - postgres_user
+      - postgres_password
 
   # Copy the built front-end to volume and exit
   angular-client:
@@ -61,6 +65,11 @@ services:
       - config.prod/db-postgres.env
     networks:
       - srpms_network
+    secrets:
+      - postgres_db
+      - postgres_user
+      - postgres_password
+      - postgres_init_args
 
   # Manage Let's Encrypt SSL certificate
   #
@@ -79,6 +88,16 @@ services:
       - letsencrypt_volume:/etc/letsencrypt
       - certbot_volume:/var/www/certbot
     network_mode: host
+
+secrets:
+  postgres_db:
+    file: /srpms-secrets/postgres-db.txt
+  postgres_user:
+    file: /srpms-secrets/postgres-user.txt
+  postgres_password:
+    file: /srpms-secrets/postgres-passwd.txt
+  postgres_init_args:
+    file: /srpms-secrets/postgres-init-args.txt
 
 networks:
   srpms_network:
