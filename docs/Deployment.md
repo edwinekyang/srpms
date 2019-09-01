@@ -111,31 +111,52 @@ docker-compose up -d
 
 # Deploy - Development
 
+```mermaid
+graph TB
+	subgraph Docker
+	A[Nginx]
+	B[Django+Gunicorn]
+	C[Angular]
+	D[PostgreSQL]
+	A --> B
+	A -.- C
+	B --- D
+	end
+	
+	E[Request]
+	E --> A
+```
+
+Summary of development environment:
+
+- <u>Nginx container</u>: use as a reverse proxy to redirect request, also serve front-end code
+- <u>Angular container</u>: running `ng build --watch` to produce front-end code, only communicate with nginx through shared volume
+- <u>Django+Gunicorn container</u>: running `gunicorn --reload --bind :8000` to serve back-end content (including back-end static files)
+- Both the angular and django container would auto detect change of file to auto-reload content, thus convenient for development
+
 **Please make sure you are under the project directory when using following commands**
 
 ```bash
-# Start, use -d if you want to run in background
+# Start, append -d if you want to run in background
 docker-compose -f docker-compose.dev.yml up
 
-# Clean-up containers
+# To apply changes of Dockerfile and compose file to running containers, use
+docker-compose -f docker-compose.dev.yml up -d --build
+
+# Only issue when you know what you are doing
 docker-compose -f docker-compose.dev.yml down
 ```
 
-The about command would
-
-- Listen at `localhost:8000` for HTTP
-- Listen at `localhost:8001` for HTTPS
-- `/media/`, `/static/`, `/api/` would be directed to Django container
-- All other requests would be directed to the Angular container
-
-To attach to a running container, use `docker exec -it <service_name> <command>`
-
-- For example, to attach to the Django container for debugging, use command
-  `docker exec -it django-gunicorn_1 /bin/sh`
-
-To run a single container with some command, use `docker-compose -f <compose file> run <service_name> <command>`
-
-- Using this command has the advantage over regular `docker run`, as it will apply settings specified in the docker-compose file
+- The about command would
+  - Listen at `localhost:8000` for HTTP
+  - Listen at `localhost:8001` for HTTPS
+  - `/media/`, `/static/`, `/api/` would be directed to Django container
+  - All other requests would request file in nginx, including front-end code
+- To attach to a running container, use `docker exec -it <service_name> <command>`
+  - For example, to attach to the Django container for debugging, use command
+    `docker exec -it django-gunicorn_1 /bin/sh`
+- To run a single container with some command, use `docker-compose -f <compose file> run <service_name> <command>`
+  - Using this command has the advantage over regular `docker run`, as it will apply settings specified in the docker-compose file
 
 ## Access ANU LDAP outside campus
 
@@ -151,19 +172,66 @@ To run a single container with some command, use `docker-compose -f <compose fil
     sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
     ```
 
-  - You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked.
+  - You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked and won't reach the ssh tunnel.
+    `sudo iptables -I INPUT 1 -s $(docker network inspect <network> --format='{{(index .IPAM.Config 0).Subnet}}') -j ACCEPT` 
 
 # Deploy - Production
 
-**Under construction, do NOT attempt**
-
-```bash
-# Collect static files
-docker-compose run django-gunicorn python manage.py collectstatic --no-input
-
-docker-compose -f docker-compose.prod.yml -d up
+```mermaid
+graph TB
+	subgraph Docker
+	A[Nginx]
+	B[Django+Gunicorn]
+	D[PostgreSQL]
+	A --> B
+	B --- D
+	end
+	
+	C[cerbot]
+	F[Angular]
+	A -.- C
+	A -.- F
+	
+	E[Request]
+	E --> A
 ```
 
+Summary of production environment:
+
+- <u>Nginx container</u> will serve compiled front-end code and back-end static resources, while request of dynamic resources would be re-directed to Django
+- <u>Django+Gunicorn container</u> will handle any dynamic request (query, etc.)
+- <u>Certbot container</u> will be used for obtain and update SSL certificate from Let's Encrypt, it'll also try to renew the certificate every 12 hours, and singal
+- <u>Angular-client</u>
+  - Exists for the sole purpose of copying compiled front-end to a volume share between Nginx and itself
+  - Exit after finish copy
+  - Does not have any network connection
+
+```bash
+# Start up
+docker-compose -f docker-compose.prod.yml up -d
+
+# Scale
+docker-compose -f docker-compose.prod.yml scale <service_name>=<number>
+# Alternatively you can
+docker-compose -f docker-compose.prod.yml up --scale <service_name>=<number> -d
+
+# Check logs, append '-f' for following
+docker-compose -f docker-compose.prod.yml logs
+
+# Shutdown and remove containers
+docker-compose -f docker-compose.prod.yml down
+```
+
+## Behavior
+
+The deployment would perform the following action on first-time-run:
+
+- Nginx create a dummy certificate for localhost, expire after 1 day. Otherwise nginx would fail to launch if it cannot find the ssl certificate
+- Certbot launch, if certificate does not exist, sleep for 10s to wait for nginx
+- Certbot check if the certificates are dummry (i.e. CN is localhost), if yes, remove certificates, then obtain certificate from letsencrypt, and tell nginx to reload itself
+  - Note that if some replica of nginx start after this, they might fail
+  - In order to reload nginx, source code is mapped inside certbot container, as well as the docker socket. As such certbot is not part of the srpms_network, and can only communicate to nginx through their share volume (i.e. the challenge file directory and letsencrypt certificate directory).
+  - For preventing unwanted behavior on docker socket passing, the certbot container is configured to use host network
 
 ## Caveats
 
@@ -219,8 +287,6 @@ openssl req -x509 -out localhost.crt -keyout localhost.key \
 ```
 
 This self-sign certificate would not accept by chrome, as such, you need to go to `chrome://flags/#allow-insecure-localhost`, and set it to `enable`
-
-
 
 [How to Setup a SSL Certificate on Nginx for a Django Application](https://simpleisbetterthancomplex.com/tutorial/2016/05/11/how-to-setup-ssl-certificate-on-nginx-for-django-application.html)
 
