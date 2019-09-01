@@ -1,4 +1,4 @@
-version: '3'
+version: '3.7'
 
 services:
   django-gunicorn:
@@ -9,6 +9,7 @@ services:
     env_file:
       - config.prod/db-postgres.env
       - config.prod/django-gunicorn.env
+      - config.prod/general.env
     networks:
       - srpms_network
     depends_on:
@@ -16,7 +17,8 @@ services:
     secrets:
       - postgres_db
       - postgres_user
-      - postgres_password
+      - postgres_passwd
+      - django_secret_key
 
   # Copy the built front-end to volume and exit
   angular-client:
@@ -26,13 +28,13 @@ services:
       args:
         - DEBUG=False
     env_file:
-      - config.dev/general.env
+      - config.prod/general.env
     volumes:
       - angular_volume:/dist
     network_mode: none
 
   nginx:
-    image: nginx:1.17-alpine
+    build: ./nginx
     env_file:
       - config.prod/certbot.env
     ports:
@@ -42,18 +44,14 @@ services:
     volumes:
       # Ngnix configuration file
       - ./config.prod/nginx/conf.d:/etc/nginx/conf.d
-      - ./config.prod/ssl:/etc/ssl
-      - ./config.prod/nginx_start.sh:./nginx_start.sh
       - angular_volume:/dist
       - static_volume:/djangoproj/srpms/static
       - media_volume:/djangoproj/srpms/media
       - letsencrypt_volume:/etc/letsencrypt
       - certbot_volume:/var/www/certbot
-    command: ["./nginx_setup.sh"]
     networks:
       - srpms_network
     depends_on:
-      - certbot
       - django-gunicorn
       - angular-client
 
@@ -68,7 +66,7 @@ services:
     secrets:
       - postgres_db
       - postgres_user
-      - postgres_password
+      - postgres_passwd
       - postgres_init_args
 
   # Manage Let's Encrypt SSL certificate
@@ -88,20 +86,23 @@ services:
       - letsencrypt_volume:/etc/letsencrypt
       - certbot_volume:/var/www/certbot
     network_mode: host
+    depends_on:
+      - nginx
 
 secrets:
   postgres_db:
     file: /srpms-secrets/postgres-db.txt
   postgres_user:
     file: /srpms-secrets/postgres-user.txt
-  postgres_password:
+  postgres_passwd:
     file: /srpms-secrets/postgres-passwd.txt
   postgres_init_args:
     file: /srpms-secrets/postgres-init-args.txt
+  django_secret_key:
+    file: /srpms-secrets/django_secret_key.txt
 
 networks:
   srpms_network:
-    driver: bridge
 
 volumes:
   db_postgres_volume:

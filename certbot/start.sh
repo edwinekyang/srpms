@@ -1,6 +1,9 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 set -e
+
+# Convert the array to actually bash array
+eval DOMAINS=$DOMAINS
 
 if [ $DRY_RUN != 0 ]; then
     staging_arg="--dry-run"
@@ -12,8 +15,8 @@ fi
 echo "### Check certificate for $DOMAINS ..."
 
 while [ ! -e "$LETS_ENC_PATH/live/$DOMAINS/fullchain.pem" ]; do
-    echo "Can't find certificate, wait for 3s ..."
-    sleep 3s
+    echo "Can't find certificate, wait for 10s ..."
+    sleep 10s
 done
 
 CERT_CN_RAW=$(openssl x509 -noout -subject -in "$LETS_ENC_PATH/live/$DOMAINS/fullchain.pem")
@@ -21,9 +24,12 @@ CERT_CN=$(awk -v cn_raw="$CERT_CN_RAW" 'BEGIN{split(cn_raw,info," "); print info
 
 if [ "$CERT_CN" == "localhost" ]; then
     echo "Dummy certificate detected, purging configurations ..."
+
+    set +e
     $purge_cmd "$LETS_ENC_PATH/live/$DOMAINS"
     $purge_cmd "$LETS_ENC_PATH/archive/$DOMAINS"
     $purge_cmd "$LETS_ENC_PATH/renewal/$DOMAINS.conf"
+    set -e
 
     echo "Requesting Let's Encrypt certificate for $DOMAINS ..."
 

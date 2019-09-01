@@ -26,9 +26,13 @@ def get_env(env_name: str, env_file: str = None) -> str:
 
     env_var = os.environ.get(env_name)
 
-    if not env_var and env_file:
-        with open(env_file) as env_file_handle:
-            env_var = env_file_handle.read()
+    if env_var:
+        pass
+    elif env_file:
+        try:
+            env_var = open(os.environ.get(env_file)).read()
+        except FileNotFoundError:
+            env_var = ''
     else:
         env_var = ''
 
@@ -42,7 +46,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 's0bpsthvxi%f9#l9$bi9f4ro!x61m_5)dvslifkgi1$-o59^(n'
+SECRET_KEY = get_env('SECRET_KEY', 'SECRET_KEY_FILE')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if get_env('DEBUG') == 'True' else False
@@ -187,3 +191,15 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
+if not DEBUG:
+    # Prevent browser from identifying content types incorrectly.
+    SECURE_CONTENT_TYPE_NOSNIFF=True
+
+    # Activate browser's XSS filtering and help prevent XSS attacks.
+    SECURE_BROWSER_XSS_FILTER=True
+
+    # Prevent iframe
+    X_FRAME_OPTIONS='DENY'
+
+    # TODO: SECURE_HSTS_SECONDS

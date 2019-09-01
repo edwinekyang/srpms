@@ -8,5 +8,6 @@ if [ "$DEBUG" == "True" ]; then
 else
     # Clean up and copy file to volume
     rm -rf /dist/*
-    cp ./dist/* /dist/
+    cp -r ./dist/* /dist/
+    exit 0
 fi

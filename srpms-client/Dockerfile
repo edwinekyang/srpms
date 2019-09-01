@@ -12,6 +12,12 @@ RUN npm install -g @angular/cli@8 && \
     rm -rf ~/.npm
 
 COPY ./* ./
-RUN if [ "$DEBUG" == "True" ]; then echo "Debug, skip build"; else ng build --prod; fi
+RUN if [ "$DEBUG" == "True" ]; then \
+        echo "Debug, skip build"; \
+    else \
+        npm install && \
+        ng build --prod && \
+        rm -rf node_modules; \
+    fi
 
 CMD ["./start.sh"]

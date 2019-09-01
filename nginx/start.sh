@@ -1,4 +1,9 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+
+eval DOMAINS=$DOMAINS
+
+mkdir -p "$CERTBOT_PATH"
+mkdir -p "$LETS_ENC_PATH"
 
 echo "### Checking TLS parameter files ..."
 if [ ! -e "$LETS_ENC_PATH/options-ssl-nginx.conf" ] || [ ! -e "$LETS_ENC_PATH/ssl-dhparams.pem" ]; then
@@ -22,4 +27,4 @@ else
 fi
 
 echo "### Starting nginx ..."
-nginx -g daemon off
+nginx -g "daemon off;"

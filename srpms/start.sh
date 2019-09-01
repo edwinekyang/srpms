@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 set -e
 
@@ -6,9 +6,17 @@ if [ "$DEBUG" == "False" ]; then
 
     echo "LDAP server point to $LDAP_ADDR"
 
+    echo "### Perform deploy check ..."
+    python manage.py check --deploy
+
     # Collect static files in production, these files are serve by gunicorn during development.
     # Consider moving this to Dockerfile if it takes too long to collect.
-    python manage.py collectstatic
+    echo "### Collect static files ..."
+    python manage.py collectstatic --noinput
+
+    echo "### Perform database migraitons ..."
+    python manage.py migrate
+
     gunicorn --bind :8000 srpms.wsgi:application
 
 elif [ "$DEBUG" == "True" ]; then

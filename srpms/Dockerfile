@@ -6,7 +6,7 @@ RUN mkdir -p /djangoproj/srpms
 WORKDIR /djangoproj/srpms
 
 # install dependencies
-RUN apk add --no-cache libldap libsasl postgresql-libs
+RUN apk add --no-cache libldap libsasl postgresql-libs bash
 RUN apk add --no-cache --virtual .build-deps \
                        postgresql-dev \
                        gcc \
@@ -35,7 +35,7 @@ RUN apk add --no-cache --virtual .build-deps \
     && apk del .build-deps
 
 # copy our project code
-COPY ./* ./
+COPY . .
 
 # expose the port 8000
 EXPOSE 8000
