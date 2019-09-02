@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 
+pid=1
+
 cleanup() {
     echo "Exiting ..."
+    
+    if [ $pid -ne 1 ]; then
+        kill -SIGTERM "$pid"
+        wait "$pid"
+    fi
+    
     exit
 }
 
@@ -71,4 +79,6 @@ while :; do
         echo \"Certificates renewed, reloading nginx ...\" && \
         docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload"
     sleep 12h
-done
+done &
+pid="${!}"
+wait $pid

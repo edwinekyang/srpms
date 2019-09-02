@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 
-cleanup() {
-    echo "Exiting ..."
-    exit
-}
-
-trap cleanup INT TERM
+pid=1
 
 set -e
 
@@ -36,4 +31,4 @@ else
 fi
 
 echo "### Starting nginx ..."
-nginx -g "daemon off;"
+exec nginx -g "daemon off;"

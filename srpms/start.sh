@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-cleanup() {
-    echo "Exiting ..."
-    exit
-}
-
-trap cleanup INT TERM
-
 set -e
 
 if [ "$DEBUG" == "False" ]; then
@@ -24,7 +17,7 @@ if [ "$DEBUG" == "False" ]; then
     echo "### Perform database migraitons ..."
     python manage.py migrate
 
-    gunicorn --bind :8000 srpms.wsgi:application
+    exec gunicorn --bind :8000 srpms.wsgi:application
 
 elif [ "$DEBUG" == "True" ]; then
 
@@ -47,7 +40,7 @@ elif [ "$DEBUG" == "True" ]; then
 
     echo "LDAP server point to $LDAP_ADDR"
 
-    gunicorn --reload --bind :8000 srpms.wsgi:application
+    exec gunicorn --reload --bind :8000 srpms.wsgi:application
 
 else
     echo "Unknown setting '$DEBUG' for DJANGO_DEBUG_MODE"
