@@ -1,24 +1,20 @@
-
 <header>
-  <div class="container">
-
-      <li><img class ="logo-left" src="https://wattlecourses.anu.edu.au/pluginfile.php/1/core_admin/logo/0x200/1566393860/2x_anu_logo_small_over.png"></li>
-      <li><a href="#" class="logo"><p>Student Research Projects Management System</p></a></li>
-      <li><a href="#" class="login">Login</a></li>
-
-  </div>
-  <div class="header-underline"></div>
+    <app-header></app-header>
 </header>
 
-<div class="container">
+<mat-sidenav-container>
+    <mat-sidenav mode="side" opened>
+        <app-sidenav></app-sidenav>
+    </mat-sidenav>
+    <mat-sidenav-container>
+        <router-outlet></router-outlet>
+    </mat-sidenav-container>
+</mat-sidenav-container>
 
-  <div class="container menu-left">
-    <app-menuleft></app-menuleft>
-  </div>
-
-  <div class="container">
-    <router-outlet></router-outlet>
-  </div>
-
-</div>
-
+<footer>
+    <mat-grid-list cols="1" rowHeight="2em">
+        <mat-grid-tile colspan="1">
+            The Australian National University
+        </mat-grid-tile>
+    </mat-grid-list>
+</footer>

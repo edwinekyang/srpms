@@ -7,7 +7,6 @@ WORKDIR /app/srpms-client
 # Install
 # TODO: Specify the angular version
 RUN npm install -g @angular/cli@8 && \
-    npm install --save @angular/material @angular/cdk @angular/animations && \
     npm cache clean --force && \
     rm -rf ~/.npm
 
