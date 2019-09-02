@@ -28,8 +28,6 @@ Angular Material is built with Angular and Typescript. These components serve as
 ## Browser and screen reader support
 Angular Material supports the most recent two versions of all major browsers: Chrome (including Android), Firefox, Safari (including iOS), and IE11 / Edge.
 
-We aim for great user experience with the following screen readers:
-
 - Windows: NVDA and JAWS with IE11 / FF / Chrome.
 - macOS: VoiceOver with Safari / Chrome.
 - iOS: VoiceOver with Safari
