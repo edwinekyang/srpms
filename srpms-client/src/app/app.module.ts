@@ -8,22 +8,32 @@ import { HomeComponent } from './home/home.component';
 import { ContractComponent } from './contract/contract.component';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { MenuleftComponent } from './menuleft/menuleft.component';
+import { SidenavComponent } from './sidenav/sidenav.component';
+import { MatGridListModule } from "@angular/material/grid-list";
+import { MatSidenavModule } from "@angular/material/sidenav";
+import { MatButtonModule } from "@angular/material/button";
+import {MatListModule} from "@angular/material/list";
+import { HeaderComponent } from './header/header.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
     ContractComponent,
-    MenuleftComponent
+    SidenavComponent,
+    HeaderComponent
   ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    FormsModule,
-    HttpClientModule
-  ],
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        AppRoutingModule,
+        FormsModule,
+        HttpClientModule,
+        MatGridListModule,
+        MatSidenavModule,
+        MatButtonModule,
+        MatListModule
+    ],
   providers: [],
   bootstrap: [AppComponent]
 })
