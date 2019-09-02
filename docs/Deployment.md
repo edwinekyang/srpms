@@ -81,16 +81,38 @@ chmod g-w objects/pack/*
 find -type d -exec chmod g+s {} +
 ```
 
-## CI/CD
-
-**NOTICE: For this project we only consider docker as [executor](https://docs.gitlab.com/runner/executors/)**
+## Secrets
 
 ```bash
-# Pull gitlab runner image
-docker image pull gitlab/gitlab-runner:alpine
+# Create directory for storing secrets, and give group access
+sudo mkdir /srpms-secrets
+sudo chown root:srpms /srpms-secrets
+sudo chmod 750 /srpms-secrets
+sudo chmod g+s /srpms-secrets
 
-# Register, you'll need token from "Settings" -> "CI/CD" -> "Runner" page of the srpms repo in order to register a runner.
-cd /srpms/gitlab-ci
+# Create secrets
+# NOTE: DO NOT USE "echo" AS IT WOULD SUFFIX NEW LINE
+sudo printf '<secret content>' > /srpms-secrets/postgres-db.txt
+sudo printf '<secret content>' > /srpms-secrets/postgres-user.txt
+sudo printf '<secret content>' > /srpms-secrets/postgres-passwd.txt
+
+# "--" would prevent "--" raise error when its at the start of the content string
+sudo printf -- '<secret content>' > /srpms-secrets/postgres-init-args.txt
+
+sudo printf '<secret content>' > /srpms-secrets/django_secret_key.txt
+```
+
+**NOTE: secrets still works even if inside a container with socket passing, and does not require any special configuration**
+
+## CI/CD Setup
+
+We'll GitLab's shell executor with docker runner for this purpose, for reason why we don't use docker executor, refer to the [CI/CD](#ci/cd) section.
+
+```bash
+# cd to the runner image dir
+cd gitlab-ci
+
+# Register first
 docker-compose run runner register
 
 # Start the runner
@@ -143,7 +165,11 @@ docker-compose -f docker-compose.dev.yml up
 # To apply changes of Dockerfile and compose file to running containers, use
 docker-compose -f docker-compose.dev.yml up -d --build
 
+# Stop services
+docker-compose -f docker-compose.dev.yml stop
+
 # Only issue when you know what you are doing
+# This command will remove container, network, and volumes, which means the database would be removed as well
 docker-compose -f docker-compose.dev.yml down
 ```
 
@@ -168,12 +194,17 @@ docker-compose -f docker-compose.dev.yml down
 
   - ```bash
     # Obtain srpms network name by `docker network ls`, normally it should be 'srpms_srpms_network'
-    DOCKER_GATEWAY="$(docker network inspect <srpms network name> --format='{{(index .IPAM.Config 0).Gateway}}')"
+    DOCKER_GATEWAY="$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
     sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
     ```
 
   - You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked and won't reach the ssh tunnel.
-    `sudo iptables -I INPUT 1 -s $(docker network inspect <network> --format='{{(index .IPAM.Config 0).Subnet}}') -j ACCEPT` 
+    
+    ```bash
+    sudo iptables -A INPUT -d $(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}') -p tcp -m tcp --dport 389 -j ACCEPT
+    ```
+    
+    
 
 # Deploy - Production
 
@@ -210,10 +241,8 @@ Summary of production environment:
 # Start up
 docker-compose -f docker-compose.prod.yml up -d
 
-# Scale
-docker-compose -f docker-compose.prod.yml scale <service_name>=<number>
-# Alternatively you can
-docker-compose -f docker-compose.prod.yml up --scale <service_name>=<number> -d
+# Stop
+docker-compose -f docker-compose.prod.yml stop
 
 # Check logs, append '-f' for following
 docker-compose -f docker-compose.prod.yml logs
@@ -223,6 +252,8 @@ docker-compose -f docker-compose.prod.yml down
 ```
 
 ## Behavior
+
+### SSL initial setup
 
 The deployment would perform the following action on first-time-run:
 
@@ -248,9 +279,22 @@ REST_FRAMEWORK = {
 
 [Refer to here](http://masnun.com/2016/04/20/django-rest-framework-remember-to-disable-web-browsable-api-in-production.html) for the reason of doing so.
 
-# Reference 
+# CI/CD
 
-[How to configure an existing git repo to be shared by a UNIX group](https://stackoverflow.com/questions/3242282/how-to-configure-an-existing-git-repo-to-be-shared-by-a-unix-group)
+- Since deploying a Kubernete for this project is a bit over kill for the current phase, we only use `.gitlab-ci.yml` for CI/CD, and manually set the DevOps job inside in.
+- In fact, GitLab's Auto DevOps also just another `.gitlab-ci.yml`, but with pre-defined content inside, [see here for more details](https://docs.gitlab.com/ee/topics/autodevops/#using-components-of-auto-devops)
+- Also, we are using docker.sock-in-docker for running the CI pipeline, [this article](https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/) explains fairly well why we should use this approach instead of docker-in-docker
+  - **However, when running compose inside the CI container, we effitivetly mount files in CI container to other container, hopefully this wouldn't cause any problem**
+- Reasons why we don't use docker executor:
+  - Because you basically need to repeat you compose file agile in the runner configuration, and it's very bad for maintenance.
+  - Our custom built runner image already contain docker and docker-compose, thus we don't need use docker executor to burden ourselves
+
+```bash
+# Make sure you run the following in before_script for test jobs, otherwise it would have a hard time finding ldap server
+export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
+```
+
+# Reference 
 
 [How To Get Angular and Nginx Working Together Properly for Development](https://medium.com/better-programming/how-to-properly-get-angular-and-nginx-working-together-for-development-3e5d158734bf)
 
@@ -274,6 +318,12 @@ https://pawamoy.github.io/2018/02/01/docker-compose-django-postgres-nginx.html
 [Deploying Gunicorn](http://docs.gunicorn.org/en/latest/deploy.html)
 
 [Deploying nginx + django + python 3](https://tutos.readthedocs.io/en/latest/source/ndg.html)
+
+[Why Your Dockerized Application Isn’t Receiving Signals](https://hynek.me/articles/docker-signals/)
+
+[Trapping Signals in Docker Containers](https://blog.codeship.com/trapping-signals-in-docker-containers/)
+
+[Using docker-compose with CI - how to deal with exit codes and daemonized linked containers?](https://stackoverflow.com/questions/29568352/using-docker-compose-with-ci-how-to-deal-with-exit-codes-and-daemonized-linked)
 
 ## SSL certificates
 
@@ -301,6 +351,8 @@ This self-sign certificate would not accept by chrome, as such, you need to go t
 [Run GitLab Runner in a container](https://docs.gitlab.com/runner/install/docker.html)
 
 [Register Runners](https://docs.gitlab.com/runner/register/index.html#docker)
+
+[Using components of Auto-DevOps](https://docs.gitlab.com/ee/topics/autodevops/#using-components-of-auto-devops)
 
 ## Server iptables rule
 
@@ -397,3 +449,16 @@ This self-sign certificate would not accept by chrome, as such, you need to go t
 COMMIT
 # Done
 ```
+
+## Misc.
+
+[Keep exit codes when trapping SIGINT and similar?](https://unix.stackexchange.com/questions/235582/keep-exit-codes-when-trapping-sigint-and-similar)
+
+[Trapping Signals in Docker Containers](https://blog.codeship.com/trapping-signals-in-docker-containers/)
+
+[How to configure an existing git repo to be shared by a UNIX group](https://stackoverflow.com/questions/3242282/how-to-configure-an-existing-git-repo-to-be-shared-by-a-unix-group)
+
+[How do I parse command line arguments in Bash?](https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash)
+
+[When do we need curly braces around shell variables?](https://stackoverflow.com/questions/8748831/when-do-we-need-curly-braces-around-shell-variables)
+

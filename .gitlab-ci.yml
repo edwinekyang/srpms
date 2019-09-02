@@ -1,0 +1,70 @@
+stages:
+  - build
+  - test
+  - staging
+  - deploy
+
+variables:
+  COMPOSE_DEV: "docker-compose -p dev_$CI_COMMIT_SHORT_SHA -f docker-compose.dev.yml"
+  COMPOSE_TEST: "docker-compose -p test_$CI_COMMIT_SHORT_SHA -f docker-compose.prod.base.yml -f docker-compose.prod.test.yml"
+  COMPOSE_DEPLOY: "docker-compose -f docker-compose.prod.base.yml -f docker-compose.prod.deploy.yml"
+  BUILD_WAIT: "3m"
+  DEPLOY_WAIT: "10s"
+
+before_script:
+  - docker pull docker/compose:1.24.1
+
+build:
+  stage: build
+  tags:
+    - comp8755
+    - cooper
+  before_script:
+    - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
+  script:
+    - "$COMPOSE_TEST" build
+    - "$COMPOSE_TEST" up -d
+    - sleep "$BUILD_WAIT"  # Run for sometime before checking
+    - ./tests/compose-check.sh "$COMPOSE_TEST"  # Check run normally
+    - "$COMPOSE_TEST" stop
+    - ./tests/compose-check.sh "$COMPOSE_TEST"  # Check stop normally
+
+test:
+  stage: test
+  tags:
+    - comp8755
+    - cooper
+  before_script:
+    - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
+  script:
+    - $COMPOSE_TEST up -d
+    - sleep "$DEPLOY_WAIT"  # Make sure everything is fully initialized
+    - $COMPOSE_TEST exec django-gunicorn python manage.py test  # Back-end test
+#    - $COMPOSE_TEST run angular-client ng lint
+#    - $COMPOSE_TEST run angular-client ng test --watch=false --browsers=Chrome_without_sandox  # Front-end test
+    - $COMPOSE_TEST down --rmi 'local' -v --remove-orphans  # Clean up
+
+prod-staging:
+  stage: staging
+  tags:
+    - comp8755
+    - srpms
+  script:
+    - "$COMPOSE_DEPLOY" build
+  only:
+    - master
+
+prod-deploy:
+  stage: deploy
+  tags:
+    - comp8755
+    - srpms
+    - tbd  # TODO: remove this when we ready to go online
+  script:
+    - "$COMPOSE_DEPLOY" up -d
+    - sleep "$DEPLOY_WAIT"  # TODO: get rid of this during production
+    - ./tests/compose-check.sh "$COMPOSE_DEPLOY"
+    - sleep "BUILD_WAIT"  # Wait longer to see if anything happen
+    - ./tests/compose-check.sh "$COMPOSE_DEPLOY"
+  only:
+    - master

@@ -23,8 +23,8 @@ services:
   # Copy the built front-end to volume and exit
   angular-client:
     build:
-      context: .
-      dockerfile: ./srpms-client/Dockerfile
+      context: ./srpms-client
+      dockerfile: ./Dockerfile
       args:
         - DEBUG=False
     env_file:

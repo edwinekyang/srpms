@@ -18,17 +18,19 @@ RUN if [ "$TEST" == "True" ]; then \
         apk add --no-cache nodejs nodejs-npm bash chromium nss chromium-chromedriver; \
     fi
 
-COPY ./* ./
+COPY . .
 RUN if [ "$DEBUG" == "True" ]; then \
         echo "Debug, skip build"; \
     else \
         npm install && \
-        ng build --prod && \
+        ng build --prod; \
+    fi && \
+    if [ "$TEST" != "True" ]; then \
         rm -rf node_modules; \
     fi
 
 # Note that these two variable only valid when TEST=True
-ENV CHROME_BIN='/usr/bin/chromium-browser --no-sandbox'
+ENV CHROME_BIN='/usr/bin/chromium-browser'
 ENV CHROME_DRIVER='/usr/bin/chromedriver'
 
 CMD ["./start.sh"]
