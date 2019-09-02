@@ -4,7 +4,7 @@ import { HttpService } from '../http.service';
 @Component({
   selector: 'app-contract',
   templateUrl: './contract.component.html',
-  styleUrls: ['./contract.component.sass']
+  styleUrls: ['./contract.component.scss']
 })
 export class ContractComponent implements OnInit {
 
@@ -16,10 +16,12 @@ export class ContractComponent implements OnInit {
   constructor(private _http: HttpService) { }
 
   ngOnInit() {
+    /*
     this._http.getBeer().subscribe(data => {
       this.brews = data;
       console.log(this.brews);
     });
+     */
   }
 
   setClasses() {
