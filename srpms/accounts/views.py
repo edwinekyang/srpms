@@ -17,6 +17,7 @@ class LoginView(generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = LoginSerializer
     permission_classes = ()  # Remove default permission to allow post action
+    authentication_classes = ()  # Remove default auth to allow re-login
 
     def post(self, request: Request, *args, **kwargs):
         serializer: serializers.ModelSerializer = self.get_serializer(data=request.data)
