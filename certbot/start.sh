@@ -7,10 +7,9 @@ cleanup() {
     
     if [ $pid -ne 1 ]; then
         kill -SIGTERM "$pid"
+        trap 'rc=$?; if [ $rc == "143" ]; then exit 0; else exit $rc; fi' EXIT
         wait "$pid"
-    fi
-    
-    exit
+    fi 
 }
 
 trap cleanup INT TERM

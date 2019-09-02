@@ -9,7 +9,8 @@ WORKDIR /app/srpms-client
 # Install angular
 RUN npm install -g @angular/cli@8 && \
     npm cache clean --force && \
-    rm -rf ~/.npm
+    rm -rf ~/.npm && \
+    apk add --no-cache bash
 
 COPY ./* ./
 RUN if [ "$DEBUG" == "True" ]; then \
