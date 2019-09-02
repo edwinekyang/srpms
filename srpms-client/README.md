@@ -3,12 +3,14 @@
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.0.
 
 ## Angular Component Structure
+```
 Components \
-├── header      # Top bar of the application \
-├── sidenav     # Side bar of the application \
-├── home        # Index page \
-├── contract    # Contract form \
-└── footer      # Bottom bar of the application 
+├── header      # Top bar of the application
+├── sidenav     # Side bar of the application
+├── home        # Index page
+├── contract    # Contract form
+└── footer      # Bottom bar of the application
+``` 
 
 ## Development server
 
