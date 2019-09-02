@@ -48,10 +48,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_env('SECRET_KEY', 'SECRET_KEY_FILE')
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# SECURITY WARNING: don't run with debug or test turned on in production!
 DEBUG = True if get_env('DEBUG') == 'True' else False
+TEST = True if get_env('TEST') == 'True' else False
 
-if DEBUG:
+if DEBUG or TEST:
     ALLOWED_HOSTS = ['localhost']
 else:
     ALLOWED_HOSTS = ['srpms.cecs.anu.edu.au']

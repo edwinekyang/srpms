@@ -1,0 +1,75 @@
+version: '3.7'
+
+services:
+  django-gunicorn:
+    build: ./srpms
+    volumes:
+      - static_volume:/djangoproj/srpms/static
+      - media_volume:/djangoproj/srpms/media
+    env_file:
+      - ./config.prod/db-postgres.env
+      - ./config.prod/django-gunicorn.env
+      - ./config.prod/general.env
+    networks:
+      - srpms_network
+    depends_on:
+      - db-postgres
+    secrets:
+      - postgres_db
+      - postgres_user
+      - postgres_passwd
+      - django_secret_key
+
+  # Copy the built front-end to volume and exit
+  angular-client:
+    build:
+      context: .
+      dockerfile: ./srpms-client/Dockerfile
+      args:
+        - DEBUG=False
+    env_file:
+      - ./config.prod/general.env
+    volumes:
+      - angular_volume:/dist
+    network_mode: none
+
+  nginx:
+    build: ./nginx
+    env_file:
+      - ./config.prod/certbot.env
+    volumes:
+      - angular_volume:/dist:ro
+      - static_volume:/djangoproj/srpms/static:ro
+      - media_volume:/djangoproj/srpms/media:ro
+      - letsencrypt_volume:/etc/letsencrypt  # TODO: rewrite entrypoint to let certbot initialize certificates
+      - certbot_volume:/var/www/certbot:ro
+    networks:
+      - srpms_network
+    depends_on:
+      - django-gunicorn
+      - angular-client
+
+  db-postgres:
+    image: postgres:11.5-alpine
+    volumes:
+      - db_postgres_volume:/var/lib/postgresql/data
+    env_file:
+      - ./config.prod/db-postgres.env
+    networks:
+      - srpms_network
+    secrets:
+      - postgres_db
+      - postgres_user
+      - postgres_passwd
+      - postgres_init_args
+
+networks:
+  srpms_network:
+
+volumes:
+  db_postgres_volume:
+  angular_volume:
+  static_volume:
+  media_volume:
+  letsencrypt_volume:
+  certbot_volume:
