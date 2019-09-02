@@ -1,17 +1,17 @@
 /* You can add global styles to this file, and also import other style files */
-
-//@import "~@angular/material/prebuilt-themes/indigo-pink.css";
 @import "srpms-theme.scss";
-@import url('https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap');
 
 body {
   margin: 0;
-  font-family: 'Roboto', 'sans-serif';
+}
+
+.mat-typography h1 {
+  margin: 16px 0 16px;
 }
 
 header, footer {
   background-color: mat-color($accent);
-  color:white;
+  color:$header-font-colour;
 }
 
 a {
@@ -22,7 +22,7 @@ header {
   border-bottom: mat-color($primary) 5px solid;
   font-size: 20px;
   a {
-    color:white;
+    color:$header-font-colour;
   }
 }
 
@@ -37,11 +37,7 @@ footer {
 
 app-sidenav a {
   text-decoration: none;
-  color: black;
-}
-
-.mat-drawer-inner-container {
-  text-align: center;
+  color: $sidenav-font-colour;
 }
 
 mat-sidenav {

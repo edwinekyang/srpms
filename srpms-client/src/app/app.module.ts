@@ -14,6 +14,7 @@ import { MatSidenavModule } from "@angular/material/sidenav";
 import { MatButtonModule } from "@angular/material/button";
 import {MatListModule} from "@angular/material/list";
 import { HeaderComponent } from './header/header.component';
+import {MatCardModule} from "@angular/material/card";
 
 @NgModule({
   declarations: [
@@ -32,7 +33,8 @@ import { HeaderComponent } from './header/header.component';
         MatGridListModule,
         MatSidenavModule,
         MatButtonModule,
-        MatListModule
+        MatListModule,
+        MatCardModule
     ],
   providers: [],
   bootstrap: [AppComponent]
