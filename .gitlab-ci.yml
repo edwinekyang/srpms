@@ -72,7 +72,6 @@ prod-staging:
     - srpms
   script:
     - $COMPOSE_DEPLOY build
-    - $COMPOSE_DEPLOY run -e DRY_RUN=1 certbot
   only:
     - master
 
