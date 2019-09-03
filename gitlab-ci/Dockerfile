@@ -16,3 +16,8 @@ RUN apk update && \
     ln -s /usr/lib/libgcc_s.so.1 /usr/glibc-compat/lib && \
     rm /etc/apk/keys/sgerrand.rsa.pub glibc-$GLIBC.apk && \
     apk del curl
+
+# TODO: find some more general way to get the privilege
+# Fix permission problem inside CI container
+RUN addgroup -g 998 docker && \
+    adduser gitlab-runner docker
