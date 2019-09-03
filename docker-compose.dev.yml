@@ -7,10 +7,12 @@ services:
     build: ./srpms
     volumes:
       - ./srpms:/djangoproj/srpms
+    environment:
+      - LDAP_ADDR=${LDAP_ADDR}
     env_file:
-      - config.dev/db-postgres.env
-      - config.dev/django-gunicorn.env
-      - config.dev/general.env
+      - ./config.dev/db-postgres.env
+      - ./config.dev/django-gunicorn.env
+      - ./config.dev/general.env
     networks:
       - srpms_network
     depends_on:
@@ -19,12 +21,12 @@ services:
   # For development purpose only
   angular-client:
     build:
-      context: .
-      dockerfile: ./srpms-client/Dockerfile
+      context: ./srpms-client
+      dockerfile: ./Dockerfile
       args:
         - DEBUG=True
     env_file:
-      - config.dev/general.env
+      - ./config.dev/general.env
     volumes:
       - ./srpms-client:/app/srpms-client
       - angular_volume:/dist
@@ -32,15 +34,16 @@ services:
       - srpms_network
 
   nginx:
-    image: nginx:1.17-alpine
+    build: ./nginx
     ports:
       # Map host 8000 to container 80
       - 8000:80
       - 8001:443
+    env_file:
+      - ./config.dev/certbot.env
     volumes:
       # Ngnix configuration file
       - ./config.dev/nginx/conf.d:/etc/nginx/conf.d
-      - ./config.dev/ssl:/etc/ssl
       - angular_volume:/dist
     networks:
       - srpms_network
@@ -53,7 +56,7 @@ services:
     volumes:
       - db_postgres_volume:/var/lib/postgresql/data
     env_file:
-      - config.dev/db-postgres.env
+      - ./config.dev/db-postgres.env
     networks:
       - srpms_network
 

@@ -159,18 +159,23 @@ Summary of development environment:
 **Please make sure you are under the project directory when using following commands**
 
 ```bash
-# Start, append -d if you want to run in background
-docker-compose -f docker-compose.dev.yml up
+# Build images if this is your first run
+docker-compose -f docker-compose.dev.yml build
 
-# To apply changes of Dockerfile and compose file to running containers, use
+# To preven undesire behavior during development, the database is not initialized by default, so we need to initialize manually
+docker-compose -f docker-compose.dev.yml run django-gunicorn python manage.py migrate
+
+# Start, will run in background
+docker-compose -f docker-compose.dev.yml up -d
+
+# To apply changes of Dockerfile and compose file to running containers, use the following command (remove --build if you did not change any Dockerfile)
 docker-compose -f docker-compose.dev.yml up -d --build
 
-# Stop services
+# Stop containers
 docker-compose -f docker-compose.dev.yml stop
 
-# Only issue when you know what you are doing
 # This command will remove container, network, and volumes, which means the database would be removed as well
-docker-compose -f docker-compose.dev.yml down
+docker-compose -f docker-compose.dev.yml down --rmi 'local' -v --remove-orphans
 ```
 
 - The about command would
@@ -186,25 +191,19 @@ docker-compose -f docker-compose.dev.yml down
 
 ## Access ANU LDAP outside campus
 
-- For Mac:
-
-  - `sudo 389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au`
-
-- For Linux:
-
-  - ```bash
-    # Obtain srpms network name by `docker network ls`, normally it should be 'srpms_srpms_network'
-    DOCKER_GATEWAY="$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
-    sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
-    ```
-
-  - You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked and won't reach the ssh tunnel.
-    
-    ```bash
-    sudo iptables -A INPUT -d $(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}') -p tcp -m tcp --dport 389 -j ACCEPT
-    ```
-    
-    
+- ```bash
+  DOCKER_GATEWAY="$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
+  export LDAP_ADDR="ldap://$DOCKER_GATEWAY"
+  
+  # Make sure your ssh connection is alive when the container is running
+sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
+  ```
+  
+- You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked and won't reach the ssh tunnel.
+  
+  ```bash
+  sudo iptables -A INPUT -d $(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}') -p tcp -m tcp --dport 389 -j ACCEPT
+  ```
 
 # Deploy - Production
 
