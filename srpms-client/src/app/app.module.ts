@@ -12,9 +12,9 @@ import { SidenavComponent } from './sidenav/sidenav.component';
 import { MatGridListModule } from "@angular/material/grid-list";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { MatButtonModule } from "@angular/material/button";
-import {MatListModule} from "@angular/material/list";
+import { MatListModule } from "@angular/material/list";
 import { HeaderComponent } from './header/header.component';
-import {MatCardModule} from "@angular/material/card";
+import { MatCardModule } from "@angular/material/card";
 
 @NgModule({
   declarations: [
