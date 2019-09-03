@@ -62,21 +62,12 @@ clean-success:
   script:
     - $COMPOSE_TEST down --rmi 'local' -v --remove-orphans
 
-clean-fail-stop:
+clean-fail:
   stage: clean
   tags:
     - comp8755
     - cooper
   when: on_failure
-  script:
-    - $COMPOSE_TEST stop
-
-clean-fail-rm:
-  stage: clean
-  tags:
-    - comp8755
-    - cooper
-  when: manual
   script:
     - $COMPOSE_TEST down --rmi 'local' -v --remove-orphans
 
