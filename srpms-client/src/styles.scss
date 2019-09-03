@@ -1,0 +1,54 @@
+/* You can add global styles to this file, and also import other style files */
+@import "srpms-theme.scss";
+
+body {
+  margin: 0;
+}
+
+.mat-typography h1 {
+  margin: 16px 0 16px;
+}
+
+header, footer {
+  background-color: mat-color($accent);
+  color:$header-font-colour;
+}
+
+a {
+  text-decoration: none;
+}
+
+header {
+  border-bottom: mat-color($primary) 5px solid;
+  font-size: 20px;
+  a {
+    color:$header-font-colour;
+  }
+}
+
+footer {
+  font-size: 14px;
+}
+
+.logo {
+  max-height: 45px;
+  max-width: 127px;
+}
+
+app-sidenav a {
+  text-decoration: none;
+  color: $sidenav-font-colour;
+}
+
+mat-sidenav {
+  padding: 1em 1em 0 1em;
+  width: 15%;
+}
+
+mat-sidenav-content {
+  padding: 0 1em 0 1em;
+}
+
+mat-sidenav-container {
+  height: 100vh;
+}
