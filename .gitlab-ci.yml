@@ -22,11 +22,11 @@ build:
   before_script:
     - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
   script:
-    - "$COMPOSE_TEST" build
-    - "$COMPOSE_TEST" up -d
+    - $COMPOSE_TEST build
+    - $COMPOSE_TEST up -d
     - sleep "$BUILD_WAIT"  # Run for sometime before checking
     - ./tests/compose-check.sh "$COMPOSE_TEST"  # Check run normally
-    - "$COMPOSE_TEST" stop
+    - $COMPOSE_TEST stop
     - ./tests/compose-check.sh "$COMPOSE_TEST"  # Check stop normally
 
 test:
@@ -40,8 +40,8 @@ test:
     - $COMPOSE_TEST up -d
     - sleep "$DEPLOY_WAIT"  # Make sure everything is fully initialized
     - $COMPOSE_TEST exec django-gunicorn python manage.py test  # Back-end test
-#    - $COMPOSE_TEST run angular-client ng lint
-#    - $COMPOSE_TEST run angular-client ng test --watch=false --browsers=Chrome_without_sandox  # Front-end test
+    #    - $COMPOSE_TEST run angular-client ng lint
+    #    - $COMPOSE_TEST run angular-client ng test --watch=false --browsers=Chrome_without_sandox  # Front-end test
     - $COMPOSE_TEST down --rmi 'local' -v --remove-orphans  # Clean up
 
 prod-staging:
@@ -50,7 +50,7 @@ prod-staging:
     - comp8755
     - srpms
   script:
-    - "$COMPOSE_DEPLOY" build
+    - $COMPOSE_DEPLOY build
   only:
     - master
 
@@ -61,7 +61,7 @@ prod-deploy:
     - srpms
     - tbd  # TODO: remove this when we ready to go online
   script:
-    - "$COMPOSE_DEPLOY" up -d
+    - $COMPOSE_DEPLOY up -d
     - sleep "$DEPLOY_WAIT"  # TODO: get rid of this during production
     - ./tests/compose-check.sh "$COMPOSE_DEPLOY"
     - sleep "BUILD_WAIT"  # Wait longer to see if anything happen
