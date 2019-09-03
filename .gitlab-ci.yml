@@ -29,8 +29,10 @@ build:
     - ./tests/compose-check.sh "$COMPOSE_TEST"  # Check run normally
     - $COMPOSE_TEST stop
     - ./tests/compose-check.sh "$COMPOSE_TEST"  # Check stop normally
+    - $COMPOSE_TEST up -d  # Restart in prepare for running the test
+    - sleep $DEPLOY_WAIT  # Make sure everything is fully initialized
 
-test:
+test-front-end:
   stage: test
   tags:
     - comp8755
@@ -38,18 +40,43 @@ test:
   before_script:
     - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
   script:
-    - $COMPOSE_TEST up -d
-    - sleep $DEPLOY_WAIT  # Make sure everything is fully initialized
-    - $COMPOSE_TEST run django-gunicorn python manage.py test  # Back-end test
 #    - $COMPOSE_TEST run angular-client ng lint
     - $COMPOSE_TEST run angular-client ng test --watch=false --browsers=Chrome_without_sandox  # Front-end test
 
-clean:
+test-back-end:
+  stage: test
+  tags:
+    - comp8755
+    - cooper
+  before_script:
+    - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
+  script:
+    - $COMPOSE_TEST run django-gunicorn python manage.py test  # Back-end test
+
+clean-success:
   stage: clean
   tags:
     - comp8755
     - cooper
   when: on_success
+  script:
+    - $COMPOSE_TEST down --rmi 'local' -v --remove-orphans
+
+clean-fail-stop:
+  stage: clean
+  tags:
+    - comp8755
+    - cooper
+  when: on_failure
+  script:
+    - $COMPOSE_TEST stop
+
+clean-fail-rm:
+  stage: clean
+  tags:
+    - comp8755
+    - cooper
+  when: manual
   script:
     - $COMPOSE_TEST down --rmi 'local' -v --remove-orphans
 
