@@ -17,7 +17,5 @@ RUN apk update && \
     rm /etc/apk/keys/sgerrand.rsa.pub glibc-$GLIBC.apk && \
     apk del curl
 
-# TODO: find some more general way to get the privilege
 # Fix permission problem inside CI container
-RUN addgroup -g 998 docker && \
-    adduser gitlab-runner docker
+ENTRYPOINT ["/usr/bin/dumb-init", "/entrypoint", "run", "--user=root", "--working-directory=/home/gitlab-runner"]
