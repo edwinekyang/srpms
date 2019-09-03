@@ -1,0 +1,37 @@
+version: '3.7'
+
+services:
+  django-gunicorn:
+    environment:
+      - LDAP_ADDR=${LDAP_ADDR}
+      - TEST=True
+
+  angular-client:
+    build:
+      args:
+        - TEST=True
+
+  nginx:
+    ports:
+      # Map host 80 to container 80
+      - 8100:80
+      - 8101:443
+    volumes:
+      # Ngnix configuration file
+      - ./config.prod/nginx/conf.d.test:/etc/nginx/conf.d:ro
+
+  db-postgres:
+
+# Please configure your CI to have these secrets when testing.
+# Refer to docs/Deployment.md secrets section for more details.
+secrets:
+  postgres_db:
+    file: /srpms-secrets-test/postgres-db.txt
+  postgres_user:
+    file: /srpms-secrets-test/postgres-user.txt
+  postgres_passwd:
+    file: /srpms-secrets-test/postgres-passwd.txt
+  postgres_init_args:
+    file: /srpms-secrets-test/postgres-init-args.txt
+  django_secret_key:
+    file: /srpms-secrets-test/django_secret_key.txt

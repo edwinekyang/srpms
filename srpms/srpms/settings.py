@@ -14,6 +14,31 @@ import os
 import ldap
 from django_auth_ldap.config import LDAPSearch
 
+
+def get_env(env_name: str, env_file: str = None) -> str:
+    """
+    Read environment variable, if is empty then try the env_file.
+
+    This function is to support docker secrets, which would normally provide
+    a env variable suffix with '_FILE'. The function does not auto suffix in
+    case other suffix convention appears.
+    """
+
+    env_var = os.environ.get(env_name)
+
+    if env_var:
+        pass
+    elif env_file:
+        try:
+            env_var = open(os.environ.get(env_file)).read()
+        except FileNotFoundError:
+            env_var = ''
+    else:
+        env_var = ''
+
+    return env_var
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,12 +46,16 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 's0bpsthvxi%f9#l9$bi9f4ro!x61m_5)dvslifkgi1$-o59^(n'
+SECRET_KEY = get_env('SECRET_KEY', 'SECRET_KEY_FILE')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.environ.get('DJANGO_DEBUG_MODE') == 'True' else False
+# SECURITY WARNING: don't run with debug or test turned on in production!
+DEBUG = True if get_env('DEBUG') == 'True' else False
+TEST = True if get_env('TEST') == 'True' else False
 
-ALLOWED_HOSTS = []
+if DEBUG or TEST:
+    ALLOWED_HOSTS = ['localhost']
+else:
+    ALLOWED_HOSTS = ['srpms.cecs.anu.edu.au']
 
 # Application definition
 
@@ -77,10 +106,10 @@ WSGI_APPLICATION = 'srpms.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': os.environ.get('POSTGRES_HOST'),
+        'NAME': get_env('POSTGRES_DB', 'POSTGRES_DB_FILE'),
+        'USER': get_env('POSTGRES_USER', 'POSTGRES_USER_FILE'),
+        'PASSWORD': get_env('POSTGRES_PASSWORD', 'POSTGRES_PASSWORD_FILE'),
+        'HOST': get_env('POSTGRES_HOST'),
         'PORT': '5432',
     }
 }
@@ -144,7 +173,7 @@ AUTHENTICATION_BACKENDS = [
 
 # TODO: we don't know yet whether anonymous search would work after deploy
 # If not, we need to give a DN and its PASSWORD to authenticate
-AUTH_LDAP_SERVER_URI = os.environ.get('LDAP_ADDR')
+AUTH_LDAP_SERVER_URI = get_env('LDAP_ADDR')
 AUTH_LDAP_BIND_DN = ""
 AUTH_LDAP_BIND_PASSWORD = ""
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
@@ -163,3 +192,15 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
+if not DEBUG:
+    # Prevent browser from identifying content types incorrectly.
+    SECURE_CONTENT_TYPE_NOSNIFF=True
+
+    # Activate browser's XSS filtering and help prevent XSS attacks.
+    SECURE_BROWSER_XSS_FILTER=True
+
+    # Prevent iframe
+    X_FRAME_OPTIONS='DENY'
+
+    # TODO: SECURE_HSTS_SECONDS

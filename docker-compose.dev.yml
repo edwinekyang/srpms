@@ -10,8 +10,7 @@ services:
     env_file:
       - config.dev/db-postgres.env
       - config.dev/django-gunicorn.env
-    command:
-      ["./dev_start.sh"]
+      - config.dev/general.env
     networks:
       - srpms_network
     depends_on:
@@ -19,11 +18,16 @@ services:
 
   # For development purpose only
   angular-client:
-    build: ./srpms-client
+    build:
+      context: .
+      dockerfile: ./srpms-client/Dockerfile
+      args:
+        - DEBUG=True
+    env_file:
+      - config.dev/general.env
     volumes:
       - ./srpms-client:/app/srpms-client
-    command:
-      ["./dev_start.sh"]
+      - angular_volume:/dist
     networks:
       - srpms_network
 
@@ -37,6 +41,7 @@ services:
       # Ngnix configuration file
       - ./config.dev/nginx/conf.d:/etc/nginx/conf.d
       - ./config.dev/ssl:/etc/ssl
+      - angular_volume:/dist
     networks:
       - srpms_network
     depends_on:
@@ -58,3 +63,4 @@ networks:
 
 volumes:
   db_postgres_volume:
+  angular_volume:
