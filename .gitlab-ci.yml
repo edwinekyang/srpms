@@ -17,7 +17,6 @@ before_script:
   - echo "COMPOSE_DEPLOY = $COMPOSE_DEPLOY"
   - echo "BUILD_WAIT = $BUILD_WAIT"
   - echo "DEPLOY_WAIT = $DEPLOY_WAIT"
-  - printenv
 
 build:
   stage: build
@@ -57,7 +56,7 @@ test-back-end:
   script:
     - $COMPOSE_TEST run django-gunicorn python manage.py test  # Back-end test
 
-clean-fail:
+clean:
   stage: clean
   tags:
     - comp8755
