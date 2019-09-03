@@ -13,7 +13,11 @@ variables:
   DEPLOY_WAIT: "10s"
 
 before_script:
-  - docker pull docker/compose:1.24.1
+  - echo "COMPOSE_TEST = $COMPOSE_TEST"
+  - echo "COMPOSE_DEPLOY = $COMPOSE_DEPLOY"
+  - echo "BUILD_WAIT = $BUILD_WAIT"
+  - echo "DEPLOY_WAIT = $DEPLOY_WAIT"
+  - printenv
 
 build:
   stage: build
@@ -53,21 +57,12 @@ test-back-end:
   script:
     - $COMPOSE_TEST run django-gunicorn python manage.py test  # Back-end test
 
-clean-success:
-  stage: clean
-  tags:
-    - comp8755
-    - cooper
-  when: on_success
-  script:
-    - $COMPOSE_TEST down --rmi 'local' -v --remove-orphans
-
 clean-fail:
   stage: clean
   tags:
     - comp8755
     - cooper
-  when: on_failure
+  when: always
   script:
     - $COMPOSE_TEST down --rmi 'local' -v --remove-orphans
 

@@ -19,7 +19,7 @@ set -e
 # Convert the array to actually bash array
 eval DOMAINS=$DOMAINS
 
-if [ $DRY_RUN != 0 ]; then
+if [ "$DRY_RUN" != "0" ]; then
     staging_arg="--dry-run"
     purge_cmd="find"
 else
@@ -77,7 +77,12 @@ while :; do
     certbot renew $staging_arg --deploy-hook "\
         echo \"Certificates renewed, reloading nginx ...\" && \
         docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload"
-    sleep 12h
+
+    if [ "$DRY_RUN" != "0" ]; then
+        exit
+    else
+        sleep 12h
+    fi
 done &
 pid="${!}"
 wait $pid
