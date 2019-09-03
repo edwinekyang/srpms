@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpService } from '../http.service';
+// import { HttpService } from '../http.service';
 
 @Component({
   selector: 'app-contract',
@@ -10,10 +10,10 @@ export class ContractComponent implements OnInit {
 
   firstName = '';
   lastName = '';
-  brews: Object;
+  // brews: Object;
 
   // tslint:disable-next-line:variable-name
-  constructor(private _http: HttpService) { }
+  // constructor(private _http: HttpService) { }
 
   ngOnInit() {
     /*
