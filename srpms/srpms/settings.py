@@ -45,12 +45,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_env('SECRET_KEY', 'SECRET_KEY_FILE')
-
 # SECURITY WARNING: don't run with debug or test turned on in production!
 DEBUG = True if get_env('DEBUG') == 'True' else False
 TEST = True if get_env('TEST') == 'True' else False
+
+# SECURITY WARNING: keep the secret key used in production secret!
+if DEBUG:
+    SECRET_KEY = 's0bpsthvxi%f9#l9$bi9f4ro!x61m_5)dvslifkgi1$-o59^(n'
+else:
+    SECRET_KEY = get_env('SECRET_KEY', 'SECRET_KEY_FILE')
 
 # For fixing the CSRF validation error in development
 USE_X_FORWARDED_HOST = True
@@ -105,16 +108,28 @@ WSGI_APPLICATION = 'srpms.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': get_env('POSTGRES_DB', 'POSTGRES_DB_FILE'),
-        'USER': get_env('POSTGRES_USER', 'POSTGRES_USER_FILE'),
-        'PASSWORD': get_env('POSTGRES_PASSWORD', 'POSTGRES_PASSWORD_FILE'),
-        'HOST': get_env('POSTGRES_HOST'),
-        'PORT': '5432',
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'srpms',
+            'USER': 'srpms',
+            'PASSWORD': 'Srpms  # TODO: use docker secret for password',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': get_env('POSTGRES_DB', 'POSTGRES_DB_FILE'),
+            'USER': get_env('POSTGRES_USER', 'POSTGRES_USER_FILE'),
+            'PASSWORD': get_env('POSTGRES_PASSWORD', 'POSTGRES_PASSWORD_FILE'),
+            'HOST': get_env('POSTGRES_HOST'),
+            'PORT': '5432',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -196,6 +211,12 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 if not DEBUG:
+    # HTTPS related settings
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
     # Prevent browser from identifying content types incorrectly.
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
@@ -207,12 +228,25 @@ if not DEBUG:
 
     # TODO: SECURE_HSTS_SECONDS
 
-
-# Enable Django debug toolbar during debug
 if DEBUG:
+    # Disable HTTPS
+    SECURE_PROXY_SSL_HEADER = None
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+
+    # Enable Django debug toolbar during debug
     DEBUG_TOOLBAR_CONFIG = {
         "SHOW_TOOLBAR_CALLBACK": lambda x: True,
         "RENDER_PANELS": True
     }
     INSTALLED_APPS = ['debug_toolbar', ] + INSTALLED_APPS
     MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware', ] + MIDDLEWARE
+
+    # Log LDAP activities
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {"console": {"class": "logging.StreamHandler"}},
+        "loggers": {"django_auth_ldap": {"level": "DEBUG", "handlers": ["console"]}},
+    }
