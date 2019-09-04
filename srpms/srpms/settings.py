@@ -63,7 +63,6 @@ else:
     ALLOWED_HOSTS = ['srpms.cecs.anu.edu.au']
 
 # Application definition
-
 INSTALLED_APPS = [
     'research_mgt.apps.ResearchMgtConfig',
     'accounts.apps.AccountsConfig',
@@ -148,6 +147,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Customize user model
+AUTH_USER_MODEL = 'accounts.SrpmsUser'
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -185,7 +187,7 @@ if not DEBUG:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = ('rest_framework.renderers.JSONRenderer',)
 
 AUTHENTICATION_BACKENDS = [
-    'django_auth_ldap.backend.LDAPBackend',
+    'accounts.authentication.ANULDAPBackend',
     'django.contrib.auth.backends.ModelBackend'  # Django default
 ]
 
@@ -200,15 +202,16 @@ AUTH_LDAP_USER_SEARCH = LDAPSearch(
 # Explicitly specify that SRPMS should update user information on every login
 AUTH_LDAP_ALWAYS_UPDATE_USER = True
 
-# Cache distinguished names and group memberships for an hour to minimize
-# LDAP traffic.
+# Cache distinguished names and group memberships for an hour to minimize LDAP traffic.
 AUTH_LDAP_CACHE_TIMEOUT = 3600
 
-# HTTPS related settings
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Retrieve attributes from LDAP information
+AUTH_LDAP_USER_ATTR_MAP = {
+    "first_name": "givenName",
+    "last_name": "sn",
+    "email": "mail",
+    "uni_id": "uid",
+}
 
 if not DEBUG:
     # HTTPS related settings
