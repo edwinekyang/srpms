@@ -1,3 +1,20 @@
+##  CSRF verification error, ..., not in trusted origin
+
+Reasons:
+
+- Starting in ~Djagno 1.9, the CSRF check requires that the `Referer` and `Host` match unless you specify a [`CSRF_TRUSTED_ORIGINS`](https://docs.djangoproject.com/en/2.0/ref/settings/#csrf-trusted-origins) (see the code around `REASON_BAD_REFERER` [here](https://docs.djangoproject.com/en/2.0/_modules/django/middleware/csrf/))
+- If you don't specify `CSRF_TRUSTED_ORIGINS`, the system falls back on `request.get_host()`
+- `request.get_host()` uses `request._get_raw_host()`
+- `request._get_raw_host()` checks sequentially `HTTP_X_FORWARDED_HOST` (if `USE_X_FORWARDED_HOST` is set), `HTTP_HOST`, and `SERVER_NAME`
+- Most recommended Nginx configurations suggest an entry like `proxy_set_header X-Forwarded-Host $host:$server_port;`
+- Eventually, the referrer (e.g. `<host>`) is compared to `X-Forwarded-Host` (e.g. `<host>:<port>`). These do not match so CSRF fails.
+
+Two solutions:
+
+- include host and port in `CSRF_TRUSTED_ORIGINS`
+  - Not recommended as it would hard code things
+- remove `port` from `X-Forwarded-Host` in nginx configuration (on the assumption that the non-spec `X-Forwarded-Host` follows the same semantics as `Host`)
+
 # Accounts
 
 There is this application `accounts` for extending the basic `User` class

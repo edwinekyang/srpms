@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from rest_framework.authentication import BasicAuthentication
 
 from .serializers import LoginSerializer
 
@@ -17,7 +18,7 @@ class LoginView(generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = LoginSerializer
     permission_classes = ()  # Remove default permission to allow post action
-    authentication_classes = ()  # Remove default auth to allow re-login
+    authentication_classes = (BasicAuthentication, )  # Remove session auth to prevent CSRF issue
 
     def post(self, request: Request, *args, **kwargs):
         serializer: serializers.ModelSerializer = self.get_serializer(data=request.data)

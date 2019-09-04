@@ -1,6 +1,8 @@
 # start from an official image
 FROM python:3.7-alpine
 
+ARG DEBUG
+
 # arbitrary location choice
 RUN mkdir -p /djangoproj/srpms
 WORKDIR /djangoproj/srpms
@@ -33,6 +35,10 @@ RUN apk add --no-cache --virtual .build-deps \
     )" \
     && apk add --virtual .rundeps $runDeps \
     && apk del .build-deps
+
+RUN if [ "$DEBUG" == "True" ]; then \
+        pip install django-debug-toolbar; \
+    fi
 
 # copy our project code
 COPY . .

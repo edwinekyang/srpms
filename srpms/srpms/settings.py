@@ -52,8 +52,10 @@ SECRET_KEY = get_env('SECRET_KEY', 'SECRET_KEY_FILE')
 DEBUG = True if get_env('DEBUG') == 'True' else False
 TEST = True if get_env('TEST') == 'True' else False
 
+# For fixing the CSRF validation error in development
+USE_X_FORWARDED_HOST = True
 if DEBUG or TEST:
-    ALLOWED_HOSTS = ['localhost']
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 else:
     ALLOWED_HOSTS = ['srpms.cecs.anu.edu.au']
 
@@ -153,6 +155,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# REST framework related settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
@@ -171,8 +174,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend'  # Django default
 ]
 
-# TODO: we don't know yet whether anonymous search would work after deploy
-# If not, we need to give a DN and its PASSWORD to authenticate
+# LDAP related settings
 AUTH_LDAP_SERVER_URI = get_env('LDAP_ADDR')
 AUTH_LDAP_BIND_DN = ""
 AUTH_LDAP_BIND_PASSWORD = ""
@@ -195,12 +197,22 @@ CSRF_COOKIE_SECURE = True
 
 if not DEBUG:
     # Prevent browser from identifying content types incorrectly.
-    SECURE_CONTENT_TYPE_NOSNIFF=True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
     # Activate browser's XSS filtering and help prevent XSS attacks.
-    SECURE_BROWSER_XSS_FILTER=True
+    SECURE_BROWSER_XSS_FILTER = True
 
     # Prevent iframe
-    X_FRAME_OPTIONS='DENY'
+    X_FRAME_OPTIONS = 'DENY'
 
     # TODO: SECURE_HSTS_SECONDS
+
+
+# Enable Django debug toolbar during debug
+if DEBUG:
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TOOLBAR_CALLBACK": lambda x: True,
+        "RENDER_PANELS": True
+    }
+    INSTALLED_APPS = ['debug_toolbar', ] + INSTALLED_APPS
+    MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware', ] + MIDDLEWARE
