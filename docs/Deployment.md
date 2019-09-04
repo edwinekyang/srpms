@@ -162,11 +162,13 @@ Summary of development environment:
 # Build images if this is your first run
 docker-compose -f docker-compose.dev.yml build
 
-# To preven undesire behavior during development, the database is not initialized by default, so we need to initialize manually
-docker-compose -f docker-compose.dev.yml run django-gunicorn python manage.py migrate
-
 # Start, will run in background
 docker-compose -f docker-compose.dev.yml up -d
+
+# To preven undesire behavior during development, the database is not initialized by default, so we need to initialize manually
+docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py migrate
+docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py makemigrations accounts research_mgt
+docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py migrate --fake-initial
 
 # To apply changes of Dockerfile and compose file to running containers, use the following command (remove --build if you did not change any Dockerfile)
 docker-compose -f docker-compose.dev.yml up -d --build

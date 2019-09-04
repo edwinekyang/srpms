@@ -27,6 +27,8 @@ if [ "$DEBUG" == "False" ]; then
 
     echo "### Perform database migraitons ..."
     python manage.py migrate
+    python manage.py makemigrations accounts research_mgt
+    python manage.py migrate --fake-initial
 
     exec gunicorn --bind :8000 srpms.wsgi:application
 elif [ "$DEBUG" == "True" ]; then
