@@ -12,7 +12,9 @@ from srpms import settings
 # Create your tests here.
 class LoginTestCase(TestCase):
     def setUp(self):
-        SrpmsUser.objects.create_user(username='test_basic', password='Basic_12345')
+        self.user_01_name = 'test_basic'
+        self.user_01_passwd = 'Basic_12345'
+        SrpmsUser.objects.create_user(username=self.user_01_name, password=self.user_01_passwd)
 
     def test_create_user(self):
         print('Test create valid user ...')
@@ -31,15 +33,23 @@ class LoginTestCase(TestCase):
     def test_login_basic(self):
         client = APIClient()
 
+        print('Test GET on login page ...')
+        response = client.get('/api/accounts/login/', secure=True)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
         print('Test valid credential login ...')
         response = client.post('/api/accounts/login/',
-                               {'username': 'test_basic', 'password': 'Basic_12345'},
+                               {'username': self.user_01_name, 'password': self.user_01_passwd},
                                format='json', secure=True)
+        self.assertRedirects(response, '/api/accounts/user/{}/'.format(self.user_01_name))
+        response = client.post('/api/accounts/login/',
+                               {'username': self.user_01_name, 'password': self.user_01_passwd},
+                               format='json', secure=True, follow=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         print('Test wrong password login ...')
         response = client.post('/api/accounts/login/',
-                               {'username': 'test_basic', 'password': 'Basic_54321'},
+                               {'username': self.user_01_name, 'password': 'Basic_54321'},
                                format='json', secure=True)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -74,4 +84,28 @@ class LoginTestCase(TestCase):
                                    format='json', secure=True)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_login_edges(self):
+        client = APIClient()
 
+        print('Test repeat login ...')
+        client.post('/api/accounts/login/',
+                    {'username': self.user_01_name, 'password': self.user_01_passwd},
+                    format='json', secure=True, follow=True)
+        response = client.post('/api/accounts/login/',
+                               {'username': self.user_01_name, 'password': self.user_01_passwd},
+                               format='json', secure=True, follow=True)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_logout_basic(self):
+        client = APIClient()
+
+        print('Test GET on logout page without login ...')
+        response = client.get('/api/accounts/logout/', secure=True)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        print('Test GET on logout page after login ...')
+        client.post('/api/accounts/login/',
+                    {'username': self.user_01_name, 'password': self.user_01_passwd},
+                    format='json', secure=True)
+        response = client.get('/api/accounts/logout/', secure=True)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
