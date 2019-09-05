@@ -5,6 +5,9 @@ services:
     environment:
       - LDAP_ADDR=${LDAP_ADDR}
       - TEST=True
+    secrets:
+      - django_test_ldap_username
+      - django_test_ldap_password
 
   angular-client:
     build:
