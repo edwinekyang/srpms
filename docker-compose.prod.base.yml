@@ -2,7 +2,11 @@ version: '3.7'
 
 services:
   django-gunicorn:
-    build: ./srpms
+    build:
+      context: ./srpms
+      dockerfile: ./Dockerfile
+      args:
+        - DEBUG=False
     volumes:
       - static_volume:/djangoproj/srpms/static
       - media_volume:/djangoproj/srpms/media

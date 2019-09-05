@@ -45,20 +45,24 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_env('SECRET_KEY', 'SECRET_KEY_FILE')
-
 # SECURITY WARNING: don't run with debug or test turned on in production!
 DEBUG = True if get_env('DEBUG') == 'True' else False
 TEST = True if get_env('TEST') == 'True' else False
 
+# SECURITY WARNING: keep the secret key used in production secret!
+if DEBUG:
+    SECRET_KEY = 's0bpsthvxi%f9#l9$bi9f4ro!x61m_5)dvslifkgi1$-o59^(n'
+else:
+    SECRET_KEY = get_env('SECRET_KEY', 'SECRET_KEY_FILE')
+
+# For fixing the CSRF validation error in development
+USE_X_FORWARDED_HOST = True
 if DEBUG or TEST:
-    ALLOWED_HOSTS = ['localhost']
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 else:
     ALLOWED_HOSTS = ['srpms.cecs.anu.edu.au']
 
 # Application definition
-
 INSTALLED_APPS = [
     'research_mgt.apps.ResearchMgtConfig',
     'accounts.apps.AccountsConfig',
@@ -103,16 +107,28 @@ WSGI_APPLICATION = 'srpms.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': get_env('POSTGRES_DB', 'POSTGRES_DB_FILE'),
-        'USER': get_env('POSTGRES_USER', 'POSTGRES_USER_FILE'),
-        'PASSWORD': get_env('POSTGRES_PASSWORD', 'POSTGRES_PASSWORD_FILE'),
-        'HOST': get_env('POSTGRES_HOST'),
-        'PORT': '5432',
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'srpms',
+            'USER': 'srpms',
+            'PASSWORD': 'Srpms',
+            'HOST': get_env('POSTGRES_HOST') if get_env('POSTGRES_HOST') else 'localhost',
+            'PORT': '5432',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': get_env('POSTGRES_DB', 'POSTGRES_DB_FILE'),
+            'USER': get_env('POSTGRES_USER', 'POSTGRES_USER_FILE'),
+            'PASSWORD': get_env('POSTGRES_PASSWORD', 'POSTGRES_PASSWORD_FILE'),
+            'HOST': get_env('POSTGRES_HOST'),
+            'PORT': '5432',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -130,6 +146,9 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# Customize user model
+AUTH_USER_MODEL = 'accounts.SrpmsUser'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
@@ -153,6 +172,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# REST framework related settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
@@ -167,12 +187,11 @@ if not DEBUG:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = ('rest_framework.renderers.JSONRenderer',)
 
 AUTHENTICATION_BACKENDS = [
-    'django_auth_ldap.backend.LDAPBackend',
+    'accounts.authentication.ANULDAPBackend',
     'django.contrib.auth.backends.ModelBackend'  # Django default
 ]
 
-# TODO: we don't know yet whether anonymous search would work after deploy
-# If not, we need to give a DN and its PASSWORD to authenticate
+# LDAP related settings
 AUTH_LDAP_SERVER_URI = get_env('LDAP_ADDR')
 AUTH_LDAP_BIND_DN = ""
 AUTH_LDAP_BIND_PASSWORD = ""
@@ -183,24 +202,54 @@ AUTH_LDAP_USER_SEARCH = LDAPSearch(
 # Explicitly specify that SRPMS should update user information on every login
 AUTH_LDAP_ALWAYS_UPDATE_USER = True
 
-# Cache distinguished names and group memberships for an hour to minimize
-# LDAP traffic.
+# Cache distinguished names and group memberships for an hour to minimize LDAP traffic.
 AUTH_LDAP_CACHE_TIMEOUT = 3600
 
-# HTTPS related settings
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Retrieve attributes from LDAP information
+AUTH_LDAP_USER_ATTR_MAP = {
+    "first_name": "givenName",
+    "last_name": "sn",
+    "email": "mail",
+    "uni_id": "uid",
+}
 
 if not DEBUG:
+    # HTTPS related settings
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
     # Prevent browser from identifying content types incorrectly.
-    SECURE_CONTENT_TYPE_NOSNIFF=True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
     # Activate browser's XSS filtering and help prevent XSS attacks.
-    SECURE_BROWSER_XSS_FILTER=True
+    SECURE_BROWSER_XSS_FILTER = True
 
     # Prevent iframe
-    X_FRAME_OPTIONS='DENY'
+    X_FRAME_OPTIONS = 'DENY'
 
     # TODO: SECURE_HSTS_SECONDS
+
+if DEBUG:
+    # Disable HTTPS
+    SECURE_PROXY_SSL_HEADER = None
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+
+    # Enable Django debug toolbar during debug
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TOOLBAR_CALLBACK": lambda x: True,
+        "RENDER_PANELS": True
+    }
+    INSTALLED_APPS = ['debug_toolbar', ] + INSTALLED_APPS
+    MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware', ] + MIDDLEWARE
+
+    # Log LDAP activities
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {"console": {"class": "logging.StreamHandler"}},
+        "loggers": {"django_auth_ldap": {"level": "DEBUG", "handlers": ["console"]}},
+    }

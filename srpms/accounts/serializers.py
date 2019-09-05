@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.contrib.auth import get_user_model
 
 from .models import SrpmsUser
 
@@ -22,13 +22,12 @@ class SrpmsUserSerializer(serializers.HyperlinkedModelSerializer):
     # Specify fields that would serialize
     class Meta:
         model = SrpmsUser
-        fields = ['url', 'id', 'uni_id', 'first_name', 'last_name', 'auth_method',
-                  'email', 'contact_email']
+        fields = ['url', 'id', 'username', 'first_name', 'last_name', 'email', 'uni_id']
 
 
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = get_user_model()
         fields = ['username', 'password']
 
         extra_kwargs = {

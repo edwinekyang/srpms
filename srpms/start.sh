@@ -26,6 +26,8 @@ if [ "$DEBUG" == "False" ]; then
     python manage.py collectstatic --noinput
 
     echo "### Perform database migraitons ..."
+    python manage.py makemigrations accounts research_mgt
+    python manage.py migrate --fake-initial
     python manage.py migrate
 
     exec gunicorn --bind :8000 srpms.wsgi:application

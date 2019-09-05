@@ -3,8 +3,7 @@ from rest_framework import generics
 from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework.request import Request
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout, get_user_model
 
 from .serializers import LoginSerializer
 
@@ -14,10 +13,9 @@ class LoginView(generics.GenericAPIView):
     API View that receives a POST with a user's username and password.
     """
 
-    queryset = User.objects.all()
+    queryset = get_user_model().objects.all()
     serializer_class = LoginSerializer
     permission_classes = ()  # Remove default permission to allow post action
-    authentication_classes = ()  # Remove default auth to allow re-login
 
     def post(self, request: Request, *args, **kwargs):
         serializer: serializers.ModelSerializer = self.get_serializer(data=request.data)
