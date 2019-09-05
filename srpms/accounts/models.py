@@ -20,6 +20,8 @@ class SrpmsUser(AbstractUser):
 
     The ANU user would have their uni id in here as well. It would be null in
     the case of external user.
+
+    TODO: Release 02 - Validate expire date on user login
     """
     # External user related field
     nominator = models.ForeignKey('self', on_delete=models.SET_NULL, default=None, blank=True,
@@ -40,4 +42,4 @@ class SrpmsUser(AbstractUser):
         self.full_clean()
         super(SrpmsUser, self).save(*args, **kwargs)
 
-# TODO: Create permission for approved supervisor
+# TODO: Create permission for approved supervisor, and approved convener

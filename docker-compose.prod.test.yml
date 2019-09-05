@@ -35,3 +35,7 @@ secrets:
     file: /srpms-secrets-test/postgres-init-args.txt
   django_secret_key:
     file: /srpms-secrets-test/django_secret_key.txt
+  django_test_ldap_username:
+    file: /srpms-secrets-test/django_test_ldap_username.txt
+  django_test_ldap_password:
+    file: /srpms-secrets-test/django_test_ldap_password.txt
