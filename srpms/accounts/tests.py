@@ -9,10 +9,12 @@ from .models import SrpmsUser
 
 # Create your tests here.
 class LoginTestCase(TestCase):
+    def setUp(self):
+        SrpmsUser.objects.create_user(username='test_basic', password='Basic_12345')
 
     def test_create_user(self):
         print('Test create valid user ...')
-        SrpmsUser.objects.create(username='test_basic', password='Basic_12345')
+        SrpmsUser.objects.create(username='test_valid', password='Basic_12345')
 
         with self.assertRaises(ValidationError):
             print('Test create invalid user ...')
@@ -20,23 +22,21 @@ class LoginTestCase(TestCase):
                                      expire_date=timezone.now())
 
     def test_login_basic(self):
-        SrpmsUser.objects.create_user(username='test_basic', password='Basic_12345')
-
         client = APIClient()
         response = client.post('/api/accounts/login/',
                                {'username': 'test_basic', 'password': 'Basic_12345'},
-                               format='json')
+                               format='json', secure=True)
         print('Test valid credential login ...')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response = client.post('/api/accounts/login/',
                                {'username': 'test_basic', 'password': 'Basic_54321'},
-                               format='json')
+                               format='json', secure=True)
         print('Test wrong password login ...')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = client.post('/api/accounts/login/',
                                {'username': 'test_basic', 'password': ''},
-                               format='json')
+                               format='json', secure=True)
         print('Test empty password login ...')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

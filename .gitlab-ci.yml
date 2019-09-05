@@ -51,7 +51,7 @@ test-back-end:
     - cooper
   script:
     - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
-    - $COMPOSE_TEST run django-gunicorn python manage.py test  # Back-end test
+    - $COMPOSE_TEST exec django-gunicorn python manage.py test  # Back-end test
 
 clean:
   stage: clean
