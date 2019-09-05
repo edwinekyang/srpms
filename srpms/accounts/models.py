@@ -36,4 +36,8 @@ class SrpmsUser(AbstractUser):
         if any([self.nominator, self.expire_date]) and not all([self.nominator, self.expire_date]):
             raise ValidationError('Both nominator and expire date is required on nomination')
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(SrpmsUser, self).save(*args, **kwargs)
+
 # TODO: Create permission for approved supervisor
