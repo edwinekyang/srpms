@@ -117,7 +117,26 @@ docker-compose run runner register
 
 # Start the runner
 docker-compose up -d
+
+# Create directory for storing secrets, and give group access
+sudo mkdir /srpms-secrets-test
+sudo chown root:docker /srpms-secrets-test
+sudo chmod 750 /srpms-secrets-test
+sudo chmod g+s /srpms-secrets-test
+
+# Set up secrets for testing (on your host machines)
+sudo printf '<secret content>' > /srpms-secrets-test/postgres-db.txt
+sudo printf '<secret content>' > /srpms-secrets-test/postgres-user.txt
+sudo printf '<secret content>' > /srpms-secrets-test/postgres-passwd.txt
+sudo printf -- '<secret content>' > /srpms-secrets-test/postgres-init-args.txt
+sudo printf '<secret content>' > /srpms-secrets-test/django_secret_key.txt
+
+# For testing LDAP connection, you'll need to set up username and password on you test machine, not setting these two variables would raise test error
+sudo printf '<secret content>' > /srpms-secrets-test/django_test_ldap_username.txt
+sudo printf '<secret content>' > /srpms-secrets-test/django_test_ldap_password.txt
 ```
+
+**NOTE**: If your test machine is outside ANU network, you'll need to set up a ssh tunnel, refer to [Access ANU LDAP outside campus](#Access-ANU-LDAP-outside-campus) for instructions.
 
 ## Database migration
 
@@ -206,6 +225,14 @@ export DEBUG=True
 docker-compose -f docker-compose.dev.yml up -d db-postgres
 
 cd srpms
+
+# Activate your conda environment as appropriate
+
+# Migrate if you haven't migrate yet
+python manage.py makemigrations accounts research_mgt
+python manage.py migrate --fake-initial
+python manage.py migrate
+
 python manage.py runserver
 ```
 
