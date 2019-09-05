@@ -23,9 +23,8 @@ build:
   tags:
     - comp8755
     - cooper
-  before_script:
-    - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
   script:
+    - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
     - $COMPOSE_TEST build
     - $COMPOSE_TEST up -d
     - sleep $BUILD_WAIT  # Run for sometime before checking
@@ -40,9 +39,8 @@ test-front-end:
   tags:
     - comp8755
     - cooper
-  before_script:
-    - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
   script:
+    - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
 #    - $COMPOSE_TEST run angular-client ng lint
     - $COMPOSE_TEST run angular-client ng test --watch=false --browsers=Chrome_without_sandox  # Front-end test
 
@@ -51,9 +49,8 @@ test-back-end:
   tags:
     - comp8755
     - cooper
-  before_script:
-    - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
   script:
+    - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
     - $COMPOSE_TEST run django-gunicorn python manage.py test  # Back-end test
 
 clean:

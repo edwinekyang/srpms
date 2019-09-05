@@ -133,6 +133,8 @@ docker-compose up -d
 
 # Deploy - Development
 
+## Through docker
+
 ```mermaid
 graph TB
 	subgraph Docker
@@ -166,9 +168,9 @@ docker-compose -f docker-compose.dev.yml build
 docker-compose -f docker-compose.dev.yml up -d
 
 # To preven undesire behavior during development, the database is not initialized by default, so we need to initialize manually
-docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py migrate
 docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py makemigrations accounts research_mgt
 docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py migrate --fake-initial
+docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py migrate
 
 # To apply changes of Dockerfile and compose file to running containers, use the following command (remove --build if you did not change any Dockerfile)
 docker-compose -f docker-compose.dev.yml up -d --build
@@ -191,6 +193,24 @@ docker-compose -f docker-compose.dev.yml down --rmi 'local' -v --remove-orphans
 - To run a single container with some command, use `docker-compose -f <compose file> run <service_name> <command>`
   - Using this command has the advantage over regular `docker run`, as it will apply settings specified in the docker-compose file
 
+## On local machine
+
+Running only inside docker can sometime make debugging very painful, as you won't have the support from IDE debugging tools. 
+
+To run django on local machine:
+
+```bash
+export DEBUG=True
+
+# Run the database
+docker-compose -f docker-compose.dev.yml up -d db-postgres
+
+cd srpms
+python manage.py runserver
+```
+
+
+
 ## Access ANU LDAP outside campus
 
 - ```bash
@@ -198,14 +218,24 @@ docker-compose -f docker-compose.dev.yml down --rmi 'local' -v --remove-orphans
   export LDAP_ADDR="ldap://$DOCKER_GATEWAY"
   
   # Make sure your ssh connection is alive when the container is running
-sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
+  sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
   ```
   
 - You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked and won't reach the ssh tunnel.
   
-  ```bash
-  sudo iptables -A INPUT -d $(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}') -p tcp -m tcp --dport 389 -j ACCEPT
-  ```
+  - For Linux:
+    
+    ```bash
+    sudo iptables -A INPUT -d $(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}') -p tcp -m tcp --dport 389 -j ACCEPT
+    ```
+    
+  - For Mac:
+  
+    ```bash
+    # TBD
+    ```
+  
+    
 
 # Deploy - Production
 

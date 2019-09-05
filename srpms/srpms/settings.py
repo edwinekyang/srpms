@@ -113,8 +113,8 @@ if DEBUG:
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'srpms',
             'USER': 'srpms',
-            'PASSWORD': 'Srpms  # TODO: use docker secret for password',
-            'HOST': 'localhost',
+            'PASSWORD': 'Srpms',
+            'HOST': get_env('POSTGRES_HOST') if get_env('POSTGRES_HOST') else 'localhost',
             'PORT': '5432',
         }
     }
