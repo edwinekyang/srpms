@@ -61,21 +61,22 @@ class LoginTestCase(TestCase):
 
     def test_login_ldap(self):
         print('Test LDAP connection ...')
-        ldap_test_username = settings.get_env('', 'LDAP_TEST_USERNAME_FILE')
-        ldap_user = _LDAPUser(LDAPBackend(), username=ldap_test_username)
-        self.assertEqual(ldap_user.attrs['uid'][0], ldap_test_username)
+
+        ldap_user = _LDAPUser(LDAPBackend(), username='u6513788')
+        self.assertEqual(ldap_user.attrs['uid'][0], 'u6513788')
 
         if not settings.TEST:
             print('Test LDAP login ... not under test environment, skip')
         else:
             print('Test LDAP login  ...')
             client = APIClient()
+            ldap_test_username = settings.get_env('', 'LDAP_TEST_USERNAME_FILE')
 
             print('Test LDAP login with valid credential ...')
             response = client.post('/api/accounts/login/',
                                    {'username': ldap_test_username,
                                     'password': settings.get_env('', 'LDAP_TEST_PASSWORD_FILE')},
-                                   format='json', secure=True)
+                                   format='json', secure=True, follow=True)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
             print('Test LDAP user attribute mapping ...')
