@@ -21,6 +21,7 @@ class SrpmsUser(AbstractUser):
     The ANU user would have their uni id in here as well. It would be null in
     the case of external user.
 
+    TODO: If the user is authenticated through ANU LDAP, forbid anyone to update but only LDAP
     TODO: Release 02 - Validate expire date on user login
     """
     # External user related field

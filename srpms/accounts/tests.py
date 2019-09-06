@@ -61,8 +61,9 @@ class LoginTestCase(TestCase):
 
     def test_login_ldap(self):
         print('Test LDAP connection ...')
-        ldap_user = _LDAPUser(LDAPBackend(), username='u6513788')
-        self.assertEqual(ldap_user.attrs['uid'][0], 'u6513788')
+        ldap_test_username = settings.get_env('', 'LDAP_TEST_USERNAME_FILE')
+        ldap_user = _LDAPUser(LDAPBackend(), username=ldap_test_username)
+        self.assertEqual(ldap_user.attrs['uid'][0], ldap_test_username)
 
         if not settings.TEST:
             print('Test LDAP login ... not under test environment, skip')
@@ -72,14 +73,21 @@ class LoginTestCase(TestCase):
 
             print('Test LDAP login with valid credential ...')
             response = client.post('/api/accounts/login/',
-                                   {'username': settings.get_env('', 'LDAP_TEST_USERNAME_FILE'),
+                                   {'username': ldap_test_username,
                                     'password': settings.get_env('', 'LDAP_TEST_PASSWORD_FILE')},
                                    format='json', secure=True)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+            print('Test LDAP user attribute mapping ...')
+            srpms_user = SrpmsUser.objects.get(username=ldap_test_username)
+            self.assertEqual(ldap_user.attrs['uid'][0], srpms_user.username)
+            self.assertEqual(ldap_user.attrs['givenname'][0], srpms_user.first_name)
+            self.assertEqual(ldap_user.attrs['sn'][0], srpms_user.last_name)
+            self.assertEqual(ldap_user.attrs['mail'][0], srpms_user.email)
+
             print('Test LDAP login with invalid credential ...')
             response = client.post('/api/accounts/login/',
-                                   {'username': 'u6513788',
+                                   {'username': ldap_test_username,
                                     'password': 'aoiuyf7868enkjer23!@#98'},
                                    format='json', secure=True)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
