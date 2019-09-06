@@ -40,11 +40,8 @@ class LoginTestCase(TestCase):
         print('Test valid credential login ...')
         response = client.post('/api/accounts/login/',
                                {'username': self.user_01_name, 'password': self.user_01_passwd},
-                               format='json', secure=True)
-        self.assertRedirects(response, '/api/accounts/user/{}/'.format(self.user_01_name))
-        response = client.post('/api/accounts/login/',
-                               {'username': self.user_01_name, 'password': self.user_01_passwd},
                                format='json', secure=True, follow=True)
+        self.assertRedirects(response, '/api/accounts/user/{}/'.format(self.user_01_name))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         print('Test wrong password login ...')
