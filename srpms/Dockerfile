@@ -22,6 +22,7 @@ RUN apk add --no-cache --virtual .build-deps \
                    django-filter==2.2 \
                    markdown==3.1 \
                    ipython \
+                   pylint_django \
     && find /usr/local \
         \( -type d -a -name test -o -name tests \) \
         -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \

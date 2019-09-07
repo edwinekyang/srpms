@@ -16,9 +16,12 @@ services:
 
   nginx:
     ports:
-      # Map host 80 to container 80
-      - 8100:80
-      - 8101:443
+      # Expose ports to host during test would result conflict if there are
+      # multiple test containers
+#      - 8000:80
+#      - 8001:443
+      - 80
+      - 443
     volumes:
       # Ngnix configuration file
       - ./config.prod/nginx/conf.d.test:/etc/nginx/conf.d:ro
