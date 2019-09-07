@@ -22,7 +22,7 @@ class SrpmsUser(AbstractUser):
     the case of external user.
 
     TODO: If the user is authenticated through ANU LDAP, forbid anyone to update but only LDAP
-    TODO: Release 02 - Validate expire date on user login
+    TODO: Validate expire date on user login
     """
     # External user related field
     nominator = models.ForeignKey('self', on_delete=models.SET_NULL, default=None, blank=True,

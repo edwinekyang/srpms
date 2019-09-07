@@ -142,12 +142,12 @@ sudo printf '<secret content>' > /srpms-secrets-test/django_test_ldap_password.t
 
 **WARNING: Please make sure there is no database under the same name before operate**
 
-- If you already have a database dump name `<db_dump>`, you can import it to the database container by
+- If you already have a database dump named `<db_dump>`, you can import it to the database container by
   1. Copy to the database container
      `docker cp <db_dump> srpms_db-postgres:/`
-  2. Import to the database
-     `docker-compose -f <compose file> run db-postgres psql -U <db_name> < /<db_dump>`
-- If you wants to initialize a new database
+  2. Import to the database (make sure the database container is running first)
+     `docker-compose -f <compose file> exec db-postgres psql -U <db_name> < /<db_dump>`
+- If you want to initialize a new database
   `docker-compose -f <compose file> run django-gunicorn python manage.py migrate`
 
 # Deploy - Development
@@ -245,6 +245,7 @@ python manage.py runserver
   export LDAP_ADDR="ldap://$DOCKER_GATEWAY"
   
   # Make sure your ssh connection is alive when the container is running
+  # Port 389 is in the range of 1~1024, as such we need sudo privilege.
   sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
   ```
   
@@ -335,7 +336,7 @@ REST_FRAMEWORK = {
 }
 ```
 
-[Refer to here](http://masnun.com/2016/04/20/django-rest-framework-remember-to-disable-web-browsable-api-in-production.html) for the reason of doing so.
+[Refer here](http://masnun.com/2016/04/20/django-rest-framework-remember-to-disable-web-browsable-api-in-production.html) for the reason of doing so.
 
 # CI/CD
 
@@ -348,7 +349,8 @@ REST_FRAMEWORK = {
   - Our custom built runner image already contain docker and docker-compose, thus we don't need use docker executor to burden ourselves
 
 ```bash
-# Make sure you run the following in before_script for test jobs, otherwise it would have a hard time finding ldap server
+# Since the test server is outside Uni, make sure you run the following in script for test jobs that would access ANU LDAP, otherwise 
+# it would have a hard time finding ldap server
 export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
 ```
 
