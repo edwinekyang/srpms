@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.test import APIClient
+from rest_framework.response import Response as RESTResponse
 from django_auth_ldap.backend import LDAPBackend, _LDAPUser
 
 from .models import SrpmsUser
@@ -14,7 +15,12 @@ class LoginTestCase(TestCase):
     def setUp(self):
         self.user_01_name = 'test_basic'
         self.user_01_passwd = 'Basic_12345'
-        SrpmsUser.objects.create_user(username=self.user_01_name, password=self.user_01_passwd)
+        self.user_01_email = 'test.basic@example.com'
+        self.user_01_first_name = 'Test'
+        self.user_01_last_name = 'Basic'
+        SrpmsUser.objects.create_user(username=self.user_01_name, password=self.user_01_passwd,
+                                      email='test.basic@example.com', first_name='Test',
+                                      last_name='Basic')
 
     def test_create_user(self):
         print('Test create valid user ...')
@@ -30,6 +36,10 @@ class LoginTestCase(TestCase):
             SrpmsUser.objects.create(username='test_invalid', password='Basic_12345',
                                      nominator=SrpmsUser.objects.get(username='test_basic'))
 
+    def test_update_user(self):
+        # TODO: forbid ANU LDAP user from being updated
+        pass
+
     def test_login_basic(self):
         client = APIClient()
 
@@ -38,11 +48,18 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         print('Test valid credential login ...')
-        response = client.post('/api/accounts/login/',
-                               {'username': self.user_01_name, 'password': self.user_01_passwd},
-                               format='json', secure=True, follow=True)
+        response: RESTResponse = client.post('/api/accounts/login/',
+                                             {'username': self.user_01_name,
+                                              'password': self.user_01_passwd},
+                                             format='json', secure=True, follow=True)
         self.assertRedirects(response, '/api/accounts/user/{}/'.format(self.user_01_name))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        print('Test retrieving user details ...')
+        self.assertEqual(response.data['username'], self.user_01_name)
+        self.assertEqual(response.data['first_name'], self.user_01_first_name)
+        self.assertEqual(response.data['last_name'], self.user_01_last_name)
+        self.assertEqual(response.data['email'], self.user_01_email)
 
         print('Test wrong password login ...')
         response = client.post('/api/accounts/login/',

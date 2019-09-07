@@ -25,6 +25,9 @@ class APIRootView(APIView):
 class LoginView(generics.GenericAPIView):
     """
     API View that receives a POST with a user's username and password.
+
+    If already login, GET would redirect to the user detail view.
+    Would also redirect to user detail after successful login.
     """
 
     queryset = get_user_model().objects.all()
@@ -38,7 +41,7 @@ class LoginView(generics.GenericAPIView):
         else:
             return Response({'detail': 'You\'re not login yet.'}, status.HTTP_401_UNAUTHORIZED)
 
-    def post(self, request: Request, *args, **kwargs):
+    def post(self, request: Request):
         serializer: serializers.ModelSerializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
@@ -66,12 +69,15 @@ class LogoutView(generics.GenericAPIView):
     def get(self, request: Request):
         if request.user.is_authenticated:
             logout(request)
-            return Response({'message': 'You\'ve logout from the current session.'})
+            return Response({'detail': 'You\'ve logout from the current session.'})
         else:
-            return Response({'message': 'You\'re not login yet.'}, status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': 'You\'re not login yet.'}, status.HTTP_401_UNAUTHORIZED)
 
 
 class UserDetailView(generics.RetrieveAPIView):
+    """
+    Detail view that return user detail in json format, only support GET at the moment.
+    """
     queryset = get_user_model().objects.all()
     serializer_class = SrpmsUserSerializer
 
