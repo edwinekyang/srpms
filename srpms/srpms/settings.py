@@ -213,9 +213,11 @@ AUTH_LDAP_USER_ATTR_MAP = {
     "uni_id": "uid",
 }
 
+# Should be enable the whole time to ensure test behave normally.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 if not DEBUG:
     # HTTPS related settings
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -232,15 +234,14 @@ if not DEBUG:
     # TODO: SECURE_HSTS_SECONDS
 
 if DEBUG:
-    # Disable HTTPS
-    SECURE_PROXY_SSL_HEADER = None
+    # Disable SSL
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
     # Enable Django debug toolbar during debug
     DEBUG_TOOLBAR_CONFIG = {
-        "SHOW_TOOLBAR_CALLBACK": lambda x: True,
+        "SHOW_TOOLBAR_CALLBACK": lambda x: True,  # Change this to false if you want to disable
         "RENDER_PANELS": True
     }
     INSTALLED_APPS = ['debug_toolbar', ] + INSTALLED_APPS
