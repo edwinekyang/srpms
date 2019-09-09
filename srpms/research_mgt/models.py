@@ -1,29 +1,37 @@
-from django import forms
 from django.db import models
-
-# Create your models here.
 
 
 class Contract(models.Model):
     contract_id = models.AutoField(primary_key=True)
-    course_number = models.CharField(max_length=20)
-    semester = models.CharField(max_length=20)
-    student_id = models.CharField(max_length=10)
-    student_name = models.CharField(max_length=100)
-    title = models.CharField(max_length=100)
-    report = models.IntegerField(default=45)
-    artefact = models.IntegerField(default=45)
-    supervisor = models.CharField(max_length=100)
-    examinor = models.CharField(max_length=100)
-    notes = models.CharField(max_length=500)
+    year = models.IntegerField(default=None, null=False, blank=False)
+    semester = models.CharField(max_length=20, null=False, blank=False)
+    duration = models.IntegerField(default=None, null=False, blank=False)
+    res = models.CharField(max_length=200, null=False, blank=True)
+    ca_date = models.DateTimeField(default=None, null=True, blank=True)
+    c_id = models.ForeignKey('accounts.SrpmsUser', related_name='convener_id', on_delete=models.SET_NULL, default=None, blank=True, null=True)
+    i_date = models.DateTimeField(auto_now_add=True)
+    u_id = models.ForeignKey('accounts.SrpmsUser', related_name='user_id', on_delete=models.SET_NULL, default=None, blank=True, null=True)
+    s_id = models.ForeignKey('accounts.SrpmsUser', related_name='supervisor_id', on_delete=models.SET_NULL, default=None, blank=True, null=True)
+    is_formal = models.BooleanField(default=False)
+    sa_date = models.DateTimeField(default=None, null=True, blank=True)
+    course_id = models.ForeignKey('Course', on_delete=models.CASCADE, default=None, blank=False, null=False)
 
-    def __str__(self):
-        return self.student_id + " " + self.student_name
+
+class Course(models.Model):
+    course_id = models.AutoField(primary_key=True)
+    course_number = models.CharField(max_length=8, default=None, null=True, blank=True)
+    name = models.CharField(max_length=50, default=None, null=False, blank=False)
 
 
-class Courses(models.Model):
-    course_number = models.CharField(max_length=20)
-    course_name = models.CharField(max_length=50)
+class IndividualProject(models.Model):
+    contract_id = models.ForeignKey('Contract', on_delete=models.CASCADE, blank=False, null=False)
+    title = models.CharField(max_length=100, default=None, null=False, blank=False)
+    obj = models.CharField(max_length=200, default=None, null=False, blank=False)
+    desc = models.CharField(max_length=500, default=None, null=False, blank=False)
 
-    def __str__(self):
-        return self.course_number + " " + self.course_name
+
+class SpecialTopics(models.Model):
+    contract_id = models.ForeignKey('Contract', on_delete=models.CASCADE, blank=False, null=False)
+    title = models.CharField(max_length=100, default=None, null=False, blank=False)
+    obj = models.CharField(max_length=200, default=None, null=False, blank=False)
+    desc = models.CharField(max_length=500, default=None, null=False, blank=False)
