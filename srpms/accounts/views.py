@@ -38,7 +38,7 @@ class LoginView(generics.GenericAPIView):
     def get(self, request: Request):
         if request.user.is_authenticated:
             return redirect(djan_reverse('accounts:user-detail',
-                                         args=[request.user.username]))
+                                         args=[request.user.id]))
         else:
             return Response({'detail': 'You\'re not login yet.'}, status.HTTP_401_UNAUTHORIZED)
 
@@ -52,7 +52,7 @@ class LoginView(generics.GenericAPIView):
             if user is not None:
                 login(request, user)
                 return redirect(djan_reverse('accounts:user-detail',
-                                             args=[user.username]))
+                                             args=[user.id]))
 
         return Response({'detail': 'Unable to log in with provided credentials'},
                         status=status.HTTP_400_BAD_REQUEST)
@@ -81,7 +81,5 @@ class UserDetailView(generics.RetrieveAPIView):
     """
     queryset = get_user_model().objects.all()
     serializer_class = SrpmsUserSerializer
-
-    lookup_field = 'username'
 
     permissions = [permissions.IsAuthenticated]

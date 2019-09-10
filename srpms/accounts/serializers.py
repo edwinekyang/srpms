@@ -13,15 +13,13 @@ class SrpmsUserSerializer(serializers.HyperlinkedModelSerializer):
     # The model by default include a url fields "<model_name>-detail", in this case would
     # be srpms-user-detail. However, it does not specify the name space, hence we need to
     # manually specify here.
-    url = serializers.HyperlinkedIdentityField(view_name="accounts:user-detail",
-                                               lookup_field='username')
+    url = serializers.HyperlinkedIdentityField(view_name="accounts:user-detail")
 
     # Specify fields that would serialize
     class Meta:
         model = SrpmsUser
         fields = ['url', 'id', 'username', 'first_name', 'last_name', 'email',
                   'nominator', 'expire_date', 'uni_id']
-        lookup_field = 'username'
 
 
 class LoginSerializer(serializers.ModelSerializer):
