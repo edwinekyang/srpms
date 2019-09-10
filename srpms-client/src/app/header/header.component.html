@@ -1,11 +1,15 @@
 <mat-grid-list cols="6" rowHeight="4em">
-    <mat-grid-tile colspan="1">
-        <img class="logo" src="https://wattlecourses.anu.edu.au/pluginfile.php/1/core_admin/logo/0x200/1566393860/2x_anu_logo_small_over.png">
-    </mat-grid-tile>
-    <mat-grid-tile colspan="4">
-        <a href="/"><h1>Student Research Projects Management System</h1></a>
-    </mat-grid-tile>
-    <mat-grid-tile colspan="1">
-        <a href="#"><h1>Login</h1></a>
-    </mat-grid-tile>
+  <mat-grid-tile colspan="1">
+    <img class="logo"
+         src="https://wattlecourses.anu.edu.au/pluginfile.php/1/core_admin/logo/0x200/1566393860/2x_anu_logo_small_over.png">
+  </mat-grid-tile>
+  <mat-grid-tile colspan="4">
+    <a href="/"><h1>Student Research Projects Management System</h1></a>
+  </mat-grid-tile>
+  <mat-grid-tile colspan="1">
+    <a mat-button (click)="openLoginDialog()">
+      Login
+      <mat-icon>account_circle</mat-icon>
+    </a>
+  </mat-grid-tile>
 </mat-grid-list>
