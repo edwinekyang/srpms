@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 
 export class JWToken {
@@ -33,7 +33,6 @@ export class AccountsService {
   public token: JWToken;
   public tokenExpireDate: Date;
   public userID: number;
-  public user: SrpmsUser;
 
   public httpOptions = {
     headers: new HttpHeaders({
@@ -41,15 +40,25 @@ export class AccountsService {
     })
   };
 
-  isAuthenticated(): boolean {
-    // TODO: route guard
-    const jwTokenExpire: Date = new Date(JSON.parse(localStorage.getItem('srpmsExpire')));
-
-    return jwTokenExpire && new Date() <= jwTokenExpire;
-  }
-
   getLocalUser(): SrpmsUser {
     return JSON.parse(localStorage.getItem('srpmsUser'));
+  }
+
+  /**
+   * Decode the token to read the username and expiration timestamp
+   */
+  private decodeToken(token: string): [number, Date] {
+    const tokenParts = token.split(/\./);
+    const tokenDecoded = JSON.parse(window.atob(tokenParts[1]));
+    const tokenExpireDate = new Date(tokenDecoded.exp * 1000);
+    const userID = tokenDecoded.user_id;
+    return [userID, tokenExpireDate];
+  }
+
+  private clearLocal(): void {
+    localStorage.removeItem('srpmsToken');
+    localStorage.removeItem('srpmsExpire');
+    localStorage.removeItem('srpmsUser');
   }
 
   private log(message: string) {
@@ -76,6 +85,29 @@ export class AccountsService {
     };
   }
 
+  /**
+   * Update local storage to store authentication information
+   */
+  private updateData(token: JWToken): void {
+    this.token = token;
+    [this.userID, this.tokenExpireDate] = this.decodeToken(this.token.access);
+
+    localStorage.setItem('srpmsToken', JSON.stringify(this.token));
+    localStorage.setItem('srpmsExpire', JSON.stringify(this.tokenExpireDate));
+
+    this.getUser(this.userID)
+      .pipe(
+        map(user => localStorage.setItem('srpmsUser', JSON.stringify(user))),
+        catchError(this.handleError<SrpmsUser>(`updateDate id=${this.userID}`))).subscribe();
+  }
+
+  isAuthenticated(): boolean {
+    // TODO: route guard
+    const jwTokenExpire: Date = new Date(JSON.parse(localStorage.getItem('srpmsExpire')));
+
+    return jwTokenExpire && new Date() <= jwTokenExpire;
+  }
+
   login(username: string, password: string): void {
     this.http.post<JWToken>(this.API_URL + 'accounts/token/', JSON.stringify({ username, password }), this.httpOptions)
       .pipe(
@@ -83,39 +115,40 @@ export class AccountsService {
         catchError(this.handleError<SrpmsUser>(`Login username=${username}`))).subscribe();
   }
 
-  refreshToken(): void {
+  refreshToken(): boolean {
     const jwToken: JWToken = JSON.parse(localStorage.getItem('srpmsToken'));
 
     if (jwToken) {
-      this.http.post<JWToken>('/api/accounts/token/refresh/', jwToken.refresh, this.httpOptions)
-        .pipe(map(token => this.updateData(token)));
+      const [, refreshExpire] = this.decodeToken(jwToken.refresh);
+      if (new Date() < new Date(refreshExpire)) {
+        this.http.post<JWToken>(this.API_URL + 'accounts/token/refresh/', jwToken.refresh, this.httpOptions)
+          .pipe(map(token => this.updateData(token))).subscribe();
+        return true;
+      } else {
+        console.log('All token expired');
+        return false;
+      }
     } else {
       throw new Error('You don\'t have token locally');
     }
+  }
+
+  /**
+   * For JWT, you cannot expire a token on demand to log a user out.
+   * However, you can:
+   *   1. Remove the local stored token.
+   *   2. TODO: black list the token on server side.
+   */
+  logout(): void {
+    this.clearLocal();
+    this.token = null;
+    this.userID = null;
+    this.userID = null;
   }
 
   getUser(id: number): Observable<SrpmsUser> {
     const url = `${this.API_URL}accounts/user/${this.userID}`;
     return this.http.get<SrpmsUser>(url, this.httpOptions)
       .pipe(catchError(this.handleError<SrpmsUser>(`updateDate id=${id}`)));
-  }
-
-  private updateData(token: JWToken): void {
-    this.token = token;
-
-    // Decode the token to read the username and expiration timestamp
-    const tokenParts = this.token.access.split(/\./);
-    const tokenDecoded = JSON.parse(window.atob(tokenParts[1]));
-    this.tokenExpireDate = new Date(tokenDecoded.exp * 1000);
-    this.userID = tokenDecoded.user_id;
-
-    localStorage.setItem('srpmsToken', JSON.stringify(this.token));
-    localStorage.setItem('srpmsExpire', JSON.stringify(this.tokenExpireDate));
-
-    const url = `${this.API_URL}accounts/user/${this.userID}`;
-    this.getUser(this.userID)
-      .pipe(
-        map(user => localStorage.setItem('srpmsUser', JSON.stringify(user))),
-        catchError(this.handleError<SrpmsUser>(`updateDate id=${this.userID}`))).subscribe();
   }
 }

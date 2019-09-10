@@ -71,3 +71,11 @@ TODO:
 - SRPMS would update account information on every success login, however what's the case that
   the student graduate? Does ANU still keep the LDAP entry for the student? What about the
   case that a professor make some career change?
+
+# Reference
+
+[Logout Django Rest Framework JWT](https://stackoverflow.com/questions/52431850/logout-django-rest-framework-jwt)
+
+[JavaScript JSON Date Parsing and real Dates](https://weblog.west-wind.com/posts/2014/Jan/06/JavaScript-JSON-Date-Parsing-and-real-Dates)
+
+[Property 'subscribe' does not exist on type 'OperatorFunction'](https://stackoverflow.com/questions/50398107/property-subscribe-does-not-exist-on-type-operatorfunctionresponse-recipe)
