@@ -21,6 +21,7 @@ RUN apk add --no-cache --virtual .build-deps \
                    django-auth-ldap==2.0 \
                    django-filter==2.2 \
                    markdown==3.1 \
+                   djangorestframework_simplejwt==4.3 \
                    ipython \
                    pylint_django \
     && find /usr/local \

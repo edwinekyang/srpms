@@ -18,7 +18,8 @@ class APIRootView(APIView):
         return Response({
             'login': rest_reverse('accounts:login', request=request, *args, **kwargs),
             'logout': rest_reverse('accounts:logout', request=request, *args, **kwargs),
-            # TODO: add link to user profile in api root
+            'token': rest_reverse('accounts:token_obtain_pair', request=request, *args, **kwargs),
+            'token/refresh': rest_reverse('accounts:token_refresh', request=request, *args, **kwargs)
         })
 
 
@@ -71,7 +72,7 @@ class LogoutView(generics.GenericAPIView):
             logout(request)
             return Response({'detail': 'You\'ve logout from the current session.'})
         else:
-            return Response({'detail': 'You\'re not login yet.'}, status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': 'You\'re not login yet.'})
 
 
 class UserDetailView(generics.RetrieveAPIView):
