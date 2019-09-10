@@ -79,3 +79,7 @@ TODO:
 [JavaScript JSON Date Parsing and real Dates](https://weblog.west-wind.com/posts/2014/Jan/06/JavaScript-JSON-Date-Parsing-and-real-Dates)
 
 [Property 'subscribe' does not exist on type 'OperatorFunction'](https://stackoverflow.com/questions/50398107/property-subscribe-does-not-exist-on-type-operatorfunctionresponse-recipe)
+
+[Angular Security - Authentication With JSON Web Tokens (JWT): The Complete Guide](https://blog.angular-university.io/angular-jwt-authentication/)
+
+[Angular Material Dialog: A Complete Example](https://blog.angular-university.io/angular-material-dialog/)

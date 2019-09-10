@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 
 export class JWToken {
   access: string;  // For authentication, short expire time
@@ -15,8 +15,8 @@ export class SrpmsUser {
   first_name: string;
   last_name: string;
   email: string;
-  expire_date: Date;
-  uniID: string;
+  expire_date: string;
+  uni_id: string;
 }
 
 /* tslint:enable:variable-name */
@@ -26,6 +26,8 @@ export class SrpmsUser {
 })
 export class AccountsService {
   private API_URL = '/api/';
+
+  private storageSub = new Subject<boolean>();
 
   constructor(private http: HttpClient) {
   }
@@ -40,8 +42,9 @@ export class AccountsService {
     })
   };
 
-  getLocalUser(): SrpmsUser {
-    return JSON.parse(localStorage.getItem('srpmsUser'));
+  // Used to inform component that local storage has changed.
+  watchStorage(): Observable<boolean> {
+    return this.storageSub.asObservable();
   }
 
   /**
@@ -59,6 +62,7 @@ export class AccountsService {
     localStorage.removeItem('srpmsToken');
     localStorage.removeItem('srpmsExpire');
     localStorage.removeItem('srpmsUser');
+    this.storageSub.next(true);
   }
 
   private log(message: string) {
@@ -97,7 +101,10 @@ export class AccountsService {
 
     this.getUser(this.userID)
       .pipe(
-        map(user => localStorage.setItem('srpmsUser', JSON.stringify(user))),
+        map(user => {
+          localStorage.setItem('srpmsUser', JSON.stringify(user));
+          this.storageSub.next(true);
+        }),
         catchError(this.handleError<SrpmsUser>(`updateDate id=${this.userID}`))).subscribe();
   }
 

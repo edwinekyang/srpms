@@ -12,6 +12,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -46,6 +47,7 @@ import { LoginDialogComponent } from './login-dialog/login-dialog.component';
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    MatMenuModule
   ],
   entryComponents: [
     LoginDialogComponent
