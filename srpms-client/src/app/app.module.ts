@@ -47,12 +47,12 @@ import { LoginDialogComponent } from './login-dialog/login-dialog.component';
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatMenuModule
+    MatMenuModule,
   ],
   entryComponents: [
     LoginDialogComponent
   ],
-  providers: [],
+  providers: [HttpClientModule],
   bootstrap: [AppComponent]
 })
 export class AppModule {

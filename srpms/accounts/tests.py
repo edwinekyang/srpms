@@ -21,6 +21,7 @@ class LoginTestCase(TestCase):
         SrpmsUser.objects.create_user(username=self.user_01_name, password=self.user_01_passwd,
                                       email='test.basic@example.com', first_name='Test',
                                       last_name='Basic')
+        self.user_01 = SrpmsUser.objects.get(username=self.user_01_name)
 
     def test_create_user(self):
         print('Test create valid user ...')
@@ -52,7 +53,7 @@ class LoginTestCase(TestCase):
                                              {'username': self.user_01_name,
                                               'password': self.user_01_passwd},
                                              format='json', secure=True, follow=True)
-        self.assertRedirects(response, '/api/accounts/user/{}/'.format(self.user_01_name))
+        self.assertRedirects(response, '/api/accounts/user/{}/'.format(self.user_01.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         print('Test retrieving user details ...')
@@ -124,7 +125,7 @@ class LoginTestCase(TestCase):
 
         print('Test GET on logout page without login ...')
         response = client.get('/api/accounts/logout/', secure=True)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         print('Test GET on logout page after login ...')
         client.post('/api/accounts/login/',
