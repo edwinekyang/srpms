@@ -8,7 +8,7 @@
   </mat-grid-tile>
   <mat-grid-tile colspan="1">
     <a mat-button (click)="openLoginDialog()">
-      Login
+      {{accountService.isAuthenticated() ? getDisplayName() : 'User'}}
       <mat-icon>account_circle</mat-icon>
     </a>
   </mat-grid-tile>

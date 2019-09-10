@@ -1,12 +1,13 @@
 <h1 mat-dialog-title>SRPMS Login</h1>
 <div mat-dialog-content class="login-container">
   <mat-form-field>
-    <input matInput placeholder="Username">
+    <input matInput placeholder="Username" [(ngModel)]="username">
   </mat-form-field>
   <mat-form-field>
-    <input matInput placeholder="Password">
+    <input matInput placeholder="Password" type="password" [(ngModel)]="password">
   </mat-form-field>
 </div>
 <div mat-dialog-actions>
-  <button mat-button (click)="login()">Login</button>
+  <button mat-raised-button (click)="login()">Login</button>
+  <button mat-button (click)="close()">Cancel</button>
 </div>

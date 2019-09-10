@@ -1,10 +1,7 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
 
-export interface DialogData {
-  username: string;
-  password: string;
-}
+import { AccountsService } from '../accounts.service';
 
 @Component({
   selector: 'app-login-dialog',
@@ -13,18 +10,23 @@ export interface DialogData {
 })
 export class LoginDialogComponent implements OnInit {
 
-  public formIsValid = false;
+  @Input() username: string;
+  @Input() password: string;
 
   constructor(
     public dialogRef: MatDialogRef<LoginDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogData) {
+    private accountService: AccountsService) {
   }
 
   ngOnInit() {
   }
 
   login() {
+    this.accountService.login(this.username, this.password);
     this.dialogRef.close();
   }
 
+  close() {
+    this.dialogRef.close();
+  }
 }
