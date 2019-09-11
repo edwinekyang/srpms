@@ -1,24 +1,33 @@
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.parsers import JSONParser
-from .models import Course
-from research_mgt.serializers import CourseSerializer
+from rest_framework import generics, permissions
+from accounts.permissions import IsOwnerOrReadOnly
+from .models import Course, Contract
+from research_mgt.serializers import CourseSerializer, ContractSerializer
 
 
-@csrf_exempt
-def course_list(request):
+class CourseList(generics.ListAPIView):
     """
     List all courses.
     """
-    if request.method == 'GET':
-        snippets = Course.objects.all()
-        serializer = CourseSerializer(snippets, many=True)
-        return JsonResponse(serializer.data, safe=False)
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
 
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = CourseSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
+
+class ContractList(generics.ListCreateAPIView):
+    """
+    List all contracts, or create a new contract.
+    """
+    queryset = Contract.objects.all()
+    serializer_class = ContractSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(u_id=self.request.user)
+
+
+class ContractDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update or delete a contract instance.
+    """
+    queryset = Contract.objects.all()
+    serializer_class = ContractSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
