@@ -83,3 +83,5 @@ TODO:
 [Angular Security - Authentication With JSON Web Tokens (JWT): The Complete Guide](https://blog.angular-university.io/angular-jwt-authentication/)
 
 [Angular Material Dialog: A Complete Example](https://blog.angular-university.io/angular-material-dialog/)
+
+[Watch for changes in LocalStorage angular2](https://stackoverflow.com/questions/46078714/watch-for-changes-in-localstorage-angular2)

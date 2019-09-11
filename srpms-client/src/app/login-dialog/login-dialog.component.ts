@@ -23,6 +23,8 @@ export class LoginDialogComponent implements OnInit {
 
   login() {
     this.accountService.login(this.username, this.password);
+
+    // TODO: Don't close the dialog if login fail
     this.dialogRef.close();
   }
 

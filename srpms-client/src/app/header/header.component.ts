@@ -39,7 +39,6 @@ export class HeaderComponent implements OnInit {
           if (user.expire_date) {
             this.userInfo.push('Expire on: ' + new Date(user.expire_date).getDate());
           }
-          console.log(this.userInfo);
         } else {
           this.localUser = null;
           this.displayName = null;
