@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LoginDialogComponent } from './login-dialog.component';
-import { MatInputModule, MatFormFieldModule, MatButtonModule } from '@angular/material';
+import { MatInputModule, MatFormFieldModule, MatButtonModule, MAT_DIALOG_DATA } from '@angular/material';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
@@ -20,10 +20,10 @@ describe('LoginDialogComponent', () => {
         FormsModule, MatInputModule, MatFormFieldModule, MatButtonModule,
         MatDialogModule, HttpClientTestingModule, NoopAnimationsModule
       ],
-      providers: [{
-        provide: MatDialogRef,
-        useValue: {}
-      }],
+      providers: [
+        { provide: MatDialogRef, useValue: {} },
+        { provide: MAT_DIALOG_DATA, useValue: {}}
+      ],
       declarations: [LoginDialogComponent]
     })
       .compileComponents();

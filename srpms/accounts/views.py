@@ -82,4 +82,4 @@ class UserDetailView(generics.RetrieveAPIView):
     queryset = get_user_model().objects.all()
     serializer_class = SrpmsUserSerializer
 
-    permissions = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, ]

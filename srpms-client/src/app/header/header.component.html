@@ -8,18 +8,16 @@
   </mat-grid-tile>
   <mat-grid-tile colspan="1">
     <button mat-button [matMenuTriggerFor]="userMenu">
-      {{accountService.isAuthenticated() && displayName ? displayName : 'User'}}
+      {{displayName ? displayName : 'User'}}
       <mat-icon>account_circle</mat-icon>
     </button>
     <mat-menu #userMenu="matMenu"
               xPosition="before" yPosition="below">
-      <ng-container *ngIf="accountService.isAuthenticated() && localUser">
-        <span *ngFor="let info of userInfo" mat-menu-item disabled>{{info}}</span>
-      </ng-container>
-      <a *ngIf="!accountService.isAuthenticated()" mat-menu-item (click)="openLoginDialog()">
+      <span *ngFor="let info of userInfo" mat-menu-item disabled>{{info}}</span>
+      <a *ngIf="!localUser" mat-menu-item (click)="openLoginDialog()">
         Login
       </a>
-      <a *ngIf="accountService.isAuthenticated()" mat-menu-item (click)="accountService.logout()">
+      <a *ngIf="localUser" mat-menu-item (click)="accountService.logout()">
         Logout
       </a>
     </mat-menu>

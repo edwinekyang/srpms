@@ -8,7 +8,7 @@ RUN mkdir -p /djangoproj/srpms
 WORKDIR /djangoproj/srpms
 
 # install dependencies
-RUN apk add --no-cache libldap libsasl postgresql-libs bash
+RUN apk add --no-cache libldap libsasl postgresql-libs postgresql-client bash
 RUN apk add --no-cache --virtual .build-deps \
                        postgresql-dev \
                        gcc \
@@ -22,6 +22,7 @@ RUN apk add --no-cache --virtual .build-deps \
                    django-filter==2.2 \
                    markdown==3.1 \
                    djangorestframework_simplejwt==4.3 \
+                   django-cors-headers==3.1 \
                    ipython \
                    pylint_django \
     && find /usr/local \

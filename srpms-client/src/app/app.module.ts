@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,6 +22,7 @@ import { ContractComponent } from './contract/contract.component';
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { HeaderComponent } from './header/header.component';
 import { LoginDialogComponent } from './login-dialog/login-dialog.component';
+import { AuthInterceptor } from './auth-interceptor.service';
 
 @NgModule({
   declarations: [
@@ -52,7 +54,14 @@ import { LoginDialogComponent } from './login-dialog/login-dialog.component';
   entryComponents: [
     LoginDialogComponent
   ],
-  providers: [HttpClientModule],
+  providers: [
+    HttpClientModule,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {

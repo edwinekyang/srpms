@@ -15,6 +15,7 @@ export class LoginDialogComponent implements OnInit {
 
   constructor(
     public dialogRef: MatDialogRef<LoginDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: string,
     private accountService: AccountsService) {
   }
 
