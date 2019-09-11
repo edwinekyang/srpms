@@ -4,12 +4,12 @@ from django.http import HttpResponse
 from .forms import ContractForm
 
 
-def index(request):
+def contract(request):
     form = ContractForm()
     context = {
         'form': form
     }
-    return render(request, 'research_mgt/index.html', context)
+    return render(request, 'research_mgt/contract.html', context)
 
 
 def detail(request, contract_id):
