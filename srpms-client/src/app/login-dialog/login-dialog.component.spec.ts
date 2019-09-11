@@ -3,7 +3,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { LoginDialogComponent } from './login-dialog.component';
 import { MatInputModule, MatFormFieldModule, MatButtonModule, MAT_DIALOG_DATA } from '@angular/material';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { HttpClient } from '@angular/common/http';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -18,7 +18,8 @@ describe('LoginDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         FormsModule, MatInputModule, MatFormFieldModule, MatButtonModule,
-        MatDialogModule, HttpClientTestingModule, NoopAnimationsModule
+        MatDialogModule, HttpClientTestingModule, NoopAnimationsModule,
+        ReactiveFormsModule
       ],
       providers: [
         { provide: MatDialogRef, useValue: {} },

@@ -5,13 +5,13 @@ import { Observable, of, Subject, throwError } from 'rxjs';
 
 export const ACC_SIG = { LOGIN: 'login', LOGOUT: 'logout' };
 
-export class JWToken {
+export interface JWToken {
   access: string;  // For authentication, short expire time
   refresh: string;  // For refresh the authentication token, longer expire time
 }
 
 /* tslint:disable:variable-name */
-export class SrpmsUser {
+export interface SrpmsUser {
   id: number;
   username: string;
   first_name: string;
@@ -31,7 +31,7 @@ export class AccountsService {
   constructor(private http: HttpClient) {
   }
 
-  private API_URL = 'https://localhost:8001/api/';
+  private API_URL = '/api/';
 
   private storageSub = new Subject<string>();
 
@@ -114,11 +114,11 @@ export class AccountsService {
         catchError(this.handleError<SrpmsUser>(`updateData id=${userID}`))).subscribe();
   }
 
-  login(username: string, password: string): void {
-    this.http.post<JWToken>(this.API_URL + 'accounts/token/', JSON.stringify({ username, password }), this.httpOptions)
+  login(loginForm): Observable<void> {
+    return this.http.post<JWToken>(this.API_URL + 'accounts/token/', JSON.stringify(loginForm), this.httpOptions)
       .pipe(
         map(token => this.updateData(token)),
-        catchError(this.handleError<SrpmsUser>(`Login username=${username}`))).subscribe();
+        catchError(err => throwError(err)));
   }
 
   refreshToken(): Observable<string> {

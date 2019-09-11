@@ -1,13 +1,14 @@
 <h1 mat-dialog-title>SRPMS Login</h1>
-<div mat-dialog-content class="login-container">
+<mat-dialog-content class="login-container" [formGroup]="loginForm">
+  <mat-error *ngIf="errorMessage">{{errorMessage}}</mat-error>
   <mat-form-field>
-    <input matInput placeholder="Username" [(ngModel)]="username">
+    <input matInput placeholder="Username" formControlName="username" required>
   </mat-form-field>
   <mat-form-field>
-    <input matInput placeholder="Password" type="password" [(ngModel)]="password">
+    <input matInput placeholder="Password" type="password" formControlName="password" required>
   </mat-form-field>
-</div>
-<div mat-dialog-actions>
-  <button mat-raised-button (click)="login()">Login</button>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-raised-button [disabled]="!loginForm.valid" (click)="login()">Login</button>
   <button mat-button (click)="close()">Cancel</button>
-</div>
+</mat-dialog-actions>

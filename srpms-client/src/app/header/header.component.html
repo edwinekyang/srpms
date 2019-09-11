@@ -8,7 +8,7 @@
   </mat-grid-tile>
   <mat-grid-tile colspan="1">
     <button mat-button [matMenuTriggerFor]="userMenu">
-      {{displayName ? displayName : 'User'}}
+      {{displayName ? displayName : 'Anonymous'}}
       <mat-icon>account_circle</mat-icon>
     </button>
     <mat-menu #userMenu="matMenu"

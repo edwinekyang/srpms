@@ -1,9 +1,15 @@
 import { Injectable } from '@angular/core';
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 
-import { AccountsService, JWToken } from './accounts.service';
+import { AccountsService } from './accounts.service';
 import { catchError, filter, switchMap, take } from 'rxjs/operators';
+
+export interface APIErrorResponse extends HttpErrorResponse {
+  error: {
+    detail?: string
+  };
+}
 
 /**
  * Intercept HTTP request to implement token authorization and token auto-refresh.

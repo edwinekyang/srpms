@@ -17,8 +17,8 @@ export class ContractComponent implements OnInit {
 
   ngOnInit() {
     /*
-    this._http.getBeer().subscribe(data => {
-      this.brews = data;
+    this._http.getBeer().subscribe(message => {
+      this.brews = message;
       console.log(this.brews);
     });
      */
