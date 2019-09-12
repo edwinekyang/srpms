@@ -3,7 +3,12 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
 import { Observable, of, Subject, throwError } from 'rxjs';
 
-export const ACC_SIG = { LOGIN: 'login', LOGOUT: 'logout' };
+export const ACC_SIG = {
+  LOGIN: 'login',
+  LOGOUT: 'logout',
+  TOK_REF_EXPIRE: 'refresh token expired',
+  TOK_REF_NOTFOUND: 'refresh token does not exist'
+};
 
 export interface JWToken {
   access: string;  // For authentication, short expire time
@@ -133,10 +138,10 @@ export class AccountsService {
             return token.access;
           }));
       } else {
-        return throwError(new Error('Refresh token expired'));
+        return throwError(new Error(ACC_SIG.TOK_REF_EXPIRE));
       }
     } else {
-      return throwError(new Error('Don\'t have token locally'));
+      return throwError(new Error(ACC_SIG.TOK_REF_NOTFOUND));
     }
   }
 

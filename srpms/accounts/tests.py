@@ -139,6 +139,7 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         client.logout()
-        response = client.get('/api/accounts/user/1', secure=True, follow=True)
+        response = client.get('/api/accounts/user/{}'.format(self.user_01.id),
+                              secure=True, follow=True)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED,
                          "Should failed if not authorized.")

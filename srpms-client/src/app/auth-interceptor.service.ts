@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 
-import { AccountsService } from './accounts.service';
+import { ACC_SIG, AccountsService } from './accounts.service';
 import { catchError, filter, switchMap, take } from 'rxjs/operators';
 import { MatDialog, MatDialogConfig } from '@angular/material';
 import { LoginDialogComponent } from './login-dialog/login-dialog.component';
@@ -81,12 +81,18 @@ export class AuthInterceptor implements HttpInterceptor {
 
                 return next.handle(AuthInterceptor.addAuthenticationToken(req));
               }),
-              catchError(err => {
+              catchError((err: Error) => {
                 this.refreshTokenInProgress = false;
                 this.accountService.logout();
 
                 const dialogConfig = new MatDialogConfig();
-                dialogConfig.data = 'Session expired, authentication required';
+                if (err instanceof Error) {
+                  if (err.message === ACC_SIG.TOK_REF_EXPIRE) {
+                    dialogConfig.data = 'Session expired, authentication required';
+                  }
+                } else {
+                  dialogConfig.data = 'Authentication required';
+                }
                 this.dialog.open(LoginDialogComponent, dialogConfig);
                 return throwError(err);
               })
