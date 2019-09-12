@@ -1,18 +1,2 @@
 <h1>Contract</h1>
 
-<div class="play-container">
-  First Name: <input type="text" [(ngModel)]="firstName">
-  <br>
-  Last Name: <input type="text" [(ngModel)]="lastName">
-  <br>
-  {{ firstName }}, {{ lastName }}
-</div>
-
-<div class="play-container" [ngClass]="setClasses()">
-  <ng-template [ngIf]="firstName == 'a'" [ngIfElse]="none">
-    <p>First Name is a</p>
-  </ng-template>
-  <ng-template #none>
-    <p>First Name is none.</p>
-  </ng-template>
-</div>
