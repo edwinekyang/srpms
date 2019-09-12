@@ -1,13 +1,18 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from rest_framework.urlpatterns import format_suffix_patterns
-
 from . import views
 
-urlpatterns = [
-    # ex: /research_mgt/
-    path('courses/', views.CourseList.as_view(), name='courses'),
-    path('contract/', views.ContractList.as_view(), name='contract'),
-    path('contract/<int:pk>', views.ContractDetail.as_view(), name='contract detail')
-]
+# Create a router and register our viewsets with it.
+router = DefaultRouter()
+router.register(r'contract', views.ContractViewSet)
 
-urlpatterns = format_suffix_patterns(urlpatterns)
+course_list = views.CourseList.as_view()
+
+# The API URLs are now determined automatically by the router.
+# contract/: List(get) and Create(post)
+# contract/pk/: Retrieve(get), Update(post), Partial Update(patch), Destroy(delete)
+urlpatterns = format_suffix_patterns([
+    path('courses/', course_list, name='course-list'),
+    path('', include(router.urls)),
+])
