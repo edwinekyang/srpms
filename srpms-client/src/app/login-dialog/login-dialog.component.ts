@@ -36,8 +36,13 @@ export class LoginDialogComponent implements OnInit {
         this.close();
       }, (error1: APIErrorResponse) => {
         if (error1 instanceof HttpErrorResponse) {
-          this.errorMessage = error1.error.detail;
+          if (Math.floor(error1.status / 100) === 4) {
+            this.errorMessage = error1.error.detail;
+          } else {
+            this.errorMessage = error1.statusText;
+          }
         }
+        throw error1;
       });
   }
 

@@ -51,5 +51,5 @@ mat-sidenav-content {
 }
 
 mat-sidenav-container {
-  height: 100vh;
+  height: calc(100vh - 5.3em);
 }
