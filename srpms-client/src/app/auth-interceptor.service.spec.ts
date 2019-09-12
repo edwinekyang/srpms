@@ -3,6 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 
 import { TestBed } from '@angular/core/testing';
 import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
+import { MatDialogModule } from '@angular/material';
 
 import { AuthInterceptor } from './auth-interceptor.service';
 
@@ -12,7 +13,7 @@ describe('AuthInterceptor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, MatDialogModule],
       providers: [
         AuthInterceptor,
         { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }

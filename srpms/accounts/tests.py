@@ -56,12 +56,6 @@ class LoginTestCase(TestCase):
         self.assertRedirects(response, '/api/accounts/user/{}/'.format(self.user_01.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        print('Test retrieving user details ...')
-        self.assertEqual(response.data['username'], self.user_01_name)
-        self.assertEqual(response.data['first_name'], self.user_01_first_name)
-        self.assertEqual(response.data['last_name'], self.user_01_last_name)
-        self.assertEqual(response.data['email'], self.user_01_email)
-
         print('Test wrong password login ...')
         response = client.post('/api/accounts/login/',
                                {'username': self.user_01_name, 'password': 'Basic_54321'},
@@ -133,3 +127,18 @@ class LoginTestCase(TestCase):
                     format='json', secure=True)
         response = client.get('/api/accounts/logout/', secure=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_user_detail(self):
+        client = APIClient()
+
+        print('Test retrieving user details ...')
+
+        client.login(username=self.user_01_name, password=self.user_01_passwd)
+        response = client.get('/api/accounts/user/{}'.format(self.user_01.id),
+                              secure=True, follow=True)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        client.logout()
+        response = client.get('/api/accounts/user/1', secure=True, follow=True)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED,
+                         "Should failed if not authorized.")
