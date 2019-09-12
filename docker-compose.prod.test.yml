@@ -5,6 +5,9 @@ services:
     environment:
       - LDAP_ADDR=${LDAP_ADDR}
       - TEST=True
+    secrets:
+      - django_test_ldap_username
+      - django_test_ldap_password
 
   angular-client:
     build:
@@ -13,9 +16,12 @@ services:
 
   nginx:
     ports:
-      # Map host 80 to container 80
-      - 8100:80
-      - 8101:443
+      # Expose ports to host during test would result conflict if there are
+      # multiple test containers
+#      - 8000:80
+#      - 8001:443
+      - 80
+      - 443
     volumes:
       # Ngnix configuration file
       - ./config.prod/nginx/conf.d.test:/etc/nginx/conf.d:ro
@@ -35,3 +41,7 @@ secrets:
     file: /srpms-secrets-test/postgres-init-args.txt
   django_secret_key:
     file: /srpms-secrets-test/django_secret_key.txt
+  django_test_ldap_username:
+    file: /srpms-secrets-test/django_test_ldap_username.txt
+  django_test_ldap_password:
+    file: /srpms-secrets-test/django_test_ldap_password.txt
