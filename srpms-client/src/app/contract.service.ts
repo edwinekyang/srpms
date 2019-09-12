@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {Observable, of} from 'rxjs';
-import {catchError} from 'rxjs/operators';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 export interface Course {
   course_id: number;
@@ -29,7 +29,7 @@ export class ContractService {
   }
 
   getCourses(): Observable<Course> {
-    return this.http.get<Course>(`${this.API_URL}/courses`, this.httpOptions)
+    return this.http.get<Course>(`${this.API_URL}research_mgt/courses/`, this.httpOptions)
       .pipe(
         catchError(this.handleError<Course>('getCourses'))
       );

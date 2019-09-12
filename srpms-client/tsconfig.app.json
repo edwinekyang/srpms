@@ -6,8 +6,7 @@
   },
   "files": [
     "src/main.ts",
-    "src/polyfills.ts",
-    "node_modules/zone.js/lib/zone-spec/long-stack-trace.ts"
+    "src/polyfills.ts"
   ],
   "include": [
     "src/**/*.ts"

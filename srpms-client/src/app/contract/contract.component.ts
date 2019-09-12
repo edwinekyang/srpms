@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpErrorResponse} from '@angular/common/http';
+import {Component, OnInit} from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ContractService, Course } from '../contract.service';
 
 @Component({
@@ -10,15 +10,11 @@ import { ContractService, Course } from '../contract.service';
 
 export class ContractComponent implements OnInit {
   errorMessage: string;
+  course: Course;
 
-  // tslint:disable-next-line:variable-name
   constructor(
-    public course: Course,
-    public message: string,
-    private contractService: ContractService,
-    ) {
-      this.errorMessage = message;
-  }
+      public contractService: ContractService
+  ) { this.showCourses(); }
 
   ngOnInit() {
   }

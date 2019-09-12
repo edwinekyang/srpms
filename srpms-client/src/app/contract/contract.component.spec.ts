@@ -1,21 +1,29 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { ContractComponent } from './contract.component';
-import {CUSTOM_ELEMENTS_SCHEMA} from "@angular/core";
-import { FormsModule } from '@angular/forms';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import {ContractComponent} from './contract.component';
+import {HttpClient} from '@angular/common/http';
+import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 
 describe('ContractComponent', () => {
   let component: ContractComponent;
   let fixture: ComponentFixture<ContractComponent>;
+  let httpClient: HttpClient;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [ FormsModule ],
+      imports: [HttpClientTestingModule],
       declarations: [ ContractComponent ],
-      schemas: [ CUSTOM_ELEMENTS_SCHEMA ]
+      schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })
-    .compileComponents();
+        .compileComponents();
+
+    // Inject the http service and test controller for each test
+    httpClient = TestBed.get(HttpClient);
+    httpTestingController = TestBed.get(HttpTestingController);
   }));
+
+  /// Tests begin ///
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ContractComponent);
