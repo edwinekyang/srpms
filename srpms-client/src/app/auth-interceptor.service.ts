@@ -4,6 +4,8 @@ import { Observable, throwError, BehaviorSubject } from 'rxjs';
 
 import { AccountsService } from './accounts.service';
 import { catchError, filter, switchMap, take } from 'rxjs/operators';
+import { MatDialog, MatDialogConfig } from '@angular/material';
+import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 
 export interface APIErrorResponse extends HttpErrorResponse {
   error: {
@@ -18,7 +20,7 @@ export interface APIErrorResponse extends HttpErrorResponse {
 export class AuthInterceptor implements HttpInterceptor {
 
 
-  constructor(public accountService: AccountsService) {
+  constructor(public accountService: AccountsService, public dialog: MatDialog) {
   }
 
   private refreshTokenInProgress = false;
@@ -82,6 +84,10 @@ export class AuthInterceptor implements HttpInterceptor {
               catchError(err => {
                 this.refreshTokenInProgress = false;
                 this.accountService.logout();
+
+                const dialogConfig = new MatDialogConfig();
+                dialogConfig.data = 'Session expired, authentication required';
+                this.dialog.open(LoginDialogComponent, dialogConfig);
                 return throwError(err);
               })
             );
