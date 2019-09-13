@@ -11,7 +11,7 @@ body {
 
 header, footer {
   background-color: mat-color($accent);
-  color:$header-font-colour;
+  color: $header-font-colour;
 }
 
 a {
@@ -21,8 +21,9 @@ a {
 header {
   border-bottom: mat-color($primary) 5px solid;
   font-size: 20px;
+
   a {
-    color:$header-font-colour;
+    color: $header-font-colour;
   }
 }
 

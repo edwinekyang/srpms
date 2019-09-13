@@ -20,7 +20,7 @@ RUN apk update && \
     apk del curl
 
 WORKDIR /srpms
-COPY ./start.sh /start.sh
-RUN chmod u+x /start.sh
+COPY . .
+RUN chmod u+x ./certbot/start.sh
 
-CMD ["/start.sh"]
+CMD ["./certbot/start.sh"]

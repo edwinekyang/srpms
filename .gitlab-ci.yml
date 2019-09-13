@@ -34,6 +34,16 @@ build:
     - $COMPOSE_TEST up -d  # Restart in prepare for running the test
     - sleep $DEPLOY_WAIT  # Make sure everything is fully initialized
 
+#test-lint:
+#  stage: test
+#  tags:
+#    - comp8755
+#    - cooper
+#  allow_failure: true
+#  script:
+#    - $COMPOSE_TEST exec -T django-gunicorn pylint --load-plugins pylint_django accounts research_mgt srpms
+#    - $COMPOSE_TEST run angular-client ng lint
+
 test-front-end:
   stage: test
   tags:
@@ -41,7 +51,6 @@ test-front-end:
     - cooper
   script:
     - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
-#    - $COMPOSE_TEST run angular-client ng lint
     - $COMPOSE_TEST run angular-client ng test --watch=false --browsers=Chrome_without_sandox  # Front-end test
 
 test-back-end:

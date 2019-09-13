@@ -71,3 +71,20 @@ TODO:
 - SRPMS would update account information on every success login, however what's the case that
   the student graduate? Does ANU still keep the LDAP entry for the student? What about the
   case that a professor make some career change?
+
+# Reference
+
+[Logout Django Rest Framework JWT](https://stackoverflow.com/questions/52431850/logout-django-rest-framework-jwt)
+
+[JavaScript JSON Date Parsing and real Dates](https://weblog.west-wind.com/posts/2014/Jan/06/JavaScript-JSON-Date-Parsing-and-real-Dates)
+
+[Property 'subscribe' does not exist on type 'OperatorFunction'](https://stackoverflow.com/questions/50398107/property-subscribe-does-not-exist-on-type-operatorfunctionresponse-recipe)
+
+[Angular Security - Authentication With JSON Web Tokens (JWT): The Complete Guide](https://blog.angular-university.io/angular-jwt-authentication/)
+
+[Angular Material Dialog: A Complete Example](https://blog.angular-university.io/angular-material-dialog/)
+
+[Watch for changes in LocalStorage angular2](https://stackoverflow.com/questions/46078714/watch-for-changes-in-localstorage-angular2)
+
+[Angular Tutorial — Implement Refresh Token with HttpInterceptor](https://itnext.io/angular-tutorial-implement-refresh-token-with-httpinterceptor-bfa27b966f57)
+
