@@ -4,39 +4,52 @@ version: '3'
 
 services:
   django-gunicorn:
-    build: ./srpms
+    build:
+      context: ./srpms
+      dockerfile: ./Dockerfile
+      args:
+        - DEBUG=True
     volumes:
       - ./srpms:/djangoproj/srpms
+    environment:
+      - LDAP_ADDR=${LDAP_ADDR}
     env_file:
-      - config.dev/db-postgres.env
-      - config.dev/django-gunicorn.env
-    command:
-      ["./dev_start.sh"]
+      - ./config.dev/db-postgres.env
+      - ./config.dev/django-gunicorn.env
+      - ./config.dev/general.env
     networks:
       - srpms_network
     depends_on:
       - db-postgres
+    stdin_open: true
+    tty: true
 
   # For development purpose only
   angular-client:
-    build: ./srpms-client
+    build:
+      context: ./srpms-client
+      dockerfile: ./Dockerfile
+      args:
+        - DEBUG=True
+    env_file:
+      - ./config.dev/general.env
     volumes:
       - ./srpms-client:/app/srpms-client
-    command:
-      ["./dev_start.sh"]
+      - angular_volume:/dist
     networks:
       - srpms_network
 
   nginx:
-    image: nginx:1.17-alpine
+    build: ./nginx
     ports:
-      # Map host 8000 to container 80
       - 8000:80
       - 8001:443
+    env_file:
+      - ./config.dev/certbot.env
     volumes:
       # Ngnix configuration file
       - ./config.dev/nginx/conf.d:/etc/nginx/conf.d
-      - ./config.dev/ssl:/etc/ssl
+      - angular_volume:/dist
     networks:
       - srpms_network
     depends_on:
@@ -45,10 +58,12 @@ services:
 
   db-postgres:
     image: postgres:11.5-alpine
+    ports:
+      - 5432:5432
     volumes:
       - db_postgres_volume:/var/lib/postgresql/data
     env_file:
-      - config.dev/db-postgres.env
+      - ./config.dev/db-postgres.env
     networks:
       - srpms_network
 
@@ -58,3 +73,4 @@ networks:
 
 volumes:
   db_postgres_volume:
+  angular_volume:

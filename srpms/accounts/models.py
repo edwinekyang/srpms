@@ -1,27 +1,46 @@
 from django.db import models
-from django.contrib.auth.models import User
-
-from enum import Enum
-
-
-class AuthMethods(Enum):
-    ANU = "ANU_LDAP"  # Use ANU LDAP API for authentication
-    SIT = "Site"  # Use the password stored in this site's database
+from django.core.exceptions import ValidationError
+from django.contrib.auth.models import AbstractUser, Permission, Group
 
 
-class SrpmsUser(models.Model):
+class SrpmsUser(AbstractUser):
     """
-    Table for additional user attributes for application use
+    Table for additional user attributes for SRPMS application.
 
-    Note that the default User model already include fields like last name,
-    first name, email, etc.
+    Note that the AbstractUser model already includes the following fields:
+    - username
+    - password
+    - first_name
+    - last_name
+    - email
+    - is_staff
+
+    For external user nomination, we currently configure it to be null if the
+    nominator is deleted, however the expire date would remain.
+
+    The ANU user would have their uni id in here as well. It would be null in
+    the case of external user.
+
+    TODO: If the user is authenticated through ANU LDAP, forbid anyone to update but only LDAP
+    TODO: Validate expire date on user login
     """
-    user = models.OneToOneField(User, related_name='srpms', on_delete=models.CASCADE)
-    uni_id = models.CharField("Uni ID", max_length=8, blank=True)
-    auth_method = models.CharField(
-            max_length=10,
-            choices=[(tag, tag.value) for tag in AuthMethods]
-    )
+    # External user related field
+    nominator = models.ForeignKey('self', on_delete=models.SET_NULL, default=None, blank=True,
+                                  null=True)
+    expire_date = models.DateTimeField(default=None, blank=True, null=True)
 
-    # Contact email might be different from user email
-    contact_email = models.EmailField("contact email", blank=True)
+    # ANU Account related field
+    uni_id = models.CharField("Uni ID", max_length=8, default=None, blank=True, null=True)
+
+    def clean(self):
+        """
+        Apply constraint to the model
+        """
+        if any([self.nominator, self.expire_date]) and not all([self.nominator, self.expire_date]):
+            raise ValidationError('Both nominator and expire date is required on nomination')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(SrpmsUser, self).save(*args, **kwargs)
+
+# TODO: Create permission for approved supervisor, and approved convener

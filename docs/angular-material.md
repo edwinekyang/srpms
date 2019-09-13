@@ -37,6 +37,3 @@ Angular Material supports the most recent two versions of all major browsers: Ch
 ## Resources
 [Angular Material](https://material.angular.io/) \
 [Material Design VS Bootstrap: Which one is better?](https://azmind.com/material-design-vs-bootstrap/)
-
-
-

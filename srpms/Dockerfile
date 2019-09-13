@@ -1,12 +1,14 @@
 # start from an official image
 FROM python:3.7-alpine
 
+ARG DEBUG
+
 # arbitrary location choice
 RUN mkdir -p /djangoproj/srpms
 WORKDIR /djangoproj/srpms
 
 # install dependencies
-RUN apk add --no-cache libldap libsasl postgresql-libs
+RUN apk add --no-cache libldap libsasl postgresql-libs postgresql-client bash
 RUN apk add --no-cache --virtual .build-deps \
                        postgresql-dev \
                        gcc \
@@ -19,7 +21,10 @@ RUN apk add --no-cache --virtual .build-deps \
                    django-auth-ldap==2.0 \
                    django-filter==2.2 \
                    markdown==3.1 \
+                   djangorestframework_simplejwt==4.3 \
+                   django-cors-headers==3.1 \
                    ipython \
+                   pylint_django \
     && find /usr/local \
         \( -type d -a -name test -o -name tests \) \
         -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
@@ -34,11 +39,15 @@ RUN apk add --no-cache --virtual .build-deps \
     && apk add --virtual .rundeps $runDeps \
     && apk del .build-deps
 
+RUN if [ "$DEBUG" == "True" ]; then \
+        pip install django-debug-toolbar; \
+    fi
+
 # copy our project code
-COPY . /djangoproj/srpms/
+COPY . .
 
 # expose the port 8000
 EXPOSE 8000
 
 # define the default command to run when starting the container
-CMD ["gunicorn", "--bind", ":8000", "srpms.wsgi:application"]
+CMD ["./start.sh"]

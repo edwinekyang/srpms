@@ -81,89 +81,247 @@ chmod g-w objects/pack/*
 find -type d -exec chmod g+s {} +
 ```
 
-## CI/CD
-
-**NOTICE: For this project we only consider docker as [executor](https://docs.gitlab.com/runner/executors/)**
+## Secrets
 
 ```bash
-# Pull gitlab runner image
-docker image pull gitlab/gitlab-runner:alpine
+# Create directory for storing secrets, and give group access
+sudo mkdir /srpms-secrets
+sudo chown root:srpms /srpms-secrets
+sudo chmod 750 /srpms-secrets
+sudo chmod g+s /srpms-secrets
 
-# Register, you'll need token from "Settings" -> "CI/CD" -> "Runner" page of the srpms repo in order to register a runner.
-cd /srpms/gitlab-ci
+# Create secrets
+# NOTE: DO NOT USE "echo" AS IT WOULD SUFFIX NEW LINE
+sudo printf '<secret content>' > /srpms-secrets/postgres-db.txt
+sudo printf '<secret content>' > /srpms-secrets/postgres-user.txt
+sudo printf '<secret content>' > /srpms-secrets/postgres-passwd.txt
+
+# "--" would prevent "--" raise error when its at the start of the content string
+sudo printf -- '<secret content>' > /srpms-secrets/postgres-init-args.txt
+
+sudo printf '<secret content>' > /srpms-secrets/django_secret_key.txt
+```
+
+**NOTE: secrets still works even if inside a container with socket passing, and does not require any special configuration**
+
+## CI/CD Setup
+
+We'll GitLab's shell executor with docker runner for this purpose, for reason why we don't use docker executor, refer to the [CI/CD](#ci/cd) section.
+
+```bash
+# cd to the runner image dir
+cd gitlab-ci
+
+# Register first
 docker-compose run runner register
 
 # Start the runner
 docker-compose up -d
+
+# Create directory for storing secrets, and give group access
+sudo mkdir /srpms-secrets-test
+sudo chown root:docker /srpms-secrets-test
+sudo chmod 750 /srpms-secrets-test
+sudo chmod g+s /srpms-secrets-test
+
+# Set up secrets for testing (on your host machines)
+sudo printf '<secret content>' > /srpms-secrets-test/postgres-db.txt
+sudo printf '<secret content>' > /srpms-secrets-test/postgres-user.txt
+sudo printf '<secret content>' > /srpms-secrets-test/postgres-passwd.txt
+sudo printf -- '<secret content>' > /srpms-secrets-test/postgres-init-args.txt
+sudo printf '<secret content>' > /srpms-secrets-test/django_secret_key.txt
+
+# For testing LDAP connection, you'll need to set up username and password on you test machine, not setting these two variables would raise test error
+sudo printf '<secret content>' > /srpms-secrets-test/django_test_ldap_username.txt
+sudo printf '<secret content>' > /srpms-secrets-test/django_test_ldap_password.txt
 ```
+
+**NOTE**: If your test machine is outside ANU network, you'll need to set up a ssh tunnel, refer to [Access ANU LDAP outside campus](#Access-ANU-LDAP-outside-campus) for instructions.
 
 ## Database migration
 
 **WARNING: Please make sure there is no database under the same name before operate**
 
-- If you already have a database dump name `<db_dump>`, you can import it to the database container by
+- If you already have a database dump named `<db_dump>`, you can import it to the database container by
   1. Copy to the database container
      `docker cp <db_dump> srpms_db-postgres:/`
-  2. Import to the database
-     `docker-compose -f <compose file> run db-postgres psql -U <db_name> < /<db_dump>`
-- If you wants to initialize a new database
+  2. Import to the database (make sure the database container is running first)
+     `docker-compose -f <compose file> exec db-postgres psql -U <db_name> < /<db_dump>`
+- If you want to initialize a new database
   `docker-compose -f <compose file> run django-gunicorn python manage.py migrate`
 
 # Deploy - Development
 
+## Through docker
+
+```mermaid
+graph TB
+	subgraph Docker
+	A[Nginx]
+	B[Django+Gunicorn]
+	C[Angular]
+	D[PostgreSQL]
+	A --> B
+	A -.- C
+	B --- D
+	end
+	
+	E[Request]
+	E --> A
+```
+
+Summary of development environment:
+
+- <u>Nginx container</u>: use as a reverse proxy to redirect request, also serve front-end code
+- <u>Angular container</u>: running `ng build --watch` to produce front-end code, only communicate with nginx through shared volume
+- <u>Django+Gunicorn container</u>: running `gunicorn --reload --bind :8000` to serve back-end content (including back-end static files)
+- Both the angular and django container would auto detect change of file to auto-reload content, thus convenient for development
+
 **Please make sure you are under the project directory when using following commands**
 
 ```bash
-# Start, use -d if you want to run in background
-docker-compose -f docker-compose.dev.yml up
+# Build images if this is your first run
+docker-compose -f docker-compose.dev.yml build
 
-# Clean-up containers
-docker-compose -f docker-compose.dev.yml down
+# Start, will run in background
+docker-compose -f docker-compose.dev.yml up -d
+
+# To preven undesire behavior during development, the database is not initialized by default, so we need to initialize manually
+docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py makemigrations accounts research_mgt
+docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py migrate --fake-initial
+docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py migrate
+
+# To apply changes of Dockerfile and compose file to running containers, use the following command (remove --build if you did not change any Dockerfile)
+docker-compose -f docker-compose.dev.yml up -d --build
+
+# Stop containers
+docker-compose -f docker-compose.dev.yml stop
+
+# This command will remove container, network, and volumes, which means the database would be removed as well
+docker-compose -f docker-compose.dev.yml down --rmi 'local' -v --remove-orphans
 ```
 
-The about command would
+- The about command would
+  - Listen at `localhost:8000` for HTTP
+  - Listen at `localhost:8001` for HTTPS
+  - `/media/`, `/static/`, `/api/` would be directed to Django container
+  - All other requests would request file in nginx, including front-end code
+- To attach to a running container, use `docker exec -it <service_name> <command>`
+  - For example, to attach to the Django container for debugging, use command
+    `docker exec -it django-gunicorn_1 /bin/sh`
+- To run a single container with some command, use `docker-compose -f <compose file> run <service_name> <command>`
+  - Using this command has the advantage over regular `docker run`, as it will apply settings specified in the docker-compose file
 
-- Listen at `localhost:8000` for HTTP
-- Listen at `localhost:8001` for HTTPS
-- `/media/`, `/static/`, `/api/` would be directed to Django container
-- All other requests would be directed to the Angular container
+## On local machine
 
-To attach to a running container, use `docker exec -it <service_name> <command>`
+Running only inside docker can sometime make debugging very painful, as you won't have the support from IDE debugging tools. 
 
-- For example, to attach to the Django container for debugging, use command
-  `docker exec -it django-gunicorn_1 /bin/sh`
+To run django on local machine:
 
-To run a single container with some command, use `docker-compose -f <compose file> run <service_name> <command>`
+```bash
+export DEBUG=True
 
-- Using this command has the advantage over regular `docker run`, as it will apply settings specified in the docker-compose file
+# Run the database
+docker-compose -f docker-compose.dev.yml up -d db-postgres
+
+cd srpms
+
+# Activate your conda environment as appropriate
+
+# Migrate if you haven't migrate yet
+python manage.py makemigrations accounts research_mgt
+python manage.py migrate --fake-initial
+python manage.py migrate
+
+python manage.py runserver
+```
+
+
 
 ## Access ANU LDAP outside campus
 
-- For Mac:
-
-  - `sudo 389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au`
-
-- For Linux:
-
-  - ```bash
-    # Obtain srpms network name by `docker network ls`, normally it should be 'srpms_srpms_network'
-    DOCKER_GATEWAY="$(docker network inspect <srpms network name> --format='{{(index .IPAM.Config 0).Gateway}}')"
-    sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
+- ```bash
+  DOCKER_GATEWAY="$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
+  export LDAP_ADDR="ldap://$DOCKER_GATEWAY"
+  
+  # Make sure your ssh connection is alive when the container is running
+  # Port 389 is in the range of 1~1024, as such we need sudo privilege.
+  sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
+  ```
+  
+- You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked and won't reach the ssh tunnel.
+  
+  - For Linux:
+    
+    ```bash
+    sudo iptables -A INPUT -d $(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}') -p tcp -m tcp --dport 389 -j ACCEPT
     ```
-
-  - You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked.
+    
+  - For Mac:
+  
+    ```bash
+    # TBD
+    ```
+  
+    
 
 # Deploy - Production
 
-**Under construction, do NOT attempt**
-
-```bash
-# Collect static files
-docker-compose run django-gunicorn python manage.py collectstatic --no-input
-
-docker-compose -f docker-compose.prod.yml -d up
+```mermaid
+graph TB
+	subgraph Docker
+	A[Nginx]
+	B[Django+Gunicorn]
+	D[PostgreSQL]
+	A --> B
+	B --- D
+	end
+	
+	C[cerbot]
+	F[Angular]
+	A -.- C
+	A -.- F
+	
+	E[Request]
+	E --> A
 ```
 
+Summary of production environment:
+
+- <u>Nginx container</u> will serve compiled front-end code and back-end static resources, while request of dynamic resources would be re-directed to Django
+- <u>Django+Gunicorn container</u> will handle any dynamic request (query, etc.)
+- <u>Certbot container</u> will be used for obtain and update SSL certificate from Let's Encrypt, it'll also try to renew the certificate every 12 hours, and singal
+- <u>Angular-client</u>
+  - Exists for the sole purpose of copying compiled front-end to a volume share between Nginx and itself
+  - Exit after finish copy
+  - Does not have any network connection
+
+```bash
+# Start up
+docker-compose -f docker-compose.prod.yml up -d
+
+# Stop
+docker-compose -f docker-compose.prod.yml stop
+
+# Check logs, append '-f' for following
+docker-compose -f docker-compose.prod.yml logs
+
+# Shutdown and remove containers
+docker-compose -f docker-compose.prod.yml down
+```
+
+## Behavior
+
+### SSL initial setup
+
+The deployment would perform the following action on first-time-run:
+
+- Nginx create a dummy certificate for localhost, expire after 1 day. Otherwise nginx would fail to launch if it cannot find the ssl certificate
+- Certbot launch, if certificate does not exist, sleep for 10s to wait for nginx
+- Certbot check if the certificates are dummry (i.e. CN is localhost), if yes, remove certificates, then obtain certificate from letsencrypt, and tell nginx to reload itself
+  - Note that if some replica of nginx start after this, they might fail
+  - In order to reload nginx, source code is mapped inside certbot container, as well as the docker socket. As such certbot is not part of the srpms_network, and can only communicate to nginx through their share volume (i.e. the challenge file directory and letsencrypt certificate directory).
+  - For preventing unwanted behavior on docker socket passing, the certbot container is configured to use host network
 
 ## Caveats
 
@@ -178,11 +336,25 @@ REST_FRAMEWORK = {
 }
 ```
 
-[Refer to here](http://masnun.com/2016/04/20/django-rest-framework-remember-to-disable-web-browsable-api-in-production.html) for the reason of doing so.
+[Refer here](http://masnun.com/2016/04/20/django-rest-framework-remember-to-disable-web-browsable-api-in-production.html) for the reason of doing so.
+
+# CI/CD
+
+- Since deploying a Kubernete for this project is a bit over kill for the current phase, we only use `.gitlab-ci.yml` for CI/CD, and manually set the DevOps job inside in.
+- In fact, GitLab's Auto DevOps also just another `.gitlab-ci.yml`, but with pre-defined content inside, [see here for more details](https://docs.gitlab.com/ee/topics/autodevops/#using-components-of-auto-devops)
+- Also, we are using docker.sock-in-docker for running the CI pipeline, [this article](https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/) explains fairly well why we should use this approach instead of docker-in-docker
+  - **However, when running compose inside the CI container, we effitivetly mount files in CI container to other container, hopefully this wouldn't cause any problem**
+- Reasons why we don't use docker executor:
+  - Because you basically need to repeat you compose file agile in the runner configuration, and it's very bad for maintenance.
+  - Our custom built runner image already contain docker and docker-compose, thus we don't need use docker executor to burden ourselves
+
+```bash
+# Since the test server is outside Uni, make sure you run the following in script for test jobs that would access ANU LDAP, otherwise 
+# it would have a hard time finding ldap server
+export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
+```
 
 # Reference 
-
-[How to configure an existing git repo to be shared by a UNIX group](https://stackoverflow.com/questions/3242282/how-to-configure-an-existing-git-repo-to-be-shared-by-a-unix-group)
 
 [How To Get Angular and Nginx Working Together Properly for Development](https://medium.com/better-programming/how-to-properly-get-angular-and-nginx-working-together-for-development-3e5d158734bf)
 
@@ -207,6 +379,12 @@ https://pawamoy.github.io/2018/02/01/docker-compose-django-postgres-nginx.html
 
 [Deploying nginx + django + python 3](https://tutos.readthedocs.io/en/latest/source/ndg.html)
 
+[Why Your Dockerized Application Isn’t Receiving Signals](https://hynek.me/articles/docker-signals/)
+
+[Trapping Signals in Docker Containers](https://blog.codeship.com/trapping-signals-in-docker-containers/)
+
+[Using docker-compose with CI - how to deal with exit codes and daemonized linked containers?](https://stackoverflow.com/questions/29568352/using-docker-compose-with-ci-how-to-deal-with-exit-codes-and-daemonized-linked)
+
 ## SSL certificates
 
 To generate a self-signed SSL certificate for `localhost` (for development purpose)
@@ -219,8 +397,6 @@ openssl req -x509 -out localhost.crt -keyout localhost.key \
 ```
 
 This self-sign certificate would not accept by chrome, as such, you need to go to `chrome://flags/#allow-insecure-localhost`, and set it to `enable`
-
-
 
 [How to Setup a SSL Certificate on Nginx for a Django Application](https://simpleisbetterthancomplex.com/tutorial/2016/05/11/how-to-setup-ssl-certificate-on-nginx-for-django-application.html)
 
@@ -235,6 +411,8 @@ This self-sign certificate would not accept by chrome, as such, you need to go t
 [Run GitLab Runner in a container](https://docs.gitlab.com/runner/install/docker.html)
 
 [Register Runners](https://docs.gitlab.com/runner/register/index.html#docker)
+
+[Using components of Auto-DevOps](https://docs.gitlab.com/ee/topics/autodevops/#using-components-of-auto-devops)
 
 ## Server iptables rule
 
@@ -331,3 +509,16 @@ This self-sign certificate would not accept by chrome, as such, you need to go t
 COMMIT
 # Done
 ```
+
+## Misc.
+
+[Keep exit codes when trapping SIGINT and similar?](https://unix.stackexchange.com/questions/235582/keep-exit-codes-when-trapping-sigint-and-similar)
+
+[Trapping Signals in Docker Containers](https://blog.codeship.com/trapping-signals-in-docker-containers/)
+
+[How to configure an existing git repo to be shared by a UNIX group](https://stackoverflow.com/questions/3242282/how-to-configure-an-existing-git-repo-to-be-shared-by-a-unix-group)
+
+[How do I parse command line arguments in Bash?](https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash)
+
+[When do we need curly braces around shell variables?](https://stackoverflow.com/questions/8748831/when-do-we-need-curly-braces-around-shell-variables)
+
