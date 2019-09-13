@@ -33,7 +33,7 @@ import { ContractFormElementComponent } from './contract-form-element/contract-f
     ContractComponent,
     SidenavComponent,
     HeaderComponent,
-    LoginDialogComponent
+    LoginDialogComponent,
     ContractFormComponent,
     ContractFormElementComponent
   ],
