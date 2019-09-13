@@ -6,7 +6,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { ContractComponent } from './contract/contract.component';
-import { FormsModule } from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { MatGridListModule } from '@angular/material/grid-list';
@@ -15,6 +15,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { HeaderComponent } from './header/header.component';
 import { MatCardModule } from '@angular/material/card';
+import { ContractFormComponent } from './contract-form/contract-form.component';
+import { ContractFormElementComponent } from './contract-form-element/contract-form-element.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +24,9 @@ import { MatCardModule } from '@angular/material/card';
     HomeComponent,
     ContractComponent,
     SidenavComponent,
-    HeaderComponent
+    HeaderComponent,
+    ContractFormComponent,
+    ContractFormElementComponent
   ],
     imports: [
         BrowserModule,
@@ -34,7 +38,8 @@ import { MatCardModule } from '@angular/material/card';
         MatSidenavModule,
         MatButtonModule,
         MatListModule,
-        MatCardModule
+        MatCardModule,
+        ReactiveFormsModule
     ],
   providers: [],
   bootstrap: [AppComponent]

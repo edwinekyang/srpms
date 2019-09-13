@@ -1,20 +1,30 @@
 import {Component, OnInit} from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ContractService, Course } from '../contract.service';
+import { ElementService } from '../element.service';
 
 @Component({
   selector: 'app-contract',
   templateUrl: './contract.component.html',
-  styleUrls: ['./contract.component.scss']
+  styleUrls: ['./contract.component.scss'],
+  providers: [
+    ContractService,
+    ElementService
+  ]
 })
 
 export class ContractComponent implements OnInit {
   errorMessage: string;
   course: Course;
+  elements: any[];
 
   constructor(
-      public contractService: ContractService
-  ) { this.showCourses(); }
+    public contractService: ContractService,
+    public elementService: ElementService
+  ) {
+      // this.showCourses();
+      this.elements = elementService.getElements();
+  }
 
   ngOnInit() {
   }
