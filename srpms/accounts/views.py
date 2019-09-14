@@ -16,13 +16,13 @@ from .serializers import LoginSerializer, SrpmsUserSerializer
 class APIRootView(APIView):
     def get(self, request, *args, **kwargs):
         return Response({
-            'login': rest_reverse('accounts:login', request=request, *args, **kwargs),
-            'logout': rest_reverse('accounts:logout', request=request, *args, **kwargs),
             'token': rest_reverse('accounts:token_obtain_pair', request=request, *args, **kwargs),
-            'token/refresh': rest_reverse('accounts:token_refresh', request=request, *args, **kwargs)
+            'token/refresh': rest_reverse('accounts:token_refresh', request=request, *args,
+                                          **kwargs)
         })
 
 
+@DeprecationWarning
 class LoginView(generics.GenericAPIView):
     """
     API View that receives a POST with a user's username and password.
@@ -58,6 +58,7 @@ class LoginView(generics.GenericAPIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
 
+@DeprecationWarning
 class LogoutView(generics.GenericAPIView):
     """
     API View that log the current account out.

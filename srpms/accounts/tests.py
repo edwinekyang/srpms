@@ -45,25 +45,24 @@ class LoginTestCase(TestCase):
         client = APIClient()
 
         print('Test GET on login page ...')
-        response = client.get('/api/accounts/login/', secure=True)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        response = client.get('/api/accounts/token/', secure=True)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         print('Test valid credential login ...')
-        response: RESTResponse = client.post('/api/accounts/login/',
+        response: RESTResponse = client.post('/api/accounts/token/',
                                              {'username': self.user_01_name,
                                               'password': self.user_01_passwd},
                                              format='json', secure=True, follow=True)
-        self.assertRedirects(response, '/api/accounts/user/{}/'.format(self.user_01.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         print('Test wrong password login ...')
-        response = client.post('/api/accounts/login/',
+        response = client.post('/api/accounts/token/',
                                {'username': self.user_01_name, 'password': 'Basic_54321'},
                                format='json', secure=True)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         print('Test empty password login ...')
-        response = client.post('/api/accounts/login/',
+        response = client.post('/api/accounts/token/',
                                {'username': 'test_basic', 'password': ''},
                                format='json', secure=True)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -82,7 +81,7 @@ class LoginTestCase(TestCase):
             ldap_test_username = settings.get_env('', 'LDAP_TEST_USERNAME_FILE')
 
             print('Test LDAP login with valid credential ...')
-            response = client.post('/api/accounts/login/',
+            response = client.post('/api/accounts/token/',
                                    {'username': ldap_test_username,
                                     'password': settings.get_env('', 'LDAP_TEST_PASSWORD_FILE')},
                                    format='json', secure=True, follow=True)
@@ -96,37 +95,11 @@ class LoginTestCase(TestCase):
             self.assertEqual(ldap_user.attrs['mail'][0], srpms_user.email)
 
             print('Test LDAP login with invalid credential ...')
-            response = client.post('/api/accounts/login/',
+            response = client.post('/api/accounts/token/',
                                    {'username': ldap_test_username,
                                     'password': 'aoiuyf7868enkjer23!@#98'},
                                    format='json', secure=True)
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_login_edges(self):
-        client = APIClient()
-
-        print('Test repeat login ...')
-        client.post('/api/accounts/login/',
-                    {'username': self.user_01_name, 'password': self.user_01_passwd},
-                    format='json', secure=True, follow=True)
-        response = client.post('/api/accounts/login/',
-                               {'username': self.user_01_name, 'password': self.user_01_passwd},
-                               format='json', secure=True, follow=True)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_logout_basic(self):
-        client = APIClient()
-
-        print('Test GET on logout page without login ...')
-        response = client.get('/api/accounts/logout/', secure=True)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        print('Test GET on logout page after login ...')
-        client.post('/api/accounts/login/',
-                    {'username': self.user_01_name, 'password': self.user_01_passwd},
-                    format='json', secure=True)
-        response = client.get('/api/accounts/logout/', secure=True)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_user_detail(self):
         client = APIClient()
