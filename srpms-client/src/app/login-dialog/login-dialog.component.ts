@@ -13,6 +13,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class LoginDialogComponent implements OnInit {
   errorMessage: string;
+  loginInProgress: boolean;
 
   loginForm = new FormGroup({
     username: new FormControl(''),
@@ -28,9 +29,11 @@ export class LoginDialogComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.loginInProgress = false;
   }
 
   login() {
+    this.loginInProgress = true;
     this.accountService.login(this.loginForm.value)
       .subscribe(() => {
         this.close();
@@ -42,12 +45,18 @@ export class LoginDialogComponent implements OnInit {
             this.errorMessage = error1.statusText;
           }
         }
+        this.loginInProgress = false;
         throw error1;
       });
   }
 
   close() {
-    this.errorMessage = '';
     this.dialogRef.close();
+  }
+
+  handleKeyEvent(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      this.login();
+    }
   }
 }
