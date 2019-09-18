@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
-import { Observable, of, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subject, throwError } from 'rxjs';
 
 export const ACC_SIG = {
   LOGIN: 'login',
@@ -28,6 +28,15 @@ export interface SrpmsUser {
 
 /* tslint:enable:variable-name */
 
+/**
+ * Account service for handling authentication and user information.
+ *
+ * Please note that the service does not provide `isAuthenticated` function, as it does not
+ * make sense for token-based authentication. For example, the token might expire 3s after
+ * checking, and make the return value meaning less. As such, please use the `getLocalUser`
+ * function for this purpose. In the case that token expire, the back-end would not authorize
+ * anyway, and the auth-interceptor service would log the current user out.
+ */
 @Injectable({
   providedIn: 'root'
 })
@@ -38,7 +47,8 @@ export class AccountsService {
 
   private API_URL = '/api/';
 
-  private storageSub = new Subject<string>();
+  // BehaviorSubject can return last time value for new subscribers, normal subject cannot
+  private storageSub = new BehaviorSubject<string>(null);
 
   public httpOptions = {
     headers: new HttpHeaders({
@@ -66,7 +76,7 @@ export class AccountsService {
   }
 
   // Used to inform component that local storage has changed.
-  watchStorage(): Observable<string> {
+  private watchStorage(): Observable<string> {
     return this.storageSub.asObservable();
   }
 
@@ -101,7 +111,7 @@ export class AccountsService {
    * Update local storage to store authentication information
    */
   private updateData(token: JWToken): void {
-    const [userID, tokenExpireDate] = AccountsService.decodeToken(token.access);
+    const [userID, ] = AccountsService.decodeToken(token.access);
 
     if (token.access) {
       localStorage.setItem('srpmsAccessToken', JSON.stringify(token.access));
@@ -153,6 +163,23 @@ export class AccountsService {
    */
   logout(): void {
     this.clearLocal();
+  }
+
+  /**
+   * Return user object stored in the local storage, return null if not exist.
+   */
+  getLocalUser(): Observable<SrpmsUser> {
+    return this.watchStorage()
+      .pipe(
+        map(() => {
+          const user: SrpmsUser = JSON.parse(localStorage.getItem('srpmsUser'));
+          if (user) {
+            return user;
+          } else {
+            return null;
+          }
+        })
+      );
   }
 
   getUser(id: number): Observable<SrpmsUser> {
