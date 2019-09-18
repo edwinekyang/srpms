@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework import generics
 from rest_framework import serializers
 from rest_framework import permissions
+from rest_framework import filters
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -78,3 +79,19 @@ class UserDetailView(generics.RetrieveAPIView):
     serializer_class = SrpmsUserSerializer
 
     permission_classes = [permissions.IsAuthenticated, ]
+
+
+class UserListView(generics.ListAPIView):
+    """
+    List view for retrieving user, also support search for user
+
+    Please note that ONLY user exist in this system would be included, this include
+    ANU accounts that has used this system (login, nominate, etc.). However, for
+    ANU accounts that never interact with this system, it would not be listed.
+    """
+    queryset = get_user_model().objects.all()
+    serializer_class = SrpmsUserSerializer
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username', 'first_name', 'last_name', 'uni_id']

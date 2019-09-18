@@ -10,6 +10,6 @@
   <mat-progress-bar *ngIf="loginInProgress" mode="indeterminate"></mat-progress-bar>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button mat-raised-button [disabled]="!loginForm.valid" (click)="login()">Login</button>
+  <button mat-raised-button [disabled]="!loginForm.valid || loginInProgress" (click)="login()">Login</button>
   <button mat-button (click)="close()">Cancel</button>
 </mat-dialog-actions>

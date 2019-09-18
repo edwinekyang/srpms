@@ -20,12 +20,12 @@ class LoginTestCase(TestCase):
         self.user_01_last_name = 'Basic'
         SrpmsUser.objects.create_user(username=self.user_01_name, password=self.user_01_passwd,
                                       email='test.basic@example.com', first_name='Test',
-                                      last_name='Basic')
+                                      last_name='Basic', uni_id="")
         self.user_01 = SrpmsUser.objects.get(username=self.user_01_name)
 
     def test_create_user(self):
         print('Test create valid user ...')
-        SrpmsUser.objects.create(username='test_valid', password='Basic_12345')
+        SrpmsUser.objects.create(username='test_valid', password='Basic_12345', uni_id="")
 
         print('Test create invalid user ...')
         # Have expire date but no nominator
