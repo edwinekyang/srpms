@@ -1,9 +1,9 @@
 from django import forms
-from .models import Courses
+from .models import Course
 
 
 class ContractForm(forms.Form):
-    course_number = forms.ModelChoiceField(required=True, queryset=Courses.objects, empty_label="(Nothing)")
+    course_number = forms.ModelChoiceField(required=True, queryset=Course.objects, empty_label="(Nothing)")
     semester = forms.CharField(required=True, max_length=20)
     student_id = forms.CharField(required=True, max_length=10)
     student_name = forms.CharField(required=True, max_length=100)

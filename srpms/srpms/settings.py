@@ -156,7 +156,7 @@ AUTH_USER_MODEL = 'accounts.SrpmsUser'
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Australia/Canberra'
 
 USE_I18N = True
 
