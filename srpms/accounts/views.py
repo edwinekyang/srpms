@@ -22,25 +22,18 @@ class APIRootView(APIView):
         })
 
 
-@DeprecationWarning
-class LoginView(generics.GenericAPIView):
+class LoginView(generics.GenericAPIView, DeprecationWarning):
     """
+    PENDING DEPRECATION, PLEASE DON'T USE FOR PRODUCTION
+
     API View that receives a POST with a user's username and password.
 
     If already login, GET would redirect to the user detail view.
-    Would also redirect to user detail after successful login.
     """
 
     queryset = get_user_model().objects.all()
     serializer_class = LoginSerializer
     permission_classes = ()  # Remove default permission to allow post action
-
-    def get(self, request: Request):
-        if request.user.is_authenticated:
-            return redirect(djan_reverse('accounts:user-detail',
-                                         args=[request.user.id]))
-        else:
-            return Response({'detail': 'You\'re not login yet.'}, status.HTTP_401_UNAUTHORIZED)
 
     def post(self, request: Request):
         serializer: serializers.ModelSerializer = self.get_serializer(data=request.data)
@@ -55,12 +48,13 @@ class LoginView(generics.GenericAPIView):
                                              args=[user.id]))
 
         return Response({'detail': 'Unable to log in with provided credentials'},
-                        status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_401_UNAUTHORIZED)
 
 
-@DeprecationWarning
-class LogoutView(generics.GenericAPIView):
+class LogoutView(generics.GenericAPIView, DeprecationWarning):
     """
+    PENDING DEPRECATION, PLEASE DON'T USE FOR PRODUCTION
+
     API View that log the current account out.
 
     Generally HTTP does not recommend changing the state of the server for GET

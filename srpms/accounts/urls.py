@@ -1,6 +1,7 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from srpms import settings
 from . import views
 
 # Namespace for this app
@@ -12,3 +13,7 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('user/<int:pk>/', views.UserDetailView.as_view(), name='user-detail'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [path('login/', views.LoginView.as_view(), name='login'),
+                    path('logout/', views.LogoutView.as_view(), name='logout'), ]
