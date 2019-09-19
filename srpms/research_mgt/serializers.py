@@ -94,7 +94,7 @@ class SuperviseSerializer(serializers.ModelSerializer):
 class AssessmentTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.AssessmentTemplate
-        fields = ['id', 'name', 'description', 'max_mark', 'min_mark']
+        fields = ['id', 'name', 'description', 'max_mark', 'min_mark', 'default_mark']
 
 
 class AssessmentMethodSerializer(serializers.ModelSerializer):

@@ -62,6 +62,7 @@ class AssessmentTemplate(models.Model):
     description = models.CharField(max_length=200, blank=True)
     max_mark = models.IntegerField(null=False, blank=False)
     min_mark = models.IntegerField(null=False, blank=False)
+    default_mark = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -92,3 +93,9 @@ class AssessmentMethod(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super(AssessmentMethod, self).save(*args, **kwargs)
+
+
+class ResearchManagementPermission(models.Model):
+    """A dummy model for holding permissions for this app"""
+    class Meta:
+        managed = False  # Do not create database table
