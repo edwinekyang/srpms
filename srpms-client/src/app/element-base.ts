@@ -5,6 +5,8 @@ export class ElementBase<T> {
   required: boolean;
   order: number;
   controlType: string;
+  choices: any;
+  type: any;
 
     constructor(options: {
       value?: T,

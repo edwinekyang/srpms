@@ -10,14 +10,14 @@ import { ContractFormControlService } from '../contract-form-control.service';
 })
 export class ContractFormComponent implements OnInit {
 
-  @Input() questions: ElementBase<any>[] = [];
+  @Input() elements: ElementBase<any>[] = [];
   form: FormGroup;
   payLoad = '';
 
   constructor(private cfcs: ContractFormControlService) {  }
 
   ngOnInit() {
-    this.form = this.cfcs.toFormGroup(this.questions);
+    this.form = this.cfcs.toFormGroup(this.elements);
   }
 
   onSubmit() {

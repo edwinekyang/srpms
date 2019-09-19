@@ -11,13 +11,14 @@ export class ElementService {
     // TODO: make asynchronous
     getElements() {
 
-        const elements: ElementBase<any>[] = [
+        let elements: ElementBase<any>[];
+        elements = [
 
             new DropdownElement({
-                key: 'brave',
-                label: 'Courses',
-                options: [
-                    {key: 'COMP8750',  value: 'COMP8750'},
+                key: 'course',
+                label: 'Course',
+                choices: [
+                    {key: 'COMP8750', value: 'COMP8750'},
                 ],
                 order: 3
             }),
