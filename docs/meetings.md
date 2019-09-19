@@ -35,6 +35,11 @@
   - Be able to export contracts in batch
 - Ask Bob about SSL certificate
 
+## Aug 29
+
+- Delete the relation between assessment method and course
+- Url schema, `srpms.cecs.anu.edu.au/api/*` would goes to Django, while every other things would stay in front-end.
+
 # Sprint meetings
 
 ## Aug 09

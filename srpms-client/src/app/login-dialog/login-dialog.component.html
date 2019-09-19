@@ -1,5 +1,5 @@
 <h1 mat-dialog-title>SRPMS Login</h1>
-<mat-dialog-content class="login-container" [formGroup]="loginForm">
+<mat-dialog-content class="login-container" [formGroup]="loginForm" (keyup)="handleKeyEvent($event)">
   <mat-error *ngIf="errorMessage">{{errorMessage}}</mat-error>
   <mat-form-field>
     <input matInput placeholder="Username" formControlName="username" required>
@@ -7,8 +7,9 @@
   <mat-form-field>
     <input matInput placeholder="Password" type="password" formControlName="password" required>
   </mat-form-field>
+  <mat-progress-bar *ngIf="loginInProgress" mode="indeterminate"></mat-progress-bar>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button mat-raised-button [disabled]="!loginForm.valid" (click)="login()">Login</button>
+  <button mat-raised-button [disabled]="!loginForm.valid || loginInProgress" (click)="login()">Login</button>
   <button mat-button (click)="close()">Cancel</button>
 </mat-dialog-actions>

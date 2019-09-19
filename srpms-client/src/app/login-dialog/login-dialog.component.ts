@@ -13,6 +13,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class LoginDialogComponent implements OnInit {
   errorMessage: string;
+  loginInProgress: boolean;
 
   loginForm = new FormGroup({
     username: new FormControl(''),
@@ -28,21 +29,34 @@ export class LoginDialogComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.loginInProgress = false;
   }
 
   login() {
+    this.loginInProgress = true;
     this.accountService.login(this.loginForm.value)
       .subscribe(() => {
         this.close();
       }, (error1: APIErrorResponse) => {
         if (error1 instanceof HttpErrorResponse) {
-          this.errorMessage = error1.error.detail;
+          if (Math.floor(error1.status / 100) === 4) {
+            this.errorMessage = error1.error.detail;
+          } else {
+            this.errorMessage = error1.statusText;
+          }
         }
+        this.loginInProgress = false;
+        throw error1;
       });
   }
 
   close() {
-    this.errorMessage = '';
     this.dialogRef.close();
+  }
+
+  handleKeyEvent(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      this.login();
+    }
   }
 }

@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 from datetime import timedelta
 import ldap
-from django_auth_ldap.config import LDAPSearch
 
 
 def get_env(env_name: str, env_file: str = None) -> str:
@@ -157,7 +156,7 @@ AUTH_USER_MODEL = 'accounts.SrpmsUser'
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Australia/Canberra'
 
 USE_I18N = True
 
@@ -223,9 +222,10 @@ AUTHENTICATION_BACKENDS = [
 AUTH_LDAP_SERVER_URI = get_env('LDAP_ADDR')
 AUTH_LDAP_BIND_DN = ""
 AUTH_LDAP_BIND_PASSWORD = ""
-AUTH_LDAP_USER_SEARCH = LDAPSearch(
-        "ou=People,o=anu.edu.au", ldap.SCOPE_ONELEVEL, "(uid=%(user)s)"
-)
+AUTH_ANU_LDAP_BASE_DN = "ou=People,o=anu.edu.au"
+
+# Use direct bind to reduce load of the LDAP server
+AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s," + AUTH_ANU_LDAP_BASE_DN
 
 # Explicitly specify that SRPMS should update user information on every login
 AUTH_LDAP_ALWAYS_UPDATE_USER = True

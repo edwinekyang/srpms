@@ -7,19 +7,27 @@
     <a href="/"><h1>Student Research Projects Management System</h1></a>
   </mat-grid-tile>
   <mat-grid-tile colspan="1">
-    <button mat-button [matMenuTriggerFor]="userMenu">
-      {{displayName ? displayName : 'Anonymous'}}
+    <a mat-button *ngIf="!localUser; else userMenu" (click)="openLoginDialog()">
+      Login
       <mat-icon>account_circle</mat-icon>
-    </button>
-    <mat-menu #userMenu="matMenu"
-              xPosition="before" yPosition="below">
-      <span *ngFor="let info of userInfo" mat-menu-item disabled>{{info}}</span>
-      <a *ngIf="!localUser" mat-menu-item (click)="openLoginDialog()">
-        Login
-      </a>
-      <a *ngIf="localUser" mat-menu-item (click)="accountService.logout()">
-        Logout
-      </a>
-    </mat-menu>
+    </a>
+    <ng-template #userMenu>
+      <button mat-button [matMenuTriggerFor]="userMenuButton">
+        {{displayName}}
+        <mat-icon>account_circle</mat-icon>
+      </button>
+      <mat-menu #userMenuButton="matMenu"
+                xPosition="before" yPosition="below">
+        <div *ngIf="userInfo && userInfo.length > 0">
+          <mat-list (click)="$event.stopPropagation();" dense>
+            <mat-list-item *ngFor="let info of userInfo">{{info}}</mat-list-item>
+          </mat-list>
+          <mat-divider></mat-divider>
+        </div>
+        <a mat-menu-item (click)="accountService.logout()">
+          Logout
+        </a>
+      </mat-menu>
+    </ng-template>
   </mat-grid-tile>
 </mat-grid-list>
