@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from accounts.models import SrpmsUser
-from .models import Course, IndividualProject, Supervise, Contract, AssessmentMethod
+from .models import Course, IndividualProject, Supervise, AssessmentMethod
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class IndividualProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IndividualProject
-        fields = ['title', 'object', 'description', 'id', 'year', 'semester', 'duration', 'resources',
+        fields = ['title', 'objectives', 'description', 'id', 'year', 'semester', 'duration', 'resources',
                   'convener_approval_date', 'convener', 'create_date', 'owner', 'course']
 
 

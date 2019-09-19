@@ -52,7 +52,8 @@ export class ContractFormComponent implements OnInit {
       contract: this.contractId,
       additional_description: '',
       due: this.form.value.assessment1Due,
-      max: this.form.value.assessment1Mark
+      max_mark: this.form.value.assessment1Mark,
+      examiner: this.form.value.assessment1Examiner
     };
 
     this.contractService.addAssessmentMethod(JSON.stringify(this.assessment1))
@@ -69,7 +70,8 @@ export class ContractFormComponent implements OnInit {
       contract: this.contractId,
       additional_description: '',
       due: this.form.value.assessment2Due,
-      max: this.form.value.assessment2Mark
+      max_mark: this.form.value.assessment2Mark,
+      examiner: this.form.value.assessment2Examiner
     };
 
     this.contractService.addAssessmentMethod(JSON.stringify(this.assessment2))
@@ -86,7 +88,8 @@ export class ContractFormComponent implements OnInit {
       contract: this.contractId,
       additional_description: '',
       due: this.form.value.assessment3Due,
-      max: this.form.value.assessment3Mark
+      max_mark: this.form.value.assessment3Mark,
+      examiner: this.form.value.assessment3Examiner
     };
 
     this.contractService.addAssessmentMethod(JSON.stringify(this.assessment3))
@@ -102,7 +105,8 @@ export class ContractFormComponent implements OnInit {
   addSupervise() {
     this.supervise = {
       supervisor: this.form.value.proejctSupervisor,
-      contract: this.contractId
+      contract: this.contractId,
+      is_formal: false
     };
 
     this.contractService.addSupervise(JSON.stringify(this.supervise))

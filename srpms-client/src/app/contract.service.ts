@@ -57,7 +57,7 @@ export class ContractService {
   }
 
   addAssessmentMethod(assessment: string): Observable<any> {
-    return this.http.post<any>(this.API_URL + 'research_mgt/assessment/', assessment, this.httpOptions)
+    return this.http.post<any>(this.API_URL + 'research_mgt/assessment-methods/', assessment, this.httpOptions)
       .pipe(
         catchError(this.handleError<any>('addAssessmentMethod'))
       );

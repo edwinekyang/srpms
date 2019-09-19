@@ -18,7 +18,7 @@ export class ElementService {
                 key: 'course',
                 label: 'Course',
                 choices: [
-                    {key: 'COMP8750', value: '2'},
+                    {key: 'COMP8750', value: '1'},
                 ],
                 order: 5
             }),
@@ -88,7 +88,7 @@ export class ElementService {
             }),
 
             new TextboxElement({
-                key: 'object',
+                key: 'objectives',
                 label: 'LEARNING OBJECTIVES',
                 value: '',
                 required: true,

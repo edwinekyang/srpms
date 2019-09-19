@@ -1,9 +1,6 @@
 from rest_framework import viewsets
 from rest_framework import permissions
-from django.shortcuts import render
-from django.http import HttpResponse
 
-from .forms import ContractForm
 from .serializers import UserContractSerializer, CourseSerializer, IndividualProjectSerializer, AssessmentMethodSerializer, \
     SuperviseSerializer
 from .models import Course, IndividualProject, AssessmentMethod, Supervise
@@ -26,6 +23,7 @@ class IndividualProjectViewSet(viewsets.ModelViewSet):
     """
     queryset = IndividualProject.objects.all()
     serializer_class = IndividualProjectSerializer
+    permission_classes = [permissions.IsAuthenticated, ]
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -48,6 +46,7 @@ class SuperviseViewSet(viewsets.ModelViewSet):
     """
     queryset = Supervise.objects.all()
     serializer_class = SuperviseSerializer
+    permission_classes = [permissions.IsAuthenticated, ]
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
