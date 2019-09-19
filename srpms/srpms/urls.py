@@ -28,7 +28,8 @@ class APIRootView(APIView):
 
     def get(self, request, *args, **kwargs):
         return Response({
-            'accounts': reverse('accounts:root', request=request, *args, **kwargs),
+            'accounts': reverse('accounts:api-root', request=request, *args, **kwargs),
+            'research_mgt': reverse('research_mgt:api-root', request=request, *args, **kwargs),
         })
 
 

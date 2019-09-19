@@ -18,8 +18,8 @@ class APIRootView(APIView):
     def get(self, request, *args, **kwargs):
         return Response({
             'token': rest_reverse('accounts:token_obtain_pair', request=request, *args, **kwargs),
-            'token/refresh': rest_reverse('accounts:token_refresh', request=request, *args,
-                                          **kwargs)
+            'token/refresh': rest_reverse('accounts:token_refresh', request=request, *args, **kwargs),
+            'users': rest_reverse('accounts:user-list', request=request, *args, **kwargs),
         })
 
 
