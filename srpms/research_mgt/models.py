@@ -28,10 +28,12 @@ class Contract(models.Model):
 
 
 class Supervise(models.Model):
-    supervisor = models.ForeignKey(SrpmsUser, on_delete=models.PROTECT, blank=False, null=False)
+    supervisor = models.ForeignKey(SrpmsUser, related_name='supervise',
+                                   on_delete=models.PROTECT, blank=False, null=False)
     is_formal = models.BooleanField(blank=False, null=False)
     supervisor_approval_date = models.DateTimeField(null=True, blank=True)
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, blank=False, null=False)
+    contract = models.ForeignKey(Contract, related_name='supervisor',
+                                 on_delete=models.CASCADE, blank=False, null=False)
 
     class Meta:
         unique_together = ('id', 'supervisor', 'contract')
@@ -66,13 +68,15 @@ class AssessmentTemplate(models.Model):
 
 
 class AssessmentMethod(models.Model):
-    template = models.ForeignKey(AssessmentTemplate, on_delete=models.PROTECT,
-                                 null=False, blank=False)
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=False, blank=False)
+    template = models.ForeignKey(AssessmentTemplate, related_name='assessment_method',
+                                 on_delete=models.PROTECT, null=False, blank=False)
+    contract = models.ForeignKey(Contract, related_name='assessment_method',
+                                 on_delete=models.CASCADE, null=False, blank=False)
     additional_description = models.CharField(max_length=200, blank=True)
     due = models.DateTimeField(null=True, blank=True)
     max_mark = models.IntegerField(null=False, blank=False)
-    examiner = models.ForeignKey(SrpmsUser, on_delete=models.PROTECT, null=False, blank=False)
+    examiner = models.ForeignKey(SrpmsUser, related_name='examine',
+                                 on_delete=models.PROTECT, null=False, blank=False)
     examiner_approval_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:

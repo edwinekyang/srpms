@@ -30,7 +30,7 @@ class SrpmsUser(AbstractUser):
     expire_date = models.DateTimeField(default=None, blank=True, null=True)
 
     # ANU Account related field
-    uni_id = models.CharField("Uni ID", max_length=8, default=None, blank=True, null=False)
+    uni_id = models.CharField("Uni ID", max_length=8, default='', blank=True, null=False)
 
     def clean(self):
         """
