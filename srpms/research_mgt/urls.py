@@ -15,14 +15,25 @@ router = DefaultRouter()
 router.register(r'users', views.UserViewSet)
 
 # Generate the following URL patterns
+# 'assessment-templates/$' - 'assessment-template-list'
+# 'assessment-templates/{pk}/$ - 'assessment-template-detail'
+router.register(r'assessment-templates', views.AssessmentTemplateViewSet)
+
+# Generate the following URL patterns
 # 'assessment-methods/$' - 'assessment-method-list'
 # 'assessment-methods/{pk}/$ - 'assessment-method-detail'
 router.register(r'assessment-methods', views.AssessmentMethodViewSet)
 
+# Generate the following URL patterns
+# 'contracts/$' - 'contract-list'
+# 'contracts/{pk}/$ - 'contract-detail'
+router.register(r'contracts', views.ContractViewSet)
+
+# Generate the following URL patterns
+# 'supervise/$' - 'supervise-list'
+# 'supervise/{pk}/$ - 'supervise-detail'
+router.register(r'supervise', views.SuperviseViewSet)
+
 urlpatterns = [
     path('', include(router.urls)),
-    # ex: /research_mgt/5/detail/
-    path('<int:contract_id>/detail/', views.detail, name='detail'),
-    # ex: /polls/5/result/
-    path('<int:contract_id>/result/', views.result, name='result'),
 ]

@@ -1,34 +1,29 @@
 from rest_framework import viewsets
 from rest_framework import permissions
-from django.shortcuts import render
-from django.http import HttpResponse
 
-from .forms import ContractForm
-from .serializers import UserContractSerializer, AssessmentMethodSerializer
-from .models import AssessmentMethod
+from . import serializers
+from . import models
 from accounts.models import SrpmsUser
 
 
-def index(request):
-    form = ContractForm()
-    context = {
-        'form': form
-    }
-    return render(request, 'research_mgt/index.html', context)
+class ContractViewSet(viewsets.ModelViewSet):
+    queryset = models.Contract.objects.all()
+    serializer_class = serializers.ContractSerializer
 
 
-def detail(request, contract_id):
-    return HttpResponse("Detail %s" % contract_id)
+class SuperviseViewSet(viewsets.ModelViewSet):
+    queryset = models.Supervise.objects.all()
+    serializer_class = serializers.SuperviseSerializer
 
 
-def result(request, contract_id):
-    response = "Manage %s"
-    return HttpResponse(response % contract_id)
+class AssessmentTemplateViewSet(viewsets.ModelViewSet):
+    queryset = models.AssessmentTemplate.objects.all()
+    serializer_class = serializers.AssessmentTemplateSerializer
 
 
 class AssessmentMethodViewSet(viewsets.ModelViewSet):
-    queryset = AssessmentMethod.objects.all()
-    serializer_class = AssessmentMethodSerializer
+    queryset = models.AssessmentMethod.objects.all()
+    serializer_class = serializers.AssessmentMethodSerializer
     permission_classes = [permissions.IsAuthenticated, ]
 
 
@@ -37,5 +32,5 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     This viewset automatically provides `list` and `detail` actions.
     """
     queryset = SrpmsUser.objects.all()
-    serializer_class = UserContractSerializer
+    serializer_class = serializers.UserContractSerializer
     permission_classes = [permissions.IsAuthenticated, ]
