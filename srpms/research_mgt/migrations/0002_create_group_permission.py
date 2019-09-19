@@ -11,7 +11,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.apps.registry import Apps
 
-from research_mgt.models import ResearchManagementPermission
+from research_mgt.models import AppPermission
 
 
 def create_group_permission(apps: Apps, schema_editor: BaseDatabaseSchemaEditor):
@@ -25,21 +25,20 @@ def create_group_permission(apps: Apps, schema_editor: BaseDatabaseSchemaEditor)
     TheGroup: Group = apps.get_model('auth', 'Group')
     ThePermission: Permission = apps.get_model('auth', 'Permission')
     TheContentType: ContentType = apps.get_model('contenttypes', 'ContentType')
-    TheMGTPermission: ResearchManagementPermission = apps.get_model('research_mgt',
-                                                                    'ResearchManagementPermission')
+    TheAppPermission: AppPermission = apps.get_model('research_mgt', 'AppPermission')
 
     ThePermission.objects.create(codename='can_convene',
                                  name='can be course convener of contracts',
                                  content_type=TheContentType.objects.get_for_model(
-                                         TheMGTPermission))
+                                         TheAppPermission))
     ThePermission.objects.create(codename='can_supervise',
                                  name='can supervise contracts as a formal supervisor',
                                  content_type=TheContentType.objects.get_for_model(
-                                         TheMGTPermission))
+                                         TheAppPermission))
     ThePermission.objects.create(codename='is_mgt_superuser',
                                  name='can read, create, update, delete anything',
                                  content_type=TheContentType.objects.get_for_model(
-                                         TheMGTPermission))
+                                         TheAppPermission))
 
     supervise = TheGroup.objects.create(name='approved_supervisors')
     supervise.permissions.set([ThePermission.objects.get(codename='can_supervise')])
@@ -64,7 +63,7 @@ def revert_create_group_permission(apps: Apps, schema_editor: BaseDatabaseSchema
         'mgt_superusers'
     ]).delete()
 
-    ThePermission.objects.get(codename__in=[
+    ThePermission.objects.filter(codename__in=[
         'can_convene',
         'can_supervise',
         'is_mgt_superuser'

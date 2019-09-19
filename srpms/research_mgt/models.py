@@ -95,7 +95,7 @@ class AssessmentMethod(models.Model):
         super(AssessmentMethod, self).save(*args, **kwargs)
 
 
-class ResearchManagementPermission(models.Model):
+class AppPermission(models.Model):
     """A dummy model for holding permissions for this app"""
     class Meta:
         managed = False  # Do not create database table
