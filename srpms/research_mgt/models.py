@@ -3,7 +3,6 @@ from accounts.models import SrpmsUser
 
 
 class Course(models.Model):
-    id = models.AutoField(primary_key=True)
     course_number = models.CharField(max_length=8, default=None, null=False, blank=False)
     name = models.CharField(max_length=50, default=None, null=False, blank=False)
 
@@ -48,7 +47,7 @@ class AssessmentMethod(models.Model):
     template = models.ForeignKey(AssessmentTemplate, on_delete=models.CASCADE, null=False, blank=False)
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=False, blank=False)
     additional_description = models.CharField(max_length=200, default=None, null=True, blank=True)
-    due = models.DateTimeField(default=None, null=False, blank=False)
+    due = models.DateField(default=None, null=True, blank=True)
     max = models.IntegerField(default=None, null=False, blank=False)
     examiner = models.ForeignKey(SrpmsUser, on_delete=models.CASCADE, default=None, null=True, blank=True)
     examiner_approval_date = models.DateTimeField(default=None, null=True, blank=True)

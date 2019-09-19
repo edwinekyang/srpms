@@ -1,17 +1,30 @@
 from rest_framework import serializers
-from .models import Course, Contract
+from .models import Course, IndividualProject, AssessmentMethod, Supervise
 
 
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
-        fields = ['course_id', 'course_number', 'name']
+        fields = ['id', 'course_number', 'name']
 
 
-class ContractSerializer(serializers.ModelSerializer):
-    u_id = serializers.ReadOnlyField(source='u_id.id')
+class IndividualProjectSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.id')
 
     class Meta:
-        model = Contract
-        fields = ['contract_id', 'year', 'semester', 'duration', 'res', 'ca_date', 'c_id', 'i_date',
-                  'u_id', 's_id', 'is_formal', 'sa_date', 'course_id']
+        model = IndividualProject
+        fields = ['title', 'object', 'description', 'id', 'year', 'semester', 'duration', 'resources',
+                  'convener_approval_date', 'convener', 'create_date', 'owner', 'course']
+
+
+class AssessmentMethodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AssessmentMethod
+        fields = ['id', 'template', 'contract', 'due', 'max', 'additional_description',
+                  'examiner', 'examiner_approval_date']
+
+
+class SuperviseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Supervise
+        fields = ['id', 'supervisor', 'is_formal', 'supervisor_approval_date', 'contract']

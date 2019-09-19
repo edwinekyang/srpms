@@ -7,6 +7,7 @@ export class ElementBase<T> {
   controlType: string;
   choices: any;
   type: any;
+  flag: string;
 
     constructor(options: {
       value?: T,
@@ -14,7 +15,8 @@ export class ElementBase<T> {
       label?: string,
       required?: boolean,
       order?: number,
-      controlType?: string
+      controlType?: string,
+      flag?: string
     } = {}) {
       this.value = options.value;
       this.key = options.key || '';

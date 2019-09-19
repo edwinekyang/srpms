@@ -22,7 +22,6 @@ export class ContractComponent implements OnInit {
     public contractService: ContractService,
     public elementService: ElementService
   ) {
-      // this.showCourses();
       this.elements = elementService.getElements();
   }
 
@@ -33,7 +32,7 @@ export class ContractComponent implements OnInit {
     this.contractService.getCourses()
       .subscribe(
           (data: Course) => this.course = {
-        course_id: data.course_id,
+        id: data.id,
         course_number: data.course_number,
         name: data.name},
           error => {

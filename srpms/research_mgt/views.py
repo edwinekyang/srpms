@@ -1,9 +1,11 @@
-from rest_framework import generics, permissions
-from .models import Course, Contract
-from research_mgt.serializers import CourseSerializer, ContractSerializer
+from rest_framework import viewsets
+
+from .models import Course, IndividualProject, AssessmentMethod, Supervise
+from research_mgt.serializers import CourseSerializer, IndividualProjectSerializer, AssessmentMethodSerializer, \
+    SuperviseSerializer
 
 
-class CourseList(generics.ListAPIView):
+class CourseViewSet(viewsets.ModelViewSet):
     """
     List all courses.
     """
@@ -11,22 +13,31 @@ class CourseList(generics.ListAPIView):
     serializer_class = CourseSerializer
 
 
-class ContractList(generics.ListCreateAPIView):
+class IndividualProjectViewSet(viewsets.ModelViewSet):
     """
-    List all contracts, or create a new contract.
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
     """
-    queryset = Contract.objects.all()
-    serializer_class = ContractSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = IndividualProject.objects.all()
+    serializer_class = IndividualProjectSerializer
 
     def perform_create(self, serializer):
-        serializer.save(u_id=self.request.user)
+        serializer.save(owner=self.request.user)
 
 
-class ContractDetail(generics.RetrieveUpdateDestroyAPIView):
+class AssessmentMethodViewSet(viewsets.ModelViewSet):
     """
-    Retrieve, update or delete a contract instance.
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
     """
-    queryset = Contract.objects.all()
-    serializer_class = ContractSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = AssessmentMethod.objects.all()
+    serializer_class = AssessmentMethodSerializer
+
+
+class SuperviseViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+    """
+    queryset = Supervise.objects.all()
+    serializer_class = SuperviseSerializer

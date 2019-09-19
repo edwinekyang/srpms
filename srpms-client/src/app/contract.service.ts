@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 export interface Course {
-  course_id: number;
+  id: number;
   course_number: string;
   name: string;
 }
@@ -47,5 +47,26 @@ export class ContractService {
       // Let the app keep running by returning an empty result.
       return of(result as T);
     };
+  }
+
+  addContract(payLoad: string): Observable<any> {
+    return this.http.post<any>(this.API_URL + 'research_mgt/individual/', payLoad, this.httpOptions)
+      .pipe(
+        catchError(this.handleError<any>('addContract'))
+      );
+  }
+
+  addAssessmentMethod(assessment: string): Observable<any> {
+    return this.http.post<any>(this.API_URL + 'research_mgt/assessment/', assessment, this.httpOptions)
+      .pipe(
+        catchError(this.handleError<any>('addAssessmentMethod'))
+      );
+  }
+
+  addSupervise(supervise: string): Observable<any> {
+    return this.http.post<any>(this.API_URL + 'research_mgt/supervise/', supervise, this.httpOptions)
+      .pipe(
+        catchError(this.handleError<any>('addSupervise'))
+      );
   }
 }
