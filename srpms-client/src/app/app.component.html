@@ -1,22 +1,21 @@
 <section class="mat-typography">
-<header>
+  <header>
     <app-header></app-header>
-</header>
+  </header>
 
-<mat-sidenav-container>
+  <mat-sidenav-container>
     <mat-sidenav mode="side" opened>
-        <app-sidenav></app-sidenav>
+      <app-sidenav></app-sidenav>
     </mat-sidenav>
-    <mat-sidenav-container>
-        <router-outlet></router-outlet>
-    </mat-sidenav-container>
-</mat-sidenav-container>
-
-<footer>
+    <mat-sidenav-content>
+      <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+  <footer>
     <mat-grid-list cols="1" rowHeight="2em">
-        <mat-grid-tile colspan="1">
-            The Australian National University
-        </mat-grid-tile>
+      <mat-grid-tile colspan="1">
+        The Australian National University
+      </mat-grid-tile>
     </mat-grid-list>
-</footer>
+  </footer>
 </section>

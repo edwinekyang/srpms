@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework import generics
 from rest_framework import serializers
 from rest_framework import permissions
+from rest_framework import filters
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -16,31 +17,24 @@ from .serializers import LoginSerializer, SrpmsUserSerializer
 class APIRootView(APIView):
     def get(self, request, *args, **kwargs):
         return Response({
-            'login': rest_reverse('accounts:login', request=request, *args, **kwargs),
-            'logout': rest_reverse('accounts:logout', request=request, *args, **kwargs),
             'token': rest_reverse('accounts:token_obtain_pair', request=request, *args, **kwargs),
-            'token/refresh': rest_reverse('accounts:token_refresh', request=request, *args, **kwargs)
+            'token/refresh': rest_reverse('accounts:token_refresh', request=request, *args, **kwargs),
+            'users': rest_reverse('accounts:user-list', request=request, *args, **kwargs),
         })
 
 
-class LoginView(generics.GenericAPIView):
+class LoginView(generics.GenericAPIView, DeprecationWarning):
     """
+    PENDING DEPRECATION, PLEASE DON'T USE FOR PRODUCTION
+
     API View that receives a POST with a user's username and password.
 
     If already login, GET would redirect to the user detail view.
-    Would also redirect to user detail after successful login.
     """
 
     queryset = get_user_model().objects.all()
     serializer_class = LoginSerializer
     permission_classes = ()  # Remove default permission to allow post action
-
-    def get(self, request: Request):
-        if request.user.is_authenticated:
-            return redirect(djan_reverse('accounts:user-detail',
-                                         args=[request.user.id]))
-        else:
-            return Response({'detail': 'You\'re not login yet.'}, status.HTTP_401_UNAUTHORIZED)
 
     def post(self, request: Request):
         serializer: serializers.ModelSerializer = self.get_serializer(data=request.data)
@@ -55,11 +49,13 @@ class LoginView(generics.GenericAPIView):
                                              args=[user.id]))
 
         return Response({'detail': 'Unable to log in with provided credentials'},
-                        status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_401_UNAUTHORIZED)
 
 
-class LogoutView(generics.GenericAPIView):
+class LogoutView(generics.GenericAPIView, DeprecationWarning):
     """
+    PENDING DEPRECATION, PLEASE DON'T USE FOR PRODUCTION
+
     API View that log the current account out.
 
     Generally HTTP does not recommend changing the state of the server for GET
@@ -83,3 +79,19 @@ class UserDetailView(generics.RetrieveAPIView):
     serializer_class = SrpmsUserSerializer
 
     permission_classes = [permissions.IsAuthenticated, ]
+
+
+class UserListView(generics.ListAPIView):
+    """
+    List view for retrieving user, also support search for user
+
+    Please note that ONLY user exist in this system would be included, this include
+    ANU accounts that has used this system (login, nominate, etc.). However, for
+    ANU accounts that never interact with this system, it would not be listed.
+    """
+    queryset = get_user_model().objects.all()
+    serializer_class = SrpmsUserSerializer
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username', 'first_name', 'last_name', 'uni_id']

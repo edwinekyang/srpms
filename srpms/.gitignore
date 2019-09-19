@@ -1,4 +1,3 @@
 # Ignore static files (re-generate every time on deploy)
 static/
 media/
-*/migrations/*

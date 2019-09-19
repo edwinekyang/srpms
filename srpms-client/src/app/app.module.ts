@@ -14,6 +14,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -54,6 +55,7 @@ import { ContractFormElementComponent } from './contract-form-element/contract-f
     MatFormFieldModule,
     MatInputModule,
     MatMenuModule,
+    MatProgressBarModule,
   ],
   entryComponents: [
     LoginDialogComponent
