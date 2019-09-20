@@ -106,7 +106,7 @@ export class ContractFormComponent implements OnInit {
     this.supervise = {
       supervisor: this.form.value.proejctSupervisor,
       contract: this.contractId,
-      is_formal: false
+      is_formal: true
     };
 
     this.contractService.addSupervise(JSON.stringify(this.supervise))
