@@ -17,12 +17,55 @@ class Contract(models.Model):
     duration = models.IntegerField(null=False, blank=False)
     resources = models.CharField(max_length=200, blank=True)
     course = models.ForeignKey(Course, on_delete=models.PROTECT, blank=False, null=False)
+
+    # Convener related fields
     convener = models.ForeignKey(SrpmsUser, related_name='convene', on_delete=models.PROTECT,
                                  blank=True, null=True)
     convener_approval_date = models.DateTimeField(null=True, blank=True)
+
+    # Owner related fields
     owner = models.ForeignKey(SrpmsUser, related_name='own', on_delete=models.PROTECT,
                               blank=False, null=False)
     create_date = models.DateTimeField(auto_now_add=True)
+    submit_date = models.DateTimeField(null=True, blank=True)
+
+    def clean(self):
+        """
+        Apply model level constraints.
+
+        Please note that this method would also be called when it's inheritance's `save`
+        method is being called.
+        """
+
+        # Field constraints based on common sense
+        if not self.year > 0:
+            raise ValidationError({'year': 'Year should bigger than zero'})
+        if not 1 <= self.semester <= 2:
+            raise ValidationError('Semester value should be 1 or 2')
+        if not 1 <= self.duration:
+            raise ValidationError('Duration should be bigger than 1 semester')
+
+        # Update only check, self.pk would not present during create
+        if self.pk:
+            # Check if only one type of contract assigned
+            iterator = iter([hasattr(self, 'individualproject'),
+                             hasattr(self, 'specialtopics')])
+            if any(iterator) and not any(iterator):
+                pass
+            else:
+                raise ValidationError('A contract should have one and only one type')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(Contract, self).save(*args, **kwargs)
+
+    def __str__(self):
+        if hasattr(self, 'individualproject'):
+            return str(self.individualproject)
+        elif hasattr(self, 'specialtopics'):
+            return str(self.specialtopics.title)
+        else:
+            super(Contract, self).__str__()
 
 
 class Supervise(models.Model):
@@ -84,16 +127,26 @@ class AssessmentMethod(models.Model):
     def clean(self):
         """
         Apply constraint to the model
+
+        TODO: remove the ambiguity of max_mark
         """
+
+        # Ensure each assessment item is within the valid rage specified by the template
         if self.max_mark > self.template.max_mark or self.max_mark < self.template.min_mark:
             raise ValidationError("Please keep the mark within the valid range")
 
     def save(self, *args, **kwargs):
         self.full_clean()
+
+        # Assign default marking weight based on template if not given
+        if not self.max_mark:
+            self.max_mark = self.template.default_mark
+
         super(AssessmentMethod, self).save(*args, **kwargs)
 
 
 class AppPermission(models.Model):
     """A dummy model for holding permissions for this app"""
+
     class Meta:
         managed = False  # Do not create database table

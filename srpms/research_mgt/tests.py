@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from accounts.models import SrpmsUser
+from research_mgt import models
 
 
 # Create your tests here.
@@ -19,12 +20,27 @@ class SerializerTest(TestCase):
                                       last_name='Basic', uni_id="")
         self.user_01 = SrpmsUser.objects.get(username=self.user_01_name)
 
-        self.api_urls = ['/api/research_mgt/users/',
-                         '/api/research_mgt/assessment-templates/',
-                         '/api/research_mgt/assessment-methods/',
-                         '/api/research_mgt/course/',
-                         '/api/research_mgt/contracts/',
-                         '/api/research_mgt/supervise/']
+        self.mgt_user_url = '/api/research_mgt/users/'
+        self.assess_temp_url = '/api/research_mgt/assessment-templates/'
+        self.assess_meth_url = '/api/research_mgt/assessment-methods/'
+        self.course_url = '/api/research_mgt/course/'
+        self.contract_url = '/api/research_mgt/contracts/'
+        self.supervise_url = '/api/research_mgt/supervise/'
+
+        self.api_urls = [self.mgt_user_url,
+                         self.assess_temp_url,
+                         self.assess_meth_url,
+                         self.course_url,
+                         self.contract_url,
+                         self.supervise_url]
+
+        self.assess_template = models.AssessmentTemplate.objects.create(
+                name='test_template',
+                description='test',
+                min_mark=30,
+                max_mark=70,
+                default_mark=50
+        )
 
     def test_api_acccess(self):
         client = APIClient()
@@ -39,3 +55,13 @@ class SerializerTest(TestCase):
         for api_url in self.api_urls:
             response = client.get(api_url, format='json', secure=True, follow=True)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_exception_handling(self):
+        client = APIClient()
+        client.login(username=self.user_01_name, password=self.user_01_passwd)
+
+        print('test exception handling ...')
+        response = client.patch(self.assess_temp_url + '{}/'.format(self.assess_template.id),
+                                {'min_mark': 80},
+                                format='json', secure=True, follow=True)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

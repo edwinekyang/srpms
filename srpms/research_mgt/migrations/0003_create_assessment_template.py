@@ -36,6 +36,13 @@ def create_assessment_templates(apps: Apps, schema_editor: BaseDatabaseSchemaEdi
             min_mark=10,
             default_mark=10
     )
+    TheAssessmentTemplate.objects.create(
+            name='custom',
+            description='',
+            max_mark=100,
+            min_mark=0,
+            default_mark=50
+    )
 
 
 def revert_create_assessment_templates(apps: Apps, schema_editor: BaseDatabaseSchemaEditor):
@@ -44,7 +51,8 @@ def revert_create_assessment_templates(apps: Apps, schema_editor: BaseDatabaseSc
     TheAssessmentTemplate.objects.filter(name__in=[
         'report',
         'artifact',
-        'presentation'
+        'presentation',
+        'custom'
     ]).delete()
 
 

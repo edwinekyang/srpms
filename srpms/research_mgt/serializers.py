@@ -78,14 +78,20 @@ class ContractSerializer(serializers.ModelSerializer):
     special_topics = SpecialTopicSerializer(source='specialtopics',
                                             required=False, allow_null=True)
 
+    # Convener related fields
     convener_approval_date = serializers.ReadOnlyField()
     is_convener_approved = ApprovalBooleanField(source='convener_approval_date', required=False)
+
+    # Owner related fields
     create_date = serializers.ReadOnlyField()
+    submit_date = serializers.ReadOnlyField()
+    is_submitted = ApprovalBooleanField(source='submit_date', required=False)
 
     class Meta:
         model = models.Contract
-        fields = ['id', 'year', 'semester', 'duration', 'resources', 'course', 'convener',
-                  'is_convener_approved', 'convener_approval_date', 'owner', 'create_date',
+        fields = ['id', 'year', 'semester', 'duration', 'resources', 'course',
+                  'convener', 'is_convener_approved', 'convener_approval_date',
+                  'owner', 'create_date', 'submit_date', 'is_submitted',
                   'individual_project', 'special_topics']
 
     def validate(self, attrs: dict):
