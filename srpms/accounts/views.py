@@ -12,15 +12,23 @@ from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
 
 from .serializers import LoginSerializer, SrpmsUserSerializer
+from srpms.settings import DEBUG
 
 
 class APIRootView(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, ]
+
     def get(self, request, *args, **kwargs):
-        return Response({
+        pathes = {
             'token': rest_reverse('accounts:token_obtain_pair', request=request, *args, **kwargs),
-            'token/refresh': rest_reverse('accounts:token_refresh', request=request, *args, **kwargs),
+            'token/refresh': rest_reverse('accounts:token_refresh', request=request, *args,
+                                          **kwargs),
             'users': rest_reverse('accounts:user-list', request=request, *args, **kwargs),
-        })
+        }
+        if DEBUG:
+            pathes['login'] = rest_reverse('accounts:login', request=request, *args, **kwargs)
+            pathes['logout'] = rest_reverse('accounts:logout', request=request, *args, **kwargs)
+        return Response(pathes)
 
 
 class LoginView(generics.GenericAPIView, DeprecationWarning):
@@ -62,6 +70,7 @@ class LogoutView(generics.GenericAPIView, DeprecationWarning):
     method. However, use GET to logout is common in RESTful apps (though not
     necessarily a best practice).
     """
+    permission_classes = ()
 
     def get(self, request: Request):
         if request.user.is_authenticated:

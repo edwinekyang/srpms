@@ -1,4 +1,5 @@
 from django.urls import path, include
+from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 
 from . import views
@@ -8,6 +9,7 @@ app_name = 'research_mgt'
 # Router from DRF that automatically generate api root
 # '' - 'api-root'
 router = DefaultRouter()
+router.APIRootView.permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 # Generate the following URL patterns
 # 'users/$' - 'user-list'
@@ -27,9 +29,6 @@ router.register(r'assessment-methods', views.AssessmentMethodViewSet)
 # 'course/$' - 'course-list'
 # 'course/{pk}/$' - 'course-list-detail'
 router.register(r'course', views.CourseViewSet)
-
-# 'supervise/$' - 'supervise-list'
-router.register(r'supervise', views.SuperviseViewSet)
 
 # Generate the following URL patterns
 # 'contracts/$' - 'contract-list'
