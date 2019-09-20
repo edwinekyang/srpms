@@ -6,9 +6,6 @@ services:
       # Map host 80 to container 80
       - 80:80
       - 443:443
-    volumes:
-      # Ngnix configuration file
-      - ./config.prod/nginx/conf.d:/etc/nginx/conf.d:ro
 
   angular-client:
     build:
@@ -22,12 +19,13 @@ services:
   # By doing this we can renew certificate, and reload nginx within
   # this container.
   certbot:
-    build: ./certbot
+    build:
+      context: .
+      dockerfile: ./certbot/Dockerfile
     env_file:
       - config.prod/certbot.env
       - config.prod/general.env
     volumes:
-      - ./:/srpms
       - /var/run/docker.sock:/var/run/docker.sock
       - letsencrypt_volume:/etc/letsencrypt
       - certbot_volume:/var/www/certbot

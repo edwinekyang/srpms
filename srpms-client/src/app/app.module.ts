@@ -24,6 +24,8 @@ import { SidenavComponent } from './sidenav/sidenav.component';
 import { HeaderComponent } from './header/header.component';
 import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 import { AuthInterceptor } from './auth-interceptor.service';
+import { ContractFormComponent } from './contract-form/contract-form.component';
+import { ContractFormElementComponent } from './contract-form-element/contract-form-element.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +34,9 @@ import { AuthInterceptor } from './auth-interceptor.service';
     ContractComponent,
     SidenavComponent,
     HeaderComponent,
-    LoginDialogComponent
+    LoginDialogComponent,
+    ContractFormComponent,
+    ContractFormElementComponent
   ],
   imports: [
     BrowserModule,

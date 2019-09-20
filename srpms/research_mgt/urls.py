@@ -24,6 +24,13 @@ router.register(r'assessment-templates', views.AssessmentTemplateViewSet)
 # 'assessment-methods/{pk}/$ - 'assessment-method-detail'
 router.register(r'assessment-methods', views.AssessmentMethodViewSet)
 
+# 'course/$' - 'course-list'
+# 'course/{pk}/$' - 'course-list-detail'
+router.register(r'course', views.CourseViewSet)
+
+# 'supervise/$' - 'supervise-list'
+router.register(r'supervise', views.SuperviseViewSet)
+
 # Generate the following URL patterns
 # 'contracts/$' - 'contract-list'
 # 'contracts/{pk}/$ - 'contract-detail'

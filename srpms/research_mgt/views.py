@@ -6,14 +6,22 @@ from . import models
 from accounts.models import SrpmsUser
 
 
+class CourseViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+    """
+    queryset = models.Course.objects.all()
+    serializer_class = serializers.CourseSerializer
+
+
 class ContractViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+    """
     queryset = models.Contract.objects.all()
     serializer_class = serializers.ContractSerializer
-
-
-class SuperviseViewSet(viewsets.ModelViewSet):
-    queryset = models.Supervise.objects.all()
-    serializer_class = serializers.SuperviseSerializer
 
 
 class AssessmentTemplateViewSet(viewsets.ModelViewSet):
@@ -22,8 +30,22 @@ class AssessmentTemplateViewSet(viewsets.ModelViewSet):
 
 
 class AssessmentMethodViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+    """
     queryset = models.AssessmentMethod.objects.all()
     serializer_class = serializers.AssessmentMethodSerializer
+    permission_classes = [permissions.IsAuthenticated, ]
+
+
+class SuperviseViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+    """
+    queryset = models.Supervise.objects.all()
+    serializer_class = serializers.SuperviseSerializer
     permission_classes = [permissions.IsAuthenticated, ]
 
 

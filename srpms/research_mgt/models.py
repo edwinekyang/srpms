@@ -17,11 +17,9 @@ class Contract(models.Model):
     duration = models.IntegerField(null=False, blank=False)
     resources = models.CharField(max_length=200, blank=True)
     course = models.ForeignKey(Course, on_delete=models.PROTECT, blank=False, null=False)
-
     convener = models.ForeignKey(SrpmsUser, related_name='convene', on_delete=models.PROTECT,
-                                 blank=False, null=False)
+                                 blank=True, null=True)
     convener_approval_date = models.DateTimeField(null=True, blank=True)
-
     owner = models.ForeignKey(SrpmsUser, related_name='own', on_delete=models.PROTECT,
                               blank=False, null=False)
     create_date = models.DateTimeField(auto_now_add=True)
@@ -74,10 +72,10 @@ class AssessmentMethod(models.Model):
     contract = models.ForeignKey(Contract, related_name='assessment_method',
                                  on_delete=models.CASCADE, null=False, blank=False)
     additional_description = models.CharField(max_length=200, blank=True)
-    due = models.DateTimeField(null=True, blank=True)
+    due = models.DateField(null=True, blank=True)
     max_mark = models.IntegerField(null=False, blank=False)
     examiner = models.ForeignKey(SrpmsUser, related_name='examine',
-                                 on_delete=models.PROTECT, null=False, blank=False)
+                                 on_delete=models.PROTECT, null=True, blank=True)
     examiner_approval_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
