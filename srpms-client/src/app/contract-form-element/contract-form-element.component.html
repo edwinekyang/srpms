@@ -1,18 +1,25 @@
 <div [formGroup]="form">
-    <label [attr.for]="element.key">{{element.label}}</label>
 
-    <div [ngSwitch]="element.controlType">
+  <div [ngSwitch]="element.controlType">
 
-        <input *ngSwitchCase="'textbox'" [formControl]="form.controls[element.key]"
-               [id]="element.key" [type]="element.type">
-
-        <select [id]="element.key" *ngSwitchCase="'dropdown'" [formControl]="form.controls[element.key]">
-            <option *ngFor="let opt of element.choices" [value]="opt.value">{{opt.key}}</option>
-        </select>
-
-        <input *ngSwitchCase="'checkbox'" [id]="element.key" [formControl]="form.controls[element.key]">
-
+    <div *ngSwitchCase="'textbox'" >
+    <mat-form-field appearance="outline">
+    <mat-label>{{element.label}}</mat-label>
+    <input matInput placeholder="{{element.label}}"[formControl]="form.controls[element.key]"
+           [id]="element.key" [type]="element.type">
+    </mat-form-field>
     </div>
 
-    <div class="errorMessage" *ngIf="!isValid">{{element.label}} is required</div>
+    <div *ngSwitchCase="'dropdown'">
+    <mat-form-field>
+    <mat-select placeholder="{{element.label}}" [id]="element.key" [formControl]="form.controls[element.key]">
+        <mat-option *ngFor="let opt of element.choices" [value]="opt.value">{{opt.key}}</mat-option>
+    </mat-select>
+    </mat-form-field>
+    </div>
+
+    <input *ngSwitchCase="'checkbox'" [id]="element.key" [formControl]="form.controls[element.key]">
+
+  </div>
+
 </div>

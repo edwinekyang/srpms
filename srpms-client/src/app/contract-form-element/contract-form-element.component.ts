@@ -5,7 +5,7 @@ import { ElementBase } from '../element-base';
 
 @Component({
   selector: 'app-contract-form-element',
-  templateUrl: './contract-form-element.component.html'
+  templateUrl: './contract-form-element.component.html',
 })
 export class ContractFormElementComponent implements OnInit {
 

@@ -26,6 +26,7 @@ import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 import { AuthInterceptor } from './auth-interceptor.service';
 import { ContractFormComponent } from './contract-form/contract-form.component';
 import { ContractFormElementComponent } from './contract-form-element/contract-form-element.component';
+import {MatSelectModule} from '@angular/material';
 
 @NgModule({
   declarations: [
@@ -56,6 +57,7 @@ import { ContractFormElementComponent } from './contract-form-element/contract-f
     MatInputModule,
     MatMenuModule,
     MatProgressBarModule,
+    MatSelectModule,
   ],
   entryComponents: [
     LoginDialogComponent

@@ -20,31 +20,7 @@ export class ElementService {
                 choices: [
                     {key: 'COMP8750', value: '1'},
                 ],
-                order: 5
-            }),
-
-            new TextboxElement({
-                key: 'owner',
-                label: 'UniID',
-                value: 1,
-                required: true,
                 order: 1
-            }),
-
-            new TextboxElement({
-                key: 'surname',
-                label: 'SURNAME',
-                value: '',
-                required: true,
-                order: 2
-            }),
-
-            new TextboxElement({
-                key: 'firstName',
-                label: 'FIRST NAME',
-                value: '',
-                required: true,
-                order: 3
             }),
 
             new TextboxElement({
