@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 from rest_framework import serializers
 
@@ -17,15 +16,15 @@ class ApprovalBooleanField(serializers.BooleanField):
     source field to datetime.now() if the post date is True.
     """
 
-    def to_representation(self, value: bool) -> str:
-        return json.dumps(value)
+    def to_representation(self, value: bool) -> bool:
+        return value
 
     def to_internal_value(self, data: str) -> datetime:
         """
         Return the value that would be used to update the DateTimeField. If
         True, return the current date & time, otherwise return None.
         """
-        is_approved = json.loads(data)
+        is_approved = data
 
         # Only allow boolean value
         if not isinstance(is_approved, bool):
