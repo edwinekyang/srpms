@@ -19,10 +19,17 @@ router.register(r'users', views.UserViewSet)
 # 'assessment-methods/{pk}/$ - 'assessment-method-detail'
 router.register(r'assessment-methods', views.AssessmentMethodViewSet)
 
+# 'individual/$' - 'individual-list'
+# 'individual/{pk}/$' - 'individual-detail'
+router.register(r'individual', views.IndividualProjectViewSet)
+
+# 'course/$' - 'course-list'
+# 'course/{pk}/$' - 'course-list-detail'
+router.register(r'course', views.CourseViewSet)
+
+# 'supervise/$' - 'supervise-list'
+router.register(r'supervise', views.SuperviseViewSet)
+
 urlpatterns = [
     path('', include(router.urls)),
-    # ex: /research_mgt/5/detail/
-    path('<int:contract_id>/detail/', views.detail, name='detail'),
-    # ex: /polls/5/result/
-    path('<int:contract_id>/result/', views.result, name='result'),
 ]
