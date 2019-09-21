@@ -18,6 +18,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -25,6 +26,7 @@ from rest_framework.reverse import reverse
 
 class APIRootView(APIView):
     """Provide links to apps' api view"""
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, ]
 
     def get(self, request, *args, **kwargs):
         return Response({

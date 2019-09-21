@@ -176,7 +176,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # REST framework related settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -214,8 +214,8 @@ SIMPLE_JWT = {
 }
 
 AUTHENTICATION_BACKENDS = [
-    'accounts.authentication.ANULDAPBackend',
-    'django.contrib.auth.backends.ModelBackend'  # Django default
+    'django.contrib.auth.backends.ModelBackend',  # Django default
+    'accounts.authentication.ANULDAPBackend'
 ]
 
 # LDAP related settings

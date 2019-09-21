@@ -1,9 +1,8 @@
 from rest_framework import viewsets
 from rest_framework import permissions
 
-from .serializers import UserContractSerializer, CourseSerializer, IndividualProjectSerializer, AssessmentMethodSerializer, \
-    SuperviseSerializer
-from .models import Course, IndividualProject, AssessmentMethod, Supervise
+from . import serializers
+from . import models
 from accounts.models import SrpmsUser
 
 
@@ -12,21 +11,22 @@ class CourseViewSet(viewsets.ModelViewSet):
     This viewset automatically provides `list`, `create`, `retrieve`,
     `update` and `destroy` actions.
     """
-    queryset = Course.objects.all()
-    serializer_class = CourseSerializer
+    queryset = models.Course.objects.all()
+    serializer_class = serializers.CourseSerializer
 
 
-class IndividualProjectViewSet(viewsets.ModelViewSet):
+class ContractViewSet(viewsets.ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,
     `update` and `destroy` actions.
     """
-    queryset = IndividualProject.objects.all()
-    serializer_class = IndividualProjectSerializer
-    permission_classes = [permissions.IsAuthenticated, ]
+    queryset = models.Contract.objects.all()
+    serializer_class = serializers.ContractSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+
+class AssessmentTemplateViewSet(viewsets.ModelViewSet):
+    queryset = models.AssessmentTemplate.objects.all()
+    serializer_class = serializers.AssessmentTemplateSerializer
 
 
 class AssessmentMethodViewSet(viewsets.ModelViewSet):
@@ -34,8 +34,8 @@ class AssessmentMethodViewSet(viewsets.ModelViewSet):
     This viewset automatically provides `list`, `create`, `retrieve`,
     `update` and `destroy` actions.
     """
-    queryset = AssessmentMethod.objects.all()
-    serializer_class = AssessmentMethodSerializer
+    queryset = models.AssessmentMethod.objects.all()
+    serializer_class = serializers.AssessmentMethodSerializer
     permission_classes = [permissions.IsAuthenticated, ]
 
 
@@ -44,8 +44,8 @@ class SuperviseViewSet(viewsets.ModelViewSet):
     This viewset automatically provides `list`, `create`, `retrieve`,
     `update` and `destroy` actions.
     """
-    queryset = Supervise.objects.all()
-    serializer_class = SuperviseSerializer
+    queryset = models.Supervise.objects.all()
+    serializer_class = serializers.SuperviseSerializer
     permission_classes = [permissions.IsAuthenticated, ]
 
 
@@ -54,5 +54,5 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     This viewset automatically provides `list` and `detail` actions.
     """
     queryset = SrpmsUser.objects.all()
-    serializer_class = UserContractSerializer
+    serializer_class = serializers.UserContractSerializer
     permission_classes = [permissions.IsAuthenticated, ]
