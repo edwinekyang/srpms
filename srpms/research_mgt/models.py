@@ -182,8 +182,12 @@ class AssessmentMethod(models.Model):
     class Meta:
         unique_together = ('contract', 'examiner')
 
+    def is_convener_approved(self) -> bool:
+        """No one should be allowed to change after convener approved"""
+        return self.contract.is_convener_approved()
+
     def is_supervisors_approved(self) -> bool:
-        """No one should be allowed to change after supervisor approved"""
+        """No one should be allowed to change after all supervisors approved"""
         return self.contract.is_supervisors_approved()
 
     def clean(self):

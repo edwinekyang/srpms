@@ -26,13 +26,13 @@ class DefaultObjectPermission(permissions.BasePermission):
         if request_user.has_perm('research_mgt.is_mgt_superuser'):
             return True
 
-        # Approve convener
+        # Approve convener to create course and assessment template
         if request_user.has_perm('research_mgt.can_convene') \
                 and type(view) in [views.CourseViewSet,
                                    views.AssessmentTemplateViewSet]:
             return True
 
-        # Approve normal login user
+        # Approve normal login user to create contract etc.
         if type(view) in [views.ContractViewSet,
                           views.SuperviseViewSet,
                           views.AssessmentMethodViewSet]:
@@ -41,6 +41,10 @@ class DefaultObjectPermission(permissions.BasePermission):
         return False
 
     def has_object_permission(self, request: Request, view, obj) -> bool:
+        """
+        Object level permission, covering PUT, PATCH, DELETE method of a given object.
+        """
+
         # Read permissions are allowed to any request,
         # so we'll always allow GET, HEAD or OPTIONS requests.
         if request.method in permissions.SAFE_METHODS:
@@ -56,7 +60,7 @@ class DefaultObjectPermission(permissions.BasePermission):
         # Course object
         if isinstance(obj, models.Course):
             if request_user.has_perm('research_mgt.can_convene'):
-                # Convener can POST, PUT, PATCH, DELETE
+                # Convener can PUT, PATCH, DELETE
                 return True
             else:
                 return False
@@ -64,25 +68,69 @@ class DefaultObjectPermission(permissions.BasePermission):
         # Contract object
         if isinstance(obj, models.Contract):
             if obj.is_convener_approved():
-                # No POST, PUT, PATCH, DELETE allow after final approval
-                return False
-            elif obj.is_submitted():
-                # No POST, PUT, PATCH, DELETE allow after owner submit
+                # No PUT, PATCH, DELETE allow after final approval
                 return False
             elif request_user == obj.owner:
-                # Allow POST, PUT, PATCH, DELETE for owner
+                # Allow PUT, PATCH, DELETE for owner
+                return True
+            elif request_user.has_perm('research_mgt.approved_supervisors') \
+                    and request_user in models.Supervise.objects.filter(contract=obj) \
+                    and request.method in ['PUT', 'PATCH']:
+                # Allow PUT, PATCH for formal supervisors of this contract
                 return True
             else:
                 return False
 
+        # Supervise relation
         if isinstance(obj, models.Supervise):
-            pass
+            if obj.is_convener_approved():
+                # No PUT, PATCH, DELETE allow after final approval
+                return False
+            elif request_user.has_perm('research_mgt.can_convene'):
+                # Allow PUT, PATCH, DELETE for convener
+                return True
+            elif request_user == obj.supervisor:
+                # Allow PUT, PATCH, DELETE for the supervisor him/herself
+                return True
+            elif request_user.has_perm('research_mgt.approved_supervisors') \
+                    and request_user in [sup.supervisor for sup in
+                                         models.Supervise.objects.filter(contract=obj.contract)]:
+                # Allow PUT, PATCH, DELETE for approved supervisors
+                # that are involved in this contract
+                return True
+            else:
+                # Other user, including the contract owner don't have permission
+                return False
 
+        # AssessmentTemplate object
         if isinstance(obj, models.AssessmentTemplate):
-            pass
+            if request_user.has_perm('research_mgt.can_convene'):
+                # Allow PUT, PATCH, DELETE for convener
+                return True
+            else:
+                return False
 
+        # AssessmentMethod relation
         if isinstance(obj, models.AssessmentMethod):
-            pass
+            if obj.is_convener_approved():
+                # No PUT, PATCH, DELETE allow after final approval
+                return False
+            elif request_user.has_perm('research_mgt.can_convene'):
+                # Allow PUT, PATCH, DELETE for convener
+                return True
+            elif request.method in ['PUT', 'PATCH'] and request_user == obj.examiner:
+                # Allow PUT, PATCH for examiner of this assessment
+                return True
+            elif request_user == obj.contract.owner:
+                # Allow PUT, PATCH, DELETE for contract owner
+                return True
+            elif request_user.has_perm('research_mgt.approved_supervisors') \
+                    and request_user in [sup.supervisor for sup in
+                                         models.Supervise.objects.filter(contract=obj.contract)]:
+                # Allow PUT, PATCH, DELETE for approved supervisors
+                # that are involved in this contract
+                return True
+            else:
+                return False
 
-        # Write permissions are only allowed to the owner of the snippet.
         return False

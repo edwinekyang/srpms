@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.settings import api_settings
+from rest_framework.exceptions import PermissionDenied
 
 from . import serializers
 from . import models
@@ -34,13 +35,13 @@ class ContractViewSet(viewsets.ModelViewSet):
         if hasattr(serializer.validated_data, 'convener_approval_date'):
             serializer.validated_data['convener'] = self.request.user
         serializer.validated_data['owner'] = self.request.user
-        super(ContractViewSet, self).perform_create(serializer)
+        return super(ContractViewSet, self).perform_create(serializer)
 
-    def perform_update(self, serializer):
+    def perform_update(self, serializer: serializers.ContractSerializer):
         """When convener approved, automatically attach the convener to the contract"""
         if hasattr(serializer.validated_data, 'convener_approval_date'):
             serializer.validated_data['convener'] = self.request.user
-        super(ContractViewSet, self).perform_update(serializer)
+        return super(ContractViewSet, self).perform_update(serializer)
 
 
 class AssessmentTemplateViewSet(viewsets.ModelViewSet):
@@ -58,6 +59,28 @@ class AssessmentMethodViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.AssessmentMethodSerializer
     permission_classes = default_perms + [app_perms.DefaultObjectPermission]
 
+    def perform_create(self, serializer):
+        requester: SrpmsUser = self.request.user
+        contract: models.Contract = serializer.validated_data['contract']
+        if requester.has_perm('research_mgt.can_convene'):
+            # Allow convener
+            pass
+        elif requester.has_perm('research_mgt.approved_supervisors') \
+                and requester in [sup.supervisor for sup in
+                                  models.Supervise.objects.filter(contract=contract)]:
+            # Allow approved supervisors that are involved in this contract
+            pass
+        elif contract in models.Contract.objects.filter(owner=requester):
+            # Allow contract owner
+            pass
+        else:
+            raise PermissionDenied("You're only allowed to create assessment relation if:\n"
+                                   "1. This is for your own contract\n"
+                                   "2. You're supervising this contract, and you're an "
+                                   "approved supervisor")
+
+        return super(AssessmentMethodViewSet, self).perform_create(serializer)
+
 
 class SuperviseViewSet(viewsets.ModelViewSet):
     """
@@ -69,18 +92,47 @@ class SuperviseViewSet(viewsets.ModelViewSet):
     permission_classes = default_perms + [app_perms.DefaultObjectPermission]
 
     def perform_create(self, serializer: serializers.SuperviseSerializer):
-        """Check if supervisor is approved, if yes, set the is_form attribute"""
-        supervisor = SrpmsUser.objects.get(serializer.validated_data['supervisor'])
+        # Check if the user is allowed to create supervise relation
+        requester: SrpmsUser = self.request.user
+        contract: models.Contract = serializer.validated_data['contract']
+        supervisor: SrpmsUser = serializer.validated_data['supervisor']
+        if requester.has_perm('research_mgt.can_convene'):
+            # Allow convener
+            pass
+        elif requester.has_perm('research_mgt.approved_supervisors') \
+                and requester in [sup.supervisor for sup in
+                                  models.Supervise.objects.filter(contract=contract)]:
+            # Allow approved supervisors that are involved in this contract
+            pass
+        elif contract in models.Contract.objects.filter(owner=requester) \
+                and supervisor.has_perm('research_mgt.approved_supervisors'):
+            # Allow contract owner to nominate approved supervisors
+            pass
+        else:
+            raise PermissionDenied("You're only allowed to create supervise relation if:\n"
+                                   "1. This is your contract, and you are nominating an "
+                                   "approved supervisor\n"
+                                   "2. You're supervising this contract, and you're an "
+                                   "approved supervisor")
+
+        # Check if supervisor is an approved supervisor, if yes, set the is_form attribute
+        supervisor = serializer.validated_data['supervisor']
         if supervisor.has_perm('can_supervise'):
             serializer.validated_data['is_formal'] = True
-        super(SuperviseViewSet, self).perform_create(serializer)
+        else:
+            serializer.validated_data['is_formal'] = False
+
+        return super(SuperviseViewSet, self).perform_create(serializer)
 
     def perform_update(self, serializer: serializers.SuperviseSerializer):
-        """Check if supervisor is approved, if yes, set the is_form attribute"""
-        supervisor = SrpmsUser.objects.get(serializer.validated_data['supervisor'])
+        # Check if supervisor is approved, if yes, set the is_form attribute
+        supervisor = serializer.validated_data['supervisor']
         if supervisor.has_perm('can_supervise'):
             serializer.validated_data['is_formal'] = True
-        super(SuperviseViewSet, self).perform_update(serializer)
+        else:
+            serializer.validated_data['is_formal'] = False
+
+        return super(SuperviseViewSet, self).perform_update(serializer)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
