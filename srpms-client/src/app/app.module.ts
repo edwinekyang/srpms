@@ -26,7 +26,7 @@ import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 import { AuthInterceptor } from './auth-interceptor.service';
 import { ContractFormComponent } from './contract-form/contract-form.component';
 import { ContractFormElementComponent } from './contract-form-element/contract-form-element.component';
-import {MatSelectModule} from '@angular/material';
+import {MatCheckboxModule, MatRadioModule, MatSelectModule} from '@angular/material';
 
 @NgModule({
   declarations: [
@@ -39,26 +39,28 @@ import {MatSelectModule} from '@angular/material';
     ContractFormComponent,
     ContractFormElementComponent
   ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    ReactiveFormsModule,
-    AppRoutingModule,
-    FormsModule,
-    HttpClientModule,
-    MatGridListModule,
-    MatSidenavModule,
-    MatButtonModule,
-    MatIconModule,
-    MatListModule,
-    MatCardModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatMenuModule,
-    MatProgressBarModule,
-    MatSelectModule,
-  ],
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        ReactiveFormsModule,
+        AppRoutingModule,
+        FormsModule,
+        HttpClientModule,
+        MatGridListModule,
+        MatSidenavModule,
+        MatButtonModule,
+        MatIconModule,
+        MatListModule,
+        MatCardModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatMenuModule,
+        MatProgressBarModule,
+        MatSelectModule,
+        MatCheckboxModule,
+        MatRadioModule,
+    ],
   entryComponents: [
     LoginDialogComponent
   ],

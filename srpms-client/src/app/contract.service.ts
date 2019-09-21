@@ -28,10 +28,10 @@ export class ContractService {
     console.log(`Contract Service: ${message}`);
   }
 
-  getCourses(): Observable<Course> {
-    return this.http.get<Course>(`${this.API_URL}research_mgt/courses/`, this.httpOptions)
+  getCourses(): Observable<Course[]> {
+    return this.http.get<Course[]>(`${this.API_URL}research_mgt/course/`, this.httpOptions)
       .pipe(
-        catchError(this.handleError<Course>('getCourses'))
+        catchError(this.handleError<Course[]>('getCourses'))
       );
   }
 
@@ -49,8 +49,8 @@ export class ContractService {
     };
   }
 
-  addContract(payLoad: string): Observable<any> {
-    return this.http.post<any>(this.API_URL + 'research_mgt/individual/', payLoad, this.httpOptions)
+  addContract(payLoad: any): Observable<any> {
+    return this.http.post<any>(this.API_URL + 'research_mgt/contracts/', payLoad, this.httpOptions)
       .pipe(
         catchError(this.handleError<any>('addContract'))
       );

@@ -1,19 +1,21 @@
 <div>
-  <form (ngSubmit)="onSubmit()" [formGroup]="form">
-	<mat-grid-list cols="3" rowHeight="4:1">
-	  <div *ngFor="let element of elements" class="form-row">
-		<mat-grid-tile>
-		<app-contract-form-element [element]="element" [form]="form"></app-contract-form-element>
-		</mat-grid-tile>
-      </div>
-	</mat-grid-list>
-	<div class="form-row">
-	  <button type="submit" [disabled]="!form.valid">Save</button>
-	</div>
-  </form>
 
-  <div *ngIf="payLoad" class="form-row">
-	<strong>Saved the following values</strong><br>{{payLoad}}
-  </div>
+  <form (ngSubmit)="onSubmit()" [formGroup]="form">
+	  <div *ngFor="let element of elements" [className]="isAnotherSection(element.order) ?
+	  'new-line' : (isTextArea(element.controlType) ? 'textarea-new-line' :
+	  (isLastElement(element, elements) ? 'section-last-element' : 'form-element'))">
+          <div *ngIf="isAnotherSection(element.order); else elseBlock">
+              <h1>Section {{sectionDivider(element.order)}}: {{sectionList[sectionDivider(element.order)]}}</h1>
+            <mat-divider></mat-divider>
+          </div>
+          <ng-template #elseBlock>
+            <app-contract-form-element [element]="element" [form]="form"></app-contract-form-element>
+          </ng-template>
+      </div>
+	<div class="new-line">
+	  <button class="form-submit-button" mat-raised-button color="primary" type="submit" [disabled]="!form.valid">Save</button>
+	</div>
+
+  </form>
 </div>
 

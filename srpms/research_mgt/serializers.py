@@ -90,7 +90,7 @@ class ContractSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs: dict):
         """Validate to check only one type of contract is provided"""
-        iterator = iter([attrs['individualproject'], attrs['specialtopics']])
+        iterator = iter([bool(attrs['individualproject']), bool(attrs['specialtopics'])])
         has_true = any(iterator)
         has_another_true = any(iterator)
         if not (has_true and not has_another_true):
