@@ -15,7 +15,7 @@ def get_semester() -> int:
 
 
 class Course(models.Model):
-    course_number = models.CharField(max_length=20, null=False, blank=False)
+    course_number = models.CharField(max_length=20, null=False, blank=False, unique=True)
     name = models.CharField(max_length=50, null=False, blank=False)
 
     def __str__(self):
@@ -86,6 +86,10 @@ class Contract(models.Model):
             else:
                 errors['individualproject'] = 'A contract should have one and only one type'
                 errors['specialtopics'] = 'A contract should have one and only one type'
+
+        if not self.pk and self.submit_date:
+            errors['is_submitted'] = 'You can\'t submit a contract on creation'
+            errors['submit_date'] = 'You can\'t submit a contract on creation'
 
         if errors:
             raise ValidationError(errors)
