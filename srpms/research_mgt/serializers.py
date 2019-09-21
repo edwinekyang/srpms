@@ -5,7 +5,7 @@ from accounts.models import SrpmsUser
 from . import models
 
 
-class ApprovalBooleanField(serializers.BooleanField):
+class DateTimeBooleanField(serializers.BooleanField):
     """
     Special field for retrieving approval status.
 
@@ -28,7 +28,7 @@ class ApprovalBooleanField(serializers.BooleanField):
 
         # Only allow boolean value
         if not isinstance(is_approved, bool):
-            raise serializers.ValidationError("Should be a boolean value")
+            raise serializers.ValidationError('Should be a boolean value')
 
         return datetime.now() if is_approved else None
 
@@ -39,14 +39,16 @@ class ApprovalBooleanField(serializers.BooleanField):
         that None return would not trigger `to_representation`, so we
         need to explicitly set True/False here
         """
-        attr = super(ApprovalBooleanField, self).get_attribute(instance)
+        attr = super(DateTimeBooleanField, self).get_attribute(instance)
         return bool(attr)
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    contract = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+
     class Meta:
         model = models.Course
-        fields = ['id', 'course_number', 'name']
+        fields = ['id', 'course_number', 'name', 'contract']
 
 
 class IndividualProjectSerializer(serializers.ModelSerializer):
@@ -79,13 +81,17 @@ class ContractSerializer(serializers.ModelSerializer):
                                             required=False, allow_null=True)
 
     # Convener related fields
+    # Convener is set automatically to the user who approve the contract
+    convener = serializers.PrimaryKeyRelatedField(read_only=True)
     convener_approval_date = serializers.ReadOnlyField()
-    is_convener_approved = ApprovalBooleanField(source='convener_approval_date', required=False)
+    is_convener_approved = DateTimeBooleanField(source='convener_approval_date', required=False)
 
     # Owner related fields
+    # Owner is set automatically to the user that create the contract
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)
     create_date = serializers.ReadOnlyField()
     submit_date = serializers.ReadOnlyField()
-    is_submitted = ApprovalBooleanField(source='submit_date', required=False)
+    is_submitted = DateTimeBooleanField(source='submit_date', required=False)
 
     class Meta:
         model = models.Contract
@@ -96,11 +102,11 @@ class ContractSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs: dict):
         """Validate to check only one type of contract is provided"""
-        iterator = iter([attrs['individualproject'], attrs['specialtopics']])
+        iterator = iter([bool(attrs['individualproject']), bool(attrs['specialtopics'])])
         has_true = any(iterator)
         has_another_true = any(iterator)
         if not (has_true and not has_another_true):
-            raise serializers.ValidationError("Contract must be one and only one type")
+            raise serializers.ValidationError('Contract must be one and only one type')
         return attrs
 
     def create(self, validated_data: dict):
@@ -109,6 +115,9 @@ class ContractSerializer(serializers.ModelSerializer):
 
         https://www.django-rest-framework.org/api-guide/serializers/#writing-create-methods-for-nested-representations
         """
+        if validated_data['submit_date']:
+            raise serializers.ValidationError('You can\'t submit a contract on creation')
+
         individual_project = validated_data.pop('individualproject')
         special_topics = validated_data.pop('specialtopics')
         if individual_project:
@@ -135,7 +144,7 @@ class ContractSerializer(serializers.ModelSerializer):
             for attr, value in special_topics.items():
                 setattr(instance, attr, value)
         else:
-            raise serializers.ValidationError("Illegal data for provided contract type.")
+            raise serializers.ValidationError('Illegal data for provided contract type.')
 
         # Set contract data
         for attr, value in validated_data.items():
@@ -146,14 +155,15 @@ class ContractSerializer(serializers.ModelSerializer):
 
 
 class SuperviseSerializer(serializers.ModelSerializer):
-    is_supervisor_approved = ApprovalBooleanField(source='supervisor_approval_date',
-                                                  required=False)
+    is_formal = serializers.ReadOnlyField()
     supervisor_approval_date = serializers.ReadOnlyField()
+    is_supervisor_approved = DateTimeBooleanField(source='supervisor_approval_date',
+                                                  required=False)
 
     class Meta:
         model = models.Supervise
-        fields = ['id', 'contract', 'supervisor', 'is_formal', 'is_supervisor_approved',
-                  'supervisor_approval_date']
+        fields = ['id', 'contract', 'supervisor', 'is_formal',
+                  'is_supervisor_approved', 'supervisor_approval_date']
 
 
 class AssessmentTemplateSerializer(serializers.ModelSerializer):
@@ -163,7 +173,7 @@ class AssessmentTemplateSerializer(serializers.ModelSerializer):
 
 
 class AssessmentMethodSerializer(serializers.ModelSerializer):
-    is_examiner_approved = ApprovalBooleanField(source='examiner_approval_date',
+    is_examiner_approved = DateTimeBooleanField(source='examiner_approval_date',
                                                 required=False)
     examiner_approval_date = serializers.ReadOnlyField()
 

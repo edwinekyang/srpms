@@ -78,18 +78,7 @@ class Contract(models.Model):
 
         # Update only check, self.pk would not present during create
         if self.pk:
-            # Check if only one type of contract assigned
-            iterator = iter([hasattr(self, 'individualproject'),
-                             hasattr(self, 'specialtopics')])
-            if any(iterator) and not any(iterator):
-                pass
-            else:
-                errors['individualproject'] = 'A contract should have one and only one type'
-                errors['specialtopics'] = 'A contract should have one and only one type'
-
-        if not self.pk and self.submit_date:
-            errors['is_submitted'] = 'You can\'t submit a contract on creation'
-            errors['submit_date'] = 'You can\'t submit a contract on creation'
+            pass
 
         if errors:
             raise ValidationError(errors)
@@ -104,7 +93,7 @@ class Contract(models.Model):
         elif hasattr(self, 'specialtopics'):
             return str(self.specialtopics.title)
         else:
-            super(Contract, self).__str__()
+            return super(Contract, self).__str__()
 
 
 class Supervise(models.Model):
