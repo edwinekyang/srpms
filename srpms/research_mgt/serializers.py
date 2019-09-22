@@ -100,26 +100,33 @@ class ContractSerializer(serializers.ModelSerializer):
                   'owner', 'create_date', 'submit_date', 'is_submitted',
                   'individual_project', 'special_topics']
 
-    def validate(self, attrs: dict):
-        """Validate to check only one type of contract is provided"""
-        iterator = iter([bool(attrs['individualproject']), bool(attrs['specialtopics'])])
-        has_true = any(iterator)
-        has_another_true = any(iterator)
-        if not (has_true and not has_another_true):
-            raise serializers.ValidationError('Contract must be one and only one type')
-        return attrs
-
     def create(self, validated_data: dict):
         """
         Nested field does not support write by DRF, we have to do it ourselves
 
         https://www.django-rest-framework.org/api-guide/serializers/#writing-create-methods-for-nested-representations
         """
-        if validated_data['submit_date']:
+        if validated_data.get('submit_date', False):
             raise serializers.ValidationError('You can\'t submit a contract on creation')
 
-        individual_project = validated_data.pop('individualproject')
-        special_topics = validated_data.pop('specialtopics')
+        try:
+            individual_project = validated_data.pop('individualproject')
+        except KeyError:
+            individual_project = None
+
+        try:
+            special_topics = validated_data.pop('specialtopics')
+        except KeyError:
+            special_topics = None
+
+        # Check only one type of contract is provided, this logic cannot be done in validate()
+        # because this checking is different for partial update.
+        iterator = iter([individual_project, special_topics])
+        has_true = any(iterator)
+        has_another_true = any(iterator)
+        if not (has_true and not has_another_true):
+            raise serializers.ValidationError('Contract must be one and only one type')
+
         if individual_project:
             return models.IndividualProject.objects.create(**validated_data, **individual_project)
         if special_topics:
@@ -131,15 +138,43 @@ class ContractSerializer(serializers.ModelSerializer):
 
         https://www.django-rest-framework.org/api-guide/serializers/#writing-update-methods-for-nested-representations
         """
-        individual_project: dict = validated_data.pop('individualproject')
-        special_topics: dict = validated_data.pop('specialtopics')
+        try:
+            # We can't use get() because we need to treat missing key and
+            # key's value is None differently.
+            individual_project: dict = validated_data.pop('individualproject')
+        except KeyError:
+            # PATCH may missing this field, but the request is still valid
+            if hasattr(instance, 'individualproject'):
+                individual_project = {}
+            else:
+                individual_project = None
 
-        # Set sub-contract related data
-        if hasattr(instance, 'individualproject') and individual_project:
+        try:
+            # We can't use get() because we need to treat missing key and
+            # key's value is None differently.
+            special_topics: dict = validated_data.pop('specialtopics')
+        except KeyError:
+            # PATCH may missing this field, but the request is still valid
+            if hasattr(instance, 'specialtopics'):
+                special_topics = {}
+            else:
+                special_topics = None
+
+        # Check only one type of contract is provided, this logic cannot be done in validate()
+        # because this checking is different for update.
+        iterator = iter([individual_project is not None,
+                         special_topics is not None])
+        has_true = any(iterator)
+        has_another_true = any(iterator)
+        if not (has_true and not has_another_true):
+            raise serializers.ValidationError('Contract must be one and only one type')
+
+        # Set contract type related data
+        if hasattr(instance, 'individualproject') and individual_project is not None:
             instance = instance.individualproject
             for attr, value in individual_project.items():
                 setattr(instance, attr, value)
-        elif hasattr(instance, 'specialtopics') and special_topics:
+        elif hasattr(instance, 'specialtopics') and special_topics is not None:
             instance = instance.specialtopics
             for attr, value in special_topics.items():
                 setattr(instance, attr, value)

@@ -272,7 +272,7 @@ if DEBUG:
 
     # Enable Django debug toolbar during debug
     DEBUG_TOOLBAR_CONFIG = {
-        "SHOW_TOOLBAR_CALLBACK": lambda x: True,  # Change this to false if you want to disable
+        "SHOW_TOOLBAR_CALLBACK": lambda x: False,  # Change this to false if you want to disable
         "RENDER_PANELS": True
     }
     INSTALLED_APPS = ['debug_toolbar', ] + INSTALLED_APPS

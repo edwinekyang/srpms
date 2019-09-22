@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.settings import api_settings
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
 
 from . import serializers
 from . import models
@@ -25,6 +25,10 @@ class ContractViewSet(viewsets.ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,
     `update` and `destroy` actions.
+
+    Special note for PATCH method:
+        Because of nested serializer, PATCH method is not allowed for this view
+        in order to prevent unexpected behavior. Please use PUT instead
     """
     queryset = models.Contract.objects.all()
     serializer_class = serializers.ContractSerializer
@@ -52,7 +56,7 @@ class ContractViewSet(viewsets.ModelViewSet):
         """
 
         # When convener approved, automatically attach the convener to the contract
-        if bool(serializer.validated_data['convener_approval_date']):
+        if serializer.validated_data.get('convener_approval_date', False):
             serializer.validated_data['convener'] = self.request.user
 
         return super(ContractViewSet, self).perform_update(serializer)
