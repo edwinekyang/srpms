@@ -31,16 +31,30 @@ class ContractViewSet(viewsets.ModelViewSet):
     permission_classes = default_perms + [app_perms.DefaultObjectPermission]
 
     def perform_create(self, serializer: serializers.ContractSerializer):
-        """When convener approved, automatically attach the convener to the contract"""
-        if hasattr(serializer.validated_data, 'convener_approval_date'):
+        """
+        Mainly perform object/field & method based permission checking, happen after
+        permission_class check passed, and data in serializer has been validated
+        """
+
+        # When convener approved, automatically attach the convener to the contract
+        if bool(serializer.validated_data['convener_approval_date']):
             serializer.validated_data['convener'] = self.request.user
+
+        # Set the owner to the requester
         serializer.validated_data['owner'] = self.request.user
+
         return super(ContractViewSet, self).perform_create(serializer)
 
     def perform_update(self, serializer: serializers.ContractSerializer):
-        """When convener approved, automatically attach the convener to the contract"""
-        if hasattr(serializer.validated_data, 'convener_approval_date'):
+        """
+        Mainly perform object/field & method based permission checking, happen after
+        permission_class check passed, and data in serializer has been validated
+        """
+
+        # When convener approved, automatically attach the convener to the contract
+        if bool(serializer.validated_data['convener_approval_date']):
             serializer.validated_data['convener'] = self.request.user
+
         return super(ContractViewSet, self).perform_update(serializer)
 
 
@@ -60,18 +74,27 @@ class AssessmentMethodViewSet(viewsets.ModelViewSet):
     permission_classes = default_perms + [app_perms.DefaultObjectPermission]
 
     def perform_create(self, serializer):
+        """
+        Mainly perform object/field & method based permission checking, happen after
+        permission_class check passed, and data in serializer has been validated
+        """
+
+        # Check if the user is allowed to create assessment for a contract
         requester: SrpmsUser = self.request.user
         contract: models.Contract = serializer.validated_data['contract']
-        if requester.has_perm('research_mgt.can_convene'):
+        if requester.has_perm('research_mgt.is_mgt_superuser'):
+            # Allow superuser
+            pass
+        elif contract.is_convener_approved():
+            raise PermissionDenied("Convener approved contract is read-only")
+        elif requester.has_perm('research_mgt.can_convene'):
             # Allow convener
             pass
-        elif requester.has_perm('research_mgt.approved_supervisors') \
-                and requester in [sup.supervisor for sup in
-                                  models.Supervise.objects.filter(contract=contract)]:
-            # Allow approved supervisors that are involved in this contract
-            pass
-        elif contract in models.Contract.objects.filter(owner=requester):
+        elif contract in requester.own.all():
             # Allow contract owner
+            pass
+        elif contract in requester.supervise.all():
+            # Allow supervisors that are involved in this contract
             pass
         else:
             raise PermissionDenied("You're only allowed to create assessment relation if:\n"
@@ -92,21 +115,30 @@ class SuperviseViewSet(viewsets.ModelViewSet):
     permission_classes = default_perms + [app_perms.DefaultObjectPermission]
 
     def perform_create(self, serializer: serializers.SuperviseSerializer):
+        """
+        Mainly perform object/field & method based permission checking, happen after
+        permission_class check passed, and data in serializer has been validated
+        """
+
         # Check if the user is allowed to create supervise relation
         requester: SrpmsUser = self.request.user
         contract: models.Contract = serializer.validated_data['contract']
         supervisor: SrpmsUser = serializer.validated_data['supervisor']
-        if requester.has_perm('research_mgt.can_convene'):
+        if requester.has_perm('research_mgt.is_mgt_superuser'):
+            # Allow superuser
+            pass
+        elif contract.is_convener_approved():
+            raise PermissionDenied("Convener approved contract is read-only")
+        elif requester.has_perm('research_mgt.can_convene'):
             # Allow convener
             pass
-        elif requester.has_perm('research_mgt.approved_supervisors') \
-                and requester in [sup.supervisor for sup in
-                                  models.Supervise.objects.filter(contract=contract)]:
-            # Allow approved supervisors that are involved in this contract
-            pass
-        elif contract in models.Contract.objects.filter(owner=requester) \
+        elif contract in requester.own.all() \
                 and supervisor.has_perm('research_mgt.approved_supervisors'):
             # Allow contract owner to nominate approved supervisors
+            pass
+        elif requester.has_perm('research_mgt.approved_supervisors') \
+                and contract in requester.supervise.all():
+            # Allow approved supervisors that are involved in this contract
             pass
         else:
             raise PermissionDenied("You're only allowed to create supervise relation if:\n"
@@ -125,6 +157,11 @@ class SuperviseViewSet(viewsets.ModelViewSet):
         return super(SuperviseViewSet, self).perform_create(serializer)
 
     def perform_update(self, serializer: serializers.SuperviseSerializer):
+        """
+        Mainly perform object/field & method based permission checking, happen after
+        permission_class check passed, and data in serializer has been validated
+        """
+
         # Check if supervisor is approved, if yes, set the is_form attribute
         supervisor = serializer.validated_data['supervisor']
         if supervisor.has_perm('can_supervise'):
