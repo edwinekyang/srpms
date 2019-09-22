@@ -23,8 +23,9 @@ RUN apk add --no-cache --virtual .build-deps \
                    markdown==3.1 \
                    djangorestframework_simplejwt==4.3 \
                    django-cors-headers==3.1 \
-                   ipython \
-                   pylint_django \
+                   ipython==7.7 \
+                   pylint_django==2 \
+                   coverage==4.5 \
     && find /usr/local \
         \( -type d -a -name test -o -name tests \) \
         -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
