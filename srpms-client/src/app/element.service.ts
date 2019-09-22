@@ -3,48 +3,56 @@ import { Injectable } from '@angular/core';
 import { DropdownElement } from './element-dropdown';
 import { ElementBase } from './element-base';
 import { TextboxElement } from './element-textbox';
+import { RadioBoxElement } from './element-radiobox';
+import {TextareaElement} from './element-textarea';
+import {ContractService, Course} from './contract.service';
+import {HttpErrorResponse} from '@angular/common/http';
+
 
 @Injectable()
 export class ElementService {
+    private course: Course[] = [];
+    constructor(public contractService: ContractService) {
+        this.showCourses();
+    }
+
+    errorMessage: string;
+    private courseDropdown = [];
+
+    showCourses() {
+        this.contractService.getCourses()
+            .subscribe(
+                (data: Course[]) => {
+                    this.course = data;
+                    this.getElements();
+                },
+                error => {
+                    if (error instanceof HttpErrorResponse) {
+                        this.errorMessage = error.error.detail;
+                    }
+                });
+    }
 
     // TODO: get from a remote source of question metadata
     // TODO: make asynchronous
     getElements() {
+        this.course.forEach((item) => {
+            this.courseDropdown.push({key: item.course_number + '(' + item.name + ')', value: item.id});
+        });
 
         let elements: ElementBase<any>[];
         elements = [
 
-            new DropdownElement({
-                key: 'course',
-                label: 'Course',
-                choices: [
-                    {key: 'COMP8750', value: '1'},
-                ],
-                order: 5
-            }),
-
+            // For Section Divider
             new TextboxElement({
-                key: 'owner',
-                label: 'UniID',
-                value: 1,
-                required: true,
                 order: 1
             }),
 
-            new TextboxElement({
-                key: 'surname',
-                label: 'SURNAME',
-                value: '',
-                required: true,
-                order: 2
-            }),
-
-            new TextboxElement({
-                key: 'firstName',
-                label: 'FIRST NAME',
-                value: '',
-                required: true,
-                order: 3
+            new DropdownElement({
+                key: 'course',
+                label: 'Course',
+                choices: this.courseDropdown,
+                order: 2,
             }),
 
             new TextboxElement({
@@ -52,15 +60,18 @@ export class ElementService {
                 label: 'PROJECT SUPERVISOR',
                 value: 1,
                 required: true,
-                order: 4
+                order: 3
             }),
 
-            new TextboxElement({
+            new RadioBoxElement({
                 key: 'semester',
-                label: 'SEMESTER',
-                value: '',
+                label: 'COMMENCING SEMESTER',
+                choices: [
+                    {key: 'S1', value: 1},
+                    {key: 'S2', value: 2}
+                ],
                 required: true,
-                order: 6
+                order: 4
             }),
 
             new TextboxElement({
@@ -68,39 +79,53 @@ export class ElementService {
                 label: 'YEAR',
                 value: '',
                 required: true,
-                order: 7
+                order: 5,
+                placeholder: '(ex: 2019)'
             }),
 
-            new TextboxElement({
+            new RadioBoxElement({
                 key: 'duration',
                 label: 'DURATION',
-                value: '',
+                choices: [
+                    {key: '1 Semester', value: 1},
+                    {key: '2 Semesters(12u courses only)', value: 2}
+                ],
                 required: true,
-                order: 8
+                order: 6
             }),
 
+            // For Section Divider
             new TextboxElement({
+                order: 10
+            }),
+
+            new TextareaElement({
                 key: 'title',
                 label: 'PROJECT TITLE',
                 value: '',
                 required: true,
-                order: 9
+                order: 11
             }),
 
-            new TextboxElement({
+            new TextareaElement({
                 key: 'objectives',
                 label: 'LEARNING OBJECTIVES',
                 value: '',
                 required: true,
-                order: 10
+                order: 12
             }),
 
-            new TextboxElement({
+            new TextareaElement({
                 key: 'description',
                 label: 'PROJECT DESCRIPTION',
                 value: '',
                 required: true,
-                order: 11
+                order: 13
+            }),
+
+            // For Section Divider
+            new TextboxElement({
+                order: 20
             }),
 
             new DropdownElement({
@@ -111,7 +136,7 @@ export class ElementService {
                     {key: 'Artefact', value: 2},
                     {key: 'Presentation', value: 3},
                 ],
-                order: 12
+                order: 21
             }),
 
             new TextboxElement({
@@ -119,7 +144,7 @@ export class ElementService {
                 label: 'STYLE',
                 value: '',
                 required: false,
-                order: 13
+                order: 22
             }),
 
             new TextboxElement({
@@ -127,7 +152,7 @@ export class ElementService {
                 label: 'MARK',
                 value: '',
                 required: true,
-                order: 14
+                order: 23
             }),
 
             new TextboxElement({
@@ -135,7 +160,7 @@ export class ElementService {
                 label: 'DUE DATE',
                 value: '',
                 required: true,
-                order: 15
+                order: 24
             }),
 
             new TextboxElement({
@@ -143,7 +168,12 @@ export class ElementService {
                 label: 'EXAMINER',
                 value: '',
                 required: false,
-                order: 16
+                order: 25
+            }),
+
+            // For Section Divider
+            new TextboxElement({
+                order: 30
             }),
 
             new DropdownElement({
@@ -154,7 +184,7 @@ export class ElementService {
                     {key: 'Artefact', value: 2},
                     {key: 'Presentation', value: 3},
                 ],
-                order: 17
+                order: 31
             }),
 
             new TextboxElement({
@@ -162,7 +192,7 @@ export class ElementService {
                 label: 'STYLE',
                 value: '',
                 required: false,
-                order: 18
+                order: 32
             }),
 
             new TextboxElement({
@@ -170,7 +200,7 @@ export class ElementService {
                 label: 'MARK',
                 value: '',
                 required: true,
-                order: 19
+                order: 33
             }),
 
             new TextboxElement({
@@ -178,7 +208,7 @@ export class ElementService {
                 label: 'DUE DATE',
                 value: '',
                 required: true,
-                order: 20
+                order: 34
             }),
 
             new TextboxElement({
@@ -186,7 +216,12 @@ export class ElementService {
                 label: 'SUPERVISOR',
                 value: '',
                 required: true,
-                order: 21
+                order: 35
+            }),
+
+            // For Section Divider
+            new TextboxElement({
+                order: 40
             }),
 
             new TextboxElement({
@@ -194,7 +229,7 @@ export class ElementService {
                 label: 'PRESENTATION',
                 value: '3',
                 required: true,
-                order: 22
+                order: 41
             }),
 
             new TextboxElement({
@@ -202,7 +237,7 @@ export class ElementService {
                 label: 'STYLE',
                 value: '',
                 required: false,
-                order: 23
+                order: 42
             }),
 
             new TextboxElement({
@@ -210,7 +245,7 @@ export class ElementService {
                 label: 'MARK',
                 value: '10',
                 required: true,
-                order: 24
+                order: 43
             }),
 
             new TextboxElement({
@@ -218,7 +253,7 @@ export class ElementService {
                 label: 'DUE DATE',
                 value: '',
                 required: true,
-                order: 25
+                order: 44
             }),
 
             new TextboxElement({
@@ -226,7 +261,7 @@ export class ElementService {
                 label: 'COURSE CONVENOR',
                 value: 1,
                 required: true,
-                order: 26
+                order: 45
             }),
 
         ];

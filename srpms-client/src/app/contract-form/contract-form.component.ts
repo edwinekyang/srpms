@@ -8,18 +8,20 @@ import { ContractService } from '../contract.service';
 @Component({
   selector: 'app-contract-form',
   templateUrl: './contract-form.component.html',
+  styleUrls: ['./contract-form.component.scss'],
   providers: [ ContractFormControlService, ContractService ]
 })
 export class ContractFormComponent implements OnInit {
   errorMessage: string;
   @Input() elements: ElementBase<any>[] = [];
   form: FormGroup;
-  payLoad = '';
+  payLoad = {};
   assessment1 = {};
   assessment2 = {};
   assessment3 = {};
   supervise = {};
   contractId: number;
+  sectionList = [];
 
   constructor(
     private cfcs: ContractFormControlService,
@@ -28,11 +30,57 @@ export class ContractFormComponent implements OnInit {
 
   ngOnInit() {
     this.form = this.cfcs.toFormGroup(this.elements);
+    this.sectionList = [
+      '',
+      'Course and Supervisor',
+      'Project',
+      'Assessment',
+      'Assessment',
+      'Assessment',
+    ];
+  }
+
+  isAnotherSection(order): boolean {
+    if (order > 1) {
+      return (order % 10 === 0);
+    } else {
+      return true;
+    }
+  }
+
+  isTextArea(type): boolean {
+    return (type === 'textarea');
+  }
+
+  isLastElement(val, elements): boolean {
+    if (elements.indexOf(val) + 1 < elements.length) {
+      return elements[elements.indexOf(val) + 1].order - val.order > 1;
+    }
+  }
+
+  sectionDivider(order): number {
+    if (order === 1) {
+      return order;
+    } else {
+      return (order / 10) + 1;
+    }
   }
 
   onSubmit() {
-    this.payLoad = JSON.stringify(this.form.value);
-
+    this.payLoad = {
+      year: this.form.value.year,
+      semester: this.form.value.semester,
+      duration: this.form.value.duration,
+      resources: '',
+      course: this.form.value.course,
+      individual_project: {
+        title: this.form.value.title,
+        objectives: this.form.value.objectives,
+        description: this.form.value.description
+      },
+      special_topics: {},
+      owner: JSON.parse(localStorage.getItem('srpmsUser')).id
+    };
     this.contractService.addContract(this.payLoad)
       .subscribe((res) => {
         this.contractId = res.id;
