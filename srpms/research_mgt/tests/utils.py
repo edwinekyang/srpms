@@ -5,7 +5,6 @@ from django.test import TestCase
 from django.contrib.auth.models import Group
 
 from accounts.models import SrpmsUser
-from research_mgt import models
 
 
 class ApiUrls(object):
@@ -27,23 +26,27 @@ class Client(APIClient):
     """
 
     def get(self, path: str, data: Dict = None, **extra) -> Response:
-        return super(Client, self).get(path, data=None, follow=True, **extra)
+        return super(Client, self).get(path, **{'data': data, 'follow': True, **extra})
 
     def post(self, path: str, data: Dict = None, content_type=None, **extra) -> Response:
-        return super(Client, self).post(path, data=data, content_type=content_type, format='json',
-                                        follow=True, secure=True, **extra)
+        return super(Client, self).post(path, **{'data': data, 'content_type': content_type,
+                                                 'format': 'json', 'follow': True, 'secure': True,
+                                                 **extra})
 
     def put(self, path: str, data: Dict = None, content_type=None, **extra) -> Response:
-        return super(Client, self).put(path, data=data, content_type=content_type, format='json',
-                                       follow=True, secure=True, **extra)
+        return super(Client, self).put(path, **{'data': data, 'content_type': content_type,
+                                                'format': 'json', 'follow': True, 'secure': True,
+                                                **extra})
 
     def patch(self, path: str, data: Dict = None, content_type=None, **extra) -> Response:
-        return super(Client, self).patch(path, data=data, content_type=content_type, format='json',
-                                         follow=True, secure=True, **extra)
+        return super(Client, self).patch(path, **{'data': data, 'content_type': content_type,
+                                                  'format': 'json', 'follow': True, 'secure': True,
+                                                  **extra})
 
     def delete(self, path: str, data: Dict = None, content_type=None, **extra) -> Response:
-        return super(Client, self).delete(path, data=data, content_type=content_type, format='json',
-                                          follow=True, secure=True, **extra)
+        return super(Client, self).delete(path, **{'data': data, 'content_type': content_type,
+                                                   'format': 'json', 'follow': True, 'secure': True,
+                                                   **extra})
 
 
 class User(object):
