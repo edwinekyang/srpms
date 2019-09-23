@@ -40,8 +40,10 @@ class ContractViewSet(viewsets.ModelViewSet):
         permission_class check passed, and data in serializer has been validated
         """
 
+        # TODO: field level permission
+
         # When convener approved, automatically attach the convener to the contract
-        if bool(serializer.validated_data['convener_approval_date']):
+        if serializer.validated_data.get('convener_approval_date', False):
             serializer.validated_data['convener'] = self.request.user
 
         # Set the owner to the requester
@@ -54,6 +56,8 @@ class ContractViewSet(viewsets.ModelViewSet):
         Mainly perform object/field & method based permission checking, happen after
         permission_class check passed, and data in serializer has been validated
         """
+
+        # TODO: field level permission
 
         # When convener approved, automatically attach the convener to the contract
         if serializer.validated_data.get('convener_approval_date', False):
@@ -83,6 +87,8 @@ class AssessmentMethodViewSet(viewsets.ModelViewSet):
         permission_class check passed, and data in serializer has been validated
         """
 
+        # TODO: field level permission
+
         # Check if the user is allowed to create assessment for a contract
         requester: SrpmsUser = self.request.user
         contract: models.Contract = serializer.validated_data['contract']
@@ -107,6 +113,12 @@ class AssessmentMethodViewSet(viewsets.ModelViewSet):
                                    "approved supervisor")
 
         return super(AssessmentMethodViewSet, self).perform_create(serializer)
+
+    def perform_update(self, serializer):
+
+        # TODO: field level permission
+
+        super(AssessmentMethodViewSet, self).perform_update(serializer)
 
 
 class SuperviseViewSet(viewsets.ModelViewSet):
@@ -151,6 +163,8 @@ class SuperviseViewSet(viewsets.ModelViewSet):
                                    "2. You're supervising this contract, and you're an "
                                    "approved supervisor")
 
+        # TODO: field level permission
+
         # Check if supervisor is an approved supervisor, if yes, set the is_form attribute
         supervisor = serializer.validated_data['supervisor']
         if supervisor.has_perm('can_supervise'):
@@ -166,7 +180,9 @@ class SuperviseViewSet(viewsets.ModelViewSet):
         permission_class check passed, and data in serializer has been validated
         """
 
-        # Check if supervisor is approved, if yes, set the is_form attribute
+        # TODO: field level permission
+
+        # Check if supervisor is approved, if yes, set the is_formal attribute
         supervisor = serializer.validated_data['supervisor']
         if supervisor.has_perm('can_supervise'):
             serializer.validated_data['is_formal'] = True
