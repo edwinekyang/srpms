@@ -24,6 +24,10 @@ export class ContractFormComponent implements OnInit {
   sectionList = [];
   formFlag: string;
   elementFlag: string;
+  individualProject = {
+  };
+  specialTopics = {
+  };
   @Output() formFlagEvent = new EventEmitter<string>();
 
   constructor(
@@ -86,15 +90,30 @@ export class ContractFormComponent implements OnInit {
       duration: this.form.value.duration,
       resources: '',
       course: this.form.value.course,
-      individual_project: {
-        title: this.form.value.title,
-        objectives: this.form.value.objectives,
-        description: this.form.value.description
-      },
-      special_topics: {},
-      owner: JSON.parse(localStorage.getItem('srpmsUser')).id
+      owner: JSON.parse(localStorage.getItem('srpmsUser')).id,
+      test: ''
     };
-    this.contractService.addContract(this.payLoad)
+    if (this.formFlag === 'project') {
+      this.individualProject = {
+        individual_project: {
+          title: this.form.value.title,
+          objectives: this.form.value.objectives,
+          description: this.form.value.description
+        },
+      };
+      Object.assign(this.payLoad, this.individualProject);
+    } else if (this.formFlag === 'special') {
+      this.specialTopics = {
+        special_topics: {
+          title: this.form.value.title,
+          objectives: this.form.value.objectives,
+          description: this.form.value.description
+        },
+      };
+      Object.assign(this.payLoad, this.specialTopics);
+    }
+    console.log(JSON.stringify(this.payLoad));
+    this.contractService.addContract(JSON.stringify(this.payLoad))
       .subscribe((res) => {
         this.contractId = res.id;
         this.addAssessmentMethod();

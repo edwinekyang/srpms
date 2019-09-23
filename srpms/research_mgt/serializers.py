@@ -90,7 +90,9 @@ class ContractSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs: dict):
         """Validate to check only one type of contract is provided"""
-        iterator = iter([bool(attrs['individualproject']), bool(attrs['specialtopics'])])
+        print(attrs)
+        # iterator = iter([bool(attrs['individualproject']), bool(attrs['specialtopics'])])
+        iterator = iter([('individualproject' in attrs), ('specialtopics' in attrs)])
         has_true = any(iterator)
         has_another_true = any(iterator)
         if not (has_true and not has_another_true):
@@ -103,12 +105,20 @@ class ContractSerializer(serializers.ModelSerializer):
 
         https://www.django-rest-framework.org/api-guide/serializers/#writing-create-methods-for-nested-representations
         """
+        if 'individualproject' in validated_data:
+            individual_project = validated_data.pop('individualproject')
+            return models.IndividualProject.objects.create(**validated_data, **individual_project)
+        elif 'special_topics' in validated_data:
+            special_topics = validated_data.pop('specialtopics')
+            return models.SpecialTopics.objects.create(**validated_data, **special_topics)
+        """
         individual_project = validated_data.pop('individualproject')
         special_topics = validated_data.pop('specialtopics')
         if individual_project:
             return models.IndividualProject.objects.create(**validated_data, **individual_project)
         if special_topics:
             return models.SpecialTopics.objects.create(**validated_data, **special_topics)
+        """
 
     def update(self, instance: models.Contract, validated_data: dict):
         """
