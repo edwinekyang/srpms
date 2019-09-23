@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.settings import api_settings
-from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
+from rest_framework.exceptions import PermissionDenied
 
 from . import serializers
 from . import models
@@ -141,7 +141,7 @@ class SuperviseViewSet(viewsets.ModelViewSet):
             # Allow contract owner to nominate approved supervisors
             pass
         elif requester.has_perm('research_mgt.approved_supervisors') \
-                and contract in requester.supervise.all():
+                and contract.supervisor.all() & requester.supervise.all():
             # Allow approved supervisors that are involved in this contract
             pass
         else:
