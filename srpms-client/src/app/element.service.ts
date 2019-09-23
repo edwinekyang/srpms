@@ -34,10 +34,12 @@ export class ElementService {
     }
 
     // TODO: get from a remote source of question metadata
-    // TODO: make asynchronous
     getElements() {
         this.course.forEach((item) => {
-            this.courseDropdown.push({key: item.course_number + '(' + item.name + ')', value: item.id});
+            this.courseDropdown.push({key: item.course_number + '(' + item.name + ')', value: item.id
+                , flag:
+                    (item.course_number === 'COMP2710' || item.course_number === 'COMP3710') ? 'specialTopics' :
+                    'project'});
         });
 
         let elements: ElementBase<any>[];
@@ -60,7 +62,8 @@ export class ElementService {
                 label: 'PROJECT SUPERVISOR',
                 value: 1,
                 required: true,
-                order: 3
+                order: 3,
+                flag: 'common'
             }),
 
             new RadioBoxElement({
@@ -71,7 +74,8 @@ export class ElementService {
                     {key: 'S2', value: 2}
                 ],
                 required: true,
-                order: 4
+                order: 4,
+                flag: 'common'
             }),
 
             new TextboxElement({
@@ -80,7 +84,8 @@ export class ElementService {
                 value: '',
                 required: true,
                 order: 5,
-                placeholder: '(ex: 2019)'
+                placeholder: '(ex: 2019)',
+                flag: 'common'
             }),
 
             new RadioBoxElement({
@@ -91,7 +96,8 @@ export class ElementService {
                     {key: '2 Semesters(12u courses only)', value: 2}
                 ],
                 required: true,
-                order: 6
+                order: 6,
+                flag: 'project'
             }),
 
             // For Section Divider
@@ -104,7 +110,8 @@ export class ElementService {
                 label: 'PROJECT TITLE',
                 value: '',
                 required: true,
-                order: 11
+                order: 11,
+                flag: 'common'
             }),
 
             new TextareaElement({
@@ -112,7 +119,8 @@ export class ElementService {
                 label: 'LEARNING OBJECTIVES',
                 value: '',
                 required: true,
-                order: 12
+                order: 12,
+                flag: 'common'
             }),
 
             new TextareaElement({
@@ -120,7 +128,8 @@ export class ElementService {
                 label: 'PROJECT DESCRIPTION',
                 value: '',
                 required: true,
-                order: 13
+                order: 13,
+                flag: 'common'
             }),
 
             // For Section Divider
@@ -130,13 +139,14 @@ export class ElementService {
 
             new DropdownElement({
                 key: 'assessment1',
-                label: 'Assessment1',
+                label: 'Assessment 1',
                 choices: [
                     {key: 'Report', value: 1},
                     {key: 'Artefact', value: 2},
                     {key: 'Presentation', value: 3},
                 ],
-                order: 21
+                order: 21,
+                flag: 'common'
             }),
 
             new TextboxElement({
@@ -144,7 +154,8 @@ export class ElementService {
                 label: 'STYLE',
                 value: '',
                 required: false,
-                order: 22
+                order: 22,
+                flag: 'common'
             }),
 
             new TextboxElement({
@@ -152,7 +163,8 @@ export class ElementService {
                 label: 'MARK',
                 value: '',
                 required: true,
-                order: 23
+                order: 23,
+                flag: 'common'
             }),
 
             new TextboxElement({
@@ -160,7 +172,8 @@ export class ElementService {
                 label: 'DUE DATE',
                 value: '',
                 required: true,
-                order: 24
+                order: 24,
+                flag: 'common'
             }),
 
             new TextboxElement({
@@ -168,7 +181,8 @@ export class ElementService {
                 label: 'EXAMINER',
                 value: '',
                 required: false,
-                order: 25
+                order: 25,
+                flag: 'common'
             }),
 
             // For Section Divider
@@ -178,13 +192,14 @@ export class ElementService {
 
             new DropdownElement({
                 key: 'assessment2',
-                label: 'Assessment2',
+                label: 'Assessment 2',
                 choices: [
                     {key: 'Report', value: 1},
                     {key: 'Artefact', value: 2},
                     {key: 'Presentation', value: 3},
                 ],
-                order: 31
+                order: 31,
+                flag: 'common'
             }),
 
             new TextboxElement({
@@ -192,7 +207,8 @@ export class ElementService {
                 label: 'STYLE',
                 value: '',
                 required: false,
-                order: 32
+                order: 32,
+                flag: 'common'
             }),
 
             new TextboxElement({
@@ -200,7 +216,8 @@ export class ElementService {
                 label: 'MARK',
                 value: '',
                 required: true,
-                order: 33
+                order: 33,
+                flag: 'common'
             }),
 
             new TextboxElement({
@@ -208,7 +225,8 @@ export class ElementService {
                 label: 'DUE DATE',
                 value: '',
                 required: true,
-                order: 34
+                order: 34,
+                flag: 'common'
             }),
 
             new TextboxElement({
@@ -216,7 +234,8 @@ export class ElementService {
                 label: 'SUPERVISOR',
                 value: '',
                 required: true,
-                order: 35
+                order: 35,
+                flag: 'common'
             }),
 
             // For Section Divider
@@ -229,7 +248,20 @@ export class ElementService {
                 label: 'PRESENTATION',
                 value: '3',
                 required: true,
-                order: 41
+                order: 41,
+                flag: 'project'
+            }),
+
+            new DropdownElement({
+                key: 'assessment3',
+                label: 'Assessment 3',
+                choices: [
+                    {key: 'Report', value: 1},
+                    {key: 'Artefact', value: 2},
+                    {key: 'Presentation', value: 3},
+                ],
+                order: 42,
+                flag: 'special'
             }),
 
             new TextboxElement({
@@ -237,15 +269,17 @@ export class ElementService {
                 label: 'STYLE',
                 value: '',
                 required: false,
-                order: 42
+                order: 43,
+                flag: 'common'
             }),
 
             new TextboxElement({
                 key: 'assessment3Mark',
                 label: 'MARK',
-                value: '10',
+                value: '',
                 required: true,
-                order: 43
+                order: 44,
+                flag: 'common'
             }),
 
             new TextboxElement({
@@ -253,15 +287,17 @@ export class ElementService {
                 label: 'DUE DATE',
                 value: '',
                 required: true,
-                order: 44
+                order: 45,
+                flag: 'common'
             }),
 
             new TextboxElement({
                 key: 'assessment3Examiner',
                 label: 'COURSE CONVENOR',
-                value: 1,
+                value: '',
                 required: true,
-                order: 45
+                order: 46,
+                flag: 'common'
             }),
 
         ];

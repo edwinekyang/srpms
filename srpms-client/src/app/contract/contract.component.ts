@@ -16,15 +16,19 @@ import {ElementBase} from '../element-base';
 export class ContractComponent implements OnInit {
   course: Course[] = [];
   elements: ElementBase<any>[] = [];
+  formFlag: string;
 
   constructor(
     public elementService: ElementService
   ) {
     this.elements = this.elementService.getElements();
-    console.log(this.elements);
   }
 
   ngOnInit() {
+    this.formFlag = '';
+  }
 
+  receiveFormFlag($event) {
+    this.formFlag = $event;
   }
 }

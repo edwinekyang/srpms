@@ -24,5 +24,6 @@ export class ElementBase<T> {
       this.required = !!options.required;
       this.order = options.order === undefined ? 1 : options.order;
       this.controlType = options.controlType || '';
+      this.flag = options.flag || '';
     }
 }

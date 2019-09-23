@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ElementBase } from '../element-base';
 import { ContractFormControlService } from '../contract-form-control.service';
@@ -22,6 +22,9 @@ export class ContractFormComponent implements OnInit {
   supervise = {};
   contractId: number;
   sectionList = [];
+  formFlag: string;
+  elementFlag: string;
+  @Output() formFlagEvent = new EventEmitter<string>();
 
   constructor(
     private cfcs: ContractFormControlService,
@@ -38,6 +41,16 @@ export class ContractFormComponent implements OnInit {
       'Assessment',
       'Assessment',
     ];
+  }
+
+  receiveFormFlag($event) {
+    this.formFlag = $event;
+    this.sendFormFlag();
+    this.elementFlag = $event;
+  }
+
+  sendFormFlag() {
+    this.formFlagEvent.emit(this.formFlag);
   }
 
   isAnotherSection(order): boolean {
