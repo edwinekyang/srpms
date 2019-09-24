@@ -26,11 +26,6 @@ router.register(r'course', views.CourseViewSet)
 router.register(r'assessment-templates', views.AssessmentTemplateViewSet)
 
 # Generate the following URL patterns
-# 'assessment-methods/$' - 'assessment-method-list'
-# 'assessment-methods/{pk}/$ - 'assessment-method-detail'
-router.register(r'assessment-methods', views.AssessmentMethodViewSet)
-
-# Generate the following URL patterns
 # 'contracts/$' - 'contract-list'
 # 'contracts/{pk}/$ - 'contract-detail'
 router.register(r'contracts', views.ContractViewSet)
@@ -39,6 +34,11 @@ router.register(r'contracts', views.ContractViewSet)
 # 'supervise/$' - 'supervise-list'
 # 'supervise/{pk}/$ - 'supervise-detail'
 router.register(r'supervise', views.SuperviseViewSet)
+
+# Generate the following URL patterns
+# 'assessment-methods/$' - 'assessment-method-list'
+# 'assessment-methods/{pk}/$ - 'assessment-method-detail'
+router.register(r'assessment-methods', views.AssessmentMethodViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

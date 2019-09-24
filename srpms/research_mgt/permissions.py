@@ -134,3 +134,23 @@ class DefaultObjectPermission(permissions.BasePermission):
                 return False
 
         return False
+
+
+class IsConvener(permissions.BasePermission):
+    def has_permission(self, request: Request, view: viewsets.ModelViewSet) -> bool:
+        return request.user.has_perm('research_mgt.can_convene')
+
+    def has_object_permission(self, request: Request, view, obj) -> bool:
+        return request.user.has_perm('research_mgt.can_convene')
+
+
+class IsSuperuser(permissions.BasePermission):
+    def has_permission(self, request: Request, view: viewsets.ModelViewSet) -> bool:
+        return request.user.has_perm('research_mgt.is_mgt_superuser')
+
+    def has_object_permission(self, request: Request, view, obj) -> bool:
+        return request.user.has_perm('research_mgt.is_mgt_superuser')
+
+
+class IsContractOwner(permissions.BasePermission):
+    pass

@@ -52,6 +52,55 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = ['id', 'course_number', 'name', 'contract']
 
 
+class AssessmentTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.AssessmentTemplate
+        fields = ['id', 'name', 'description', 'max_mark', 'min_mark', 'default_mark']
+
+
+class UserContractSerializer(serializers.ModelSerializer):
+    own = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    convene = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = SrpmsUser
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'own', 'convene',
+                  'supervise', 'examine']
+
+    # noinspection PyMethodMayBeStatic
+    def get_supervise(self, obj: SrpmsUser) -> tuple:
+        """
+        User's supervise field was pointed to instances of Supervise relation, not contract
+        """
+        return obj.supervise.all().values_list('contract').get()
+
+    # noinspection PyMethodMayBeStatic
+    def get_examine(self, obj: SrpmsUser) -> tuple:
+        """
+        User's supervise field was pointed to instances of AssessmentMethod relation, not contract
+        """
+        return obj.examine.all().values_list('contract').get()
+
+
+class SuperviseSerializer(serializers.ModelSerializer):
+    is_formal = serializers.ReadOnlyField()
+    supervisor_approval_date = serializers.ReadOnlyField()
+
+    class Meta:
+        model = models.Supervise
+        fields = ['id', 'contract', 'supervisor', 'is_formal',
+                  'is_supervisor_approved', 'supervisor_approval_date']
+
+
+class AssessmentMethodSerializer(serializers.ModelSerializer):
+    examiner_approval_date = serializers.ReadOnlyField()
+
+    class Meta:
+        model = models.AssessmentMethod
+        fields = ['id', 'template', 'contract', 'additional_description', 'due', 'max_mark',
+                  'examiner', 'is_examiner_approved', 'examiner_approval_date']
+
+
 class IndividualProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.IndividualProject
@@ -92,12 +141,15 @@ class ContractSerializer(serializers.ModelSerializer):
     create_date = serializers.ReadOnlyField()
     submit_date = serializers.ReadOnlyField()
 
+    supervise = SuperviseSerializer(source='supervisor', read_only=True, many=True)
+    assessment_method = AssessmentMethodSerializer(read_only=True, many=True)
+
     class Meta:
         model = models.Contract
         fields = ['id', 'year', 'semester', 'duration', 'resources', 'course',
                   'convener', 'is_convener_approved', 'convener_approval_date',
                   'owner', 'create_date', 'submit_date', 'is_submitted',
-                  'individual_project', 'special_topics']
+                  'individual_project', 'special_topics', 'supervise', 'assessment_method']
 
     def create(self, validated_data: dict):
         """
@@ -186,50 +238,3 @@ class ContractSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
-
-
-class SuperviseSerializer(serializers.ModelSerializer):
-    is_formal = serializers.ReadOnlyField()
-    supervisor_approval_date = serializers.ReadOnlyField()
-
-    class Meta:
-        model = models.Supervise
-        fields = ['id', 'contract', 'supervisor', 'is_formal',
-                  'is_supervisor_approved', 'supervisor_approval_date']
-
-
-class AssessmentTemplateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.AssessmentTemplate
-        fields = ['id', 'name', 'description', 'max_mark', 'min_mark', 'default_mark']
-
-
-class AssessmentMethodSerializer(serializers.ModelSerializer):
-    examiner_approval_date = serializers.ReadOnlyField()
-
-    class Meta:
-        model = models.AssessmentMethod
-        fields = ['id', 'template', 'contract', 'additional_description', 'due', 'max_mark',
-                  'examiner', 'is_examiner_approved', 'examiner_approval_date']
-
-
-class UserContractSerializer(serializers.ModelSerializer):
-    own = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    convene = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-
-    class Meta:
-        model = SrpmsUser
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'own', 'convene',
-                  'supervise', 'examine']
-
-    def get_supervise(self, obj):
-        """
-        User's supervise field was pointed to instances of Supervise relation, not contract
-        """
-        return obj.supervise.all().values_list('contract').get()
-
-    def get_examine(self, obj):
-        """
-        User's supervise field was pointed to instances of AssessmentMethod relation, not contract
-        """
-        return obj.examine.all().values_list('contract').get()

@@ -104,6 +104,8 @@ class Supervise(models.Model):
     contract = models.ForeignKey(Contract, related_name='supervisor',
                                  on_delete=models.CASCADE, blank=False, null=False)
 
+    # TODO: Add an partial id that increases when a new supervisor is being added to a contract
+
     class Meta:
         unique_together = ('supervisor', 'contract')
 
@@ -145,6 +147,8 @@ class AssessmentTemplate(models.Model):
     max_mark = models.IntegerField(null=False, blank=False)
     min_mark = models.IntegerField(null=False, blank=False)
     default_mark = models.IntegerField(null=True, blank=True)
+
+    # TODO: Add an partial id that increases when a new assessment item is being added to a contract
 
     def clean(self):
         errors = {}

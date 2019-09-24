@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.settings import api_settings
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.decorators import action
 
 from . import serializers
 from . import models
@@ -11,24 +12,54 @@ from accounts.models import SrpmsUser
 default_perms: list = api_settings.DEFAULT_PERMISSION_CLASSES
 
 
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Provides read-only user information, as well as the contract they
+    involves (own, supervise, convene).
+    """
+    queryset = SrpmsUser.objects.all()
+    serializer_class = serializers.UserContractSerializer
+
+
 class CourseViewSet(viewsets.ModelViewSet):
     """
-    This viewset automatically provides `list`, `create`, `retrieve`,
-    `update` and `destroy` actions.
+    A view the allow users to Create, Read, Update, Delete courses.
     """
     queryset = models.Course.objects.all()
     serializer_class = serializers.CourseSerializer
-    permission_classes = default_perms + [app_perms.DefaultObjectPermission]
+
+    def get_permissions(self):
+        permission_class = default_perms
+        if self.request.method == 'GET':
+            pass
+        else:
+            permission_class += [app_perms.IsSuperuser | app_perms.IsConvener, ]
+
+        # Below line is from super method
+        return [permission() for permission in default_perms]
+
+
+class AssessmentTemplateViewSet(viewsets.ModelViewSet):
+    """
+    A view the allow users to Create, Read, Update, Delete assessment templates.
+    """
+    queryset = models.AssessmentTemplate.objects.all()
+    serializer_class = serializers.AssessmentTemplateSerializer
+
+    def get_permissions(self):
+        permission_class = default_perms
+        if self.request.method == 'GET':
+            pass
+        else:
+            permission_class += [app_perms.IsSuperuser | app_perms.IsConvener, ]
+
+        # Below line is from super method
+        return [permission() for permission in default_perms]
 
 
 class ContractViewSet(viewsets.ModelViewSet):
     """
-    This viewset automatically provides `list`, `create`, `retrieve`,
-    `update` and `destroy` actions.
-
-    Special note for PATCH method:
-        Because of nested serializer, PATCH method is not allowed for this view
-        in order to prevent unexpected behavior. Please use PUT instead
+    A view the allow users to Create, Read, Update, Delete contracts.
     """
     queryset = models.Contract.objects.all()
     serializer_class = serializers.ContractSerializer
@@ -65,11 +96,17 @@ class ContractViewSet(viewsets.ModelViewSet):
 
         return super(ContractViewSet, self).perform_update(serializer)
 
+    @action(methods=['PUT', 'PATCH'], detail=True,
+            permission_classes=default_perms + [app_perms.IsSuperuser | app_perms.IsContractOwner])
+    def submit(self, request, pk=None):
+        # TODO: allow convener to approve contract that aren't approved
+        pass
 
-class AssessmentTemplateViewSet(viewsets.ModelViewSet):
-    queryset = models.AssessmentTemplate.objects.all()
-    serializer_class = serializers.AssessmentTemplateSerializer
-    permission_classes = default_perms + [app_perms.DefaultObjectPermission]
+    @action(methods=['PUT', 'PATCH'], detail=True,
+            permission_classes=default_perms + [app_perms.IsSuperuser | app_perms.IsConvener, ])
+    def convener_approve(self, request, pk=None):
+        # TODO: allow convener to approve contract that aren't approved
+        pass
 
 
 class AssessmentMethodViewSet(viewsets.ModelViewSet):
@@ -190,11 +227,3 @@ class SuperviseViewSet(viewsets.ModelViewSet):
             serializer.validated_data['is_formal'] = False
 
         return super(SuperviseViewSet, self).perform_update(serializer)
-
-
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    This viewset automatically provides `list` and `detail` actions.
-    """
-    queryset = SrpmsUser.objects.all()
-    serializer_class = serializers.UserContractSerializer
