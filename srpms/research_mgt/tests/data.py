@@ -121,14 +121,12 @@ contract_01_request = {
     'duration': 1,
     'resources': '',
     'course': comp8755.id,
-    'is_convener_approved': False,
-    'is_submitted': False,
     'individual_project': {
         'title': 'Test',
         'objectives': '',
         'description': ''
     },
-    'special_topics': None
+    'special_topics': None,
 }
 
 contract_01_response = {
@@ -157,8 +155,6 @@ contract_02_valid_request = {
     'duration': 1,
     'resources': '',
     'course': comp8755.id,
-    'is_convener_approved': False,
-    'is_submitted': False,
     'individual_project': None,
     'special_topics': {
         'title': 'Test',

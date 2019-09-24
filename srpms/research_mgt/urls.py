@@ -16,6 +16,10 @@ router.APIRootView.permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 # 'users/{pk}/$ - 'user-detail'
 router.register(r'users', views.UserViewSet)
 
+# 'course/$' - 'course-list'
+# 'course/{pk}/$' - 'course-list-detail'
+router.register(r'course', views.CourseViewSet)
+
 # Generate the following URL patterns
 # 'assessment-templates/$' - 'assessment-template-list'
 # 'assessment-templates/{pk}/$ - 'assessment-template-detail'
@@ -25,10 +29,6 @@ router.register(r'assessment-templates', views.AssessmentTemplateViewSet)
 # 'assessment-methods/$' - 'assessment-method-list'
 # 'assessment-methods/{pk}/$ - 'assessment-method-detail'
 router.register(r'assessment-methods', views.AssessmentMethodViewSet)
-
-# 'course/$' - 'course-list'
-# 'course/{pk}/$' - 'course-list-detail'
-router.register(r'course', views.CourseViewSet)
 
 # Generate the following URL patterns
 # 'contracts/$' - 'contract-list'

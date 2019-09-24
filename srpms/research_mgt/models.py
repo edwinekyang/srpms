@@ -52,7 +52,7 @@ class Contract(models.Model):
 
     def is_submitted(self) -> bool:
         """Check if the contract is submitted"""
-        return bool(self.convener_approval_date)
+        return bool(self.submit_date)
 
     def is_examiners_approved(self) -> bool:
         """Check if all examiners approved"""

@@ -5,6 +5,7 @@ from accounts.models import SrpmsUser
 from . import models
 
 
+@PendingDeprecationWarning
 class DateTimeBooleanField(serializers.BooleanField):
     """
     Special field for retrieving approval status.
@@ -84,14 +85,12 @@ class ContractSerializer(serializers.ModelSerializer):
     # Convener is set automatically to the user who approve the contract
     convener = serializers.PrimaryKeyRelatedField(read_only=True)
     convener_approval_date = serializers.ReadOnlyField()
-    is_convener_approved = DateTimeBooleanField(source='convener_approval_date', required=False)
 
     # Owner related fields
     # Owner is set automatically to the user that create the contract
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     create_date = serializers.ReadOnlyField()
     submit_date = serializers.ReadOnlyField()
-    is_submitted = DateTimeBooleanField(source='submit_date', required=False)
 
     class Meta:
         model = models.Contract
@@ -192,8 +191,6 @@ class ContractSerializer(serializers.ModelSerializer):
 class SuperviseSerializer(serializers.ModelSerializer):
     is_formal = serializers.ReadOnlyField()
     supervisor_approval_date = serializers.ReadOnlyField()
-    is_supervisor_approved = DateTimeBooleanField(source='supervisor_approval_date',
-                                                  required=False)
 
     class Meta:
         model = models.Supervise
@@ -208,8 +205,6 @@ class AssessmentTemplateSerializer(serializers.ModelSerializer):
 
 
 class AssessmentMethodSerializer(serializers.ModelSerializer):
-    is_examiner_approved = DateTimeBooleanField(source='examiner_approval_date',
-                                                required=False)
     examiner_approval_date = serializers.ReadOnlyField()
 
     class Meta:
@@ -221,10 +216,20 @@ class AssessmentMethodSerializer(serializers.ModelSerializer):
 class UserContractSerializer(serializers.ModelSerializer):
     own = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     convene = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    supervise = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    examine = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = SrpmsUser
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 'own', 'convene',
                   'supervise', 'examine']
+
+    def get_supervise(self, obj):
+        """
+        User's supervise field was pointed to instances of Supervise relation, not contract
+        """
+        return obj.supervise.all().values_list('contract').get()
+
+    def get_examine(self, obj):
+        """
+        User's supervise field was pointed to instances of AssessmentMethod relation, not contract
+        """
+        return obj.examine.all().values_list('contract').get()
