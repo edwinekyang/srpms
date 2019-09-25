@@ -2,7 +2,6 @@ from datetime import datetime
 from rest_framework import serializers
 
 
-@PendingDeprecationWarning
 class DateTimeBooleanField(serializers.BooleanField):
     """
     Special field for retrieving approval status.
@@ -22,13 +21,11 @@ class DateTimeBooleanField(serializers.BooleanField):
         Return the value that would be used to update the DateTimeField. If
         True, return the current date & time, otherwise return None.
         """
-        is_approved = data
-
         # Only allow boolean value
-        if not isinstance(is_approved, bool):
+        if not isinstance(data, bool):
             raise serializers.ValidationError('Should be a boolean value')
 
-        return datetime.now() if is_approved else None
+        return datetime.now() if data else None
 
     def get_attribute(self, instance) -> bool:
         """
@@ -39,3 +36,27 @@ class DateTimeBooleanField(serializers.BooleanField):
         """
         attr = super(DateTimeBooleanField, self).get_attribute(instance)
         return bool(attr)
+
+
+class SubmitSerializer(serializers.Serializer):
+    """For converting boolean to current server time only, model unrelated"""
+
+    submit = DateTimeBooleanField(write_only=True)
+
+    def create(self, validated_data):
+        raise NotImplementedError('You should not reach here')
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError('You should not reach here')
+
+
+class ApproveSerializer(serializers.Serializer):
+    """For converting boolean to current server time only, model unrelated"""
+
+    approve = DateTimeBooleanField(write_only=True)
+
+    def create(self, validated_data):
+        raise NotImplementedError('You should not reach here')
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError('You should not reach here')

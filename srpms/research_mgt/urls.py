@@ -31,20 +31,30 @@ router.register(r'assessment-templates', views.AssessmentTemplateViewSet)
 contract_routes = router.register(r'contracts', views.ContractViewSet, basename='contract')
 
 # Generate the following URL patterns
-# 'contracts/{parents_query_lookups}/supervisors/$' - 'contract-supervisor-list'
-# 'contracts/{parents_query_lookups}/supervisors/{pk}$ - 'contract-supervisor-detail'
-contract_routes.register(r'supervisors',
+# 'contracts/{parents_query_lookups}/supervise/$' - 'contract-supervise-list'
+# 'contracts/{parents_query_lookups}/supervise/{pk}$ - 'contract-supervise-detail'
+contract_routes.register(r'supervise',
                          views.SuperviseViewSet,
-                         basename='contract-supervisor',
+                         basename='contract-supervise',
                          parents_query_lookups=['contract'])
 
 # Generate the following URL patterns
 # 'contracts/{parents_query_lookups}/assessment-methods/$' - 'contract-assessment-method-list'
 # 'contracts/{parents_query_lookups}/assessment-methods/{pk}$ - 'contract-assessment-method-detail'
-contract_routes.register(r'assessment-methods',
-                         views.AssessmentMethodViewSet,
-                         basename='contract-assessment-method',
-                         parents_query_lookups=['contract'])
+assessment_routes = contract_routes.register(r'assessment-methods',
+                                             views.AssessmentMethodViewSet,
+                                             basename='contract-assessment-method',
+                                             parents_query_lookups=['contract'])
+
+# Generate the following URL patterns
+# 'contracts/{parents_query_lookups[0]}/assessment-methods/{parents_query_lookups[1]}/$'
+# -> 'contract-assessment-method-examine-list'
+# 'contracts/{parents_query_lookups[0]}/assessment-methods/{parents_query_lookups[1]}/examine/{pk}$'
+# -> 'contract-assessment-method-examine-detail'
+assessment_routes.register(r'examine',
+                           views.AssessmentExamineViewSet,
+                           basename='contract-assessment-method-examine',
+                           parents_query_lookups=['contract', 'assessment'])
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -81,7 +81,7 @@ class TestContract(utils.SrpmsTest):
         assert_contract_response(self, response, con_resp)
 
         # Illegal modification
-        if con_req['special_topic']:
+        if con_req.get('special_topic', False):
             con_req['individual_project'] = {'title': 'fioe23', 'objectives': '',
                                              'description': ''}
             response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
@@ -91,7 +91,7 @@ class TestContract(utils.SrpmsTest):
             con_req['individual_project'] = None
 
         # Illegal modification
-        if con_req['individual_project']:
+        if con_req.get('individual_project', False):
             con_req['special_topic'] = {'title': 'fioe23', 'objectives': '', 'description': ''}
             response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
                                         con_req)
@@ -184,7 +184,7 @@ class TestContract(utils.SrpmsTest):
         self.assertTrue(response.data.pop('id'))
         assert_contract_response(self, response, con_resp)
 
-        if con_req['special_topic']:
+        if con_req.get('special_topic', False):
             # Illegal modification
             response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
                                         {'individual_project': {'title': 'fioe23'}})
@@ -203,7 +203,7 @@ class TestContract(utils.SrpmsTest):
             self.assertTrue(response.data.pop('id'))
             assert_contract_response(self, response, con_resp)
 
-        if con_req['individual_project']:
+        if con_req.get('individual_project', False):
             # Illegal modification
             response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
                                         {'special_topic': {'title': 'fioe23'}})

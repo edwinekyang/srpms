@@ -125,8 +125,7 @@ contract_01_request = {
         'title': 'Test',
         'objectives': '',
         'description': ''
-    },
-    'special_topic': None,
+    }
 }
 
 contract_01_response = {
@@ -149,13 +148,12 @@ contract_01_response = {
     'special_topic': None
 }
 
-contract_02_valid_request = {
+contract_02_request = {
     'year': 2019,
     'semester': 1,
     'duration': 1,
     'resources': '',
     'course': comp8755.id,
-    'individual_project': None,
     'special_topic': {
         'title': 'Test',
         'objectives': '',
@@ -163,7 +161,7 @@ contract_02_valid_request = {
     }
 }
 
-contract_02_valid_response = {
+contract_02_response = {
     'year': 2019,
     'semester': 1,
     'duration': 1,
@@ -216,7 +214,7 @@ contract_list_invalid = [
          'objectives': '',
          'description': ''
      },
-     'special_topics': None},
+     'special_topic': None},
     {'year': 2019,
      'semester': 1,
      'duration': 1,
@@ -229,7 +227,7 @@ contract_list_invalid = [
          'objectives': '',
          'description': ''
      },
-     'special_topics': None},
+     'special_topic': None},
     {'year': 2019,
      'semester': 1,
      'duration': 1,
@@ -238,7 +236,7 @@ contract_list_invalid = [
      'is_convener_approved': False,
      'is_submitted': False,
      'individual_project': None,  # Contract type should at least one
-     'special_topics': None},
+     'special_topic': None},
     {'year': 2019,
      'semester': 1,
      'duration': 1,
@@ -251,7 +249,7 @@ contract_list_invalid = [
          'objectives': '',
          'description': ''
      },
-     'special_topics': {
+     'special_topic': {
          'title': 'Test',
          'objectives': '',
          'description': ''

@@ -1,47 +1,7 @@
-from datetime import datetime
 from rest_framework import serializers
 
 from accounts.models import SrpmsUser
 from . import models
-
-
-@PendingDeprecationWarning
-class DateTimeBooleanField(serializers.BooleanField):
-    """
-    Special field for retrieving approval status.
-
-    The database does not have a field 'is_approved', instead we check if
-    the 'approval_date' is empty to see if its approved.
-
-    This field can also used to write the DateTimeField, it'll set the
-    source field to datetime.now() if the post date is True.
-    """
-
-    def to_representation(self, value: bool) -> bool:
-        return value
-
-    def to_internal_value(self, data: str) -> datetime:
-        """
-        Return the value that would be used to update the DateTimeField. If
-        True, return the current date & time, otherwise return None.
-        """
-        is_approved = data
-
-        # Only allow boolean value
-        if not isinstance(is_approved, bool):
-            raise serializers.ValidationError('Should be a boolean value')
-
-        return datetime.now() if is_approved else None
-
-    def get_attribute(self, instance) -> bool:
-        """
-        Get attribute from the instance, the return would be passed to
-        `to_representation` function. Note that DRF have this behavior
-        that None return would not trigger `to_representation`, so we
-        need to explicitly set True/False here
-        """
-        attr = super(DateTimeBooleanField, self).get_attribute(instance)
-        return bool(attr)
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -55,7 +15,7 @@ class CourseSerializer(serializers.ModelSerializer):
 class AssessmentTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.AssessmentTemplate
-        fields = ['id', 'name', 'description', 'weight', 'min_weight', 'default_weight']
+        fields = ['id', 'name', 'description', 'max_weight', 'min_weight', 'default_weight']
 
 
 class UserContractSerializer(serializers.ModelSerializer):
@@ -79,7 +39,7 @@ class UserContractSerializer(serializers.ModelSerializer):
         """
         User's supervise field was pointed to instances of AssessmentMethod relation, not contract
         """
-        return obj.examine.all().values_list('contract').get()
+        return models.AssessmentExamine.objects.filter(examiner=obj).values_list('contract').get()
 
 
 class SuperviseSerializer(serializers.ModelSerializer):
@@ -95,16 +55,40 @@ class SuperviseSerializer(serializers.ModelSerializer):
                   'is_supervisor_approved', 'supervisor_approval_date']
 
 
+class AssessmentExamineSerializer(serializers.ModelSerializer):
+    examiner = serializers.PrimaryKeyRelatedField(source='examine.examiner',
+                                                  queryset=SrpmsUser.objects.all())
+    examiner_approval_date = serializers.ReadOnlyField()
+
+    class Meta:
+        model = models.AssessmentExamine
+        fields = ['id', 'examiner', 'examiner_approval_date']
+
+    def create(self, validated_data):
+        examiner = validated_data['examine']['examiner']
+        examine, _ = models.Examine.objects.get_or_create(contract=validated_data['contract'],
+                                                          examiner=examiner)
+        validated_data['examine'] = examine
+        return super(AssessmentExamineSerializer, self).create(validated_data)
+
+    def update(self, instance, validated_data):
+        examiner = validated_data['examine']['examiner']
+        examine, _ = models.Examine.objects.get_or_create(contract=validated_data['contract'],
+                                                          examiner=examiner)
+        validated_data['examine'] = examine
+        return super(AssessmentExamineSerializer, self).update(instance, validated_data)
+
+
 class AssessmentMethodSerializer(serializers.ModelSerializer):
     # Contract would be attached automatically to the nested view
     contract = serializers.PrimaryKeyRelatedField(read_only=True)
 
-    examiner_approval_date = serializers.ReadOnlyField()
+    assessment_examine = AssessmentExamineSerializer(read_only=True, many=True)
 
     class Meta:
         model = models.AssessmentMethod
         fields = ['id', 'template', 'contract', 'additional_description', 'due', 'weight',
-                  'examiner', 'is_examiner_approved', 'examiner_approval_date']
+                  'assessment_examine', 'is_all_examiners_approved']
 
 
 class IndividualProjectSerializer(serializers.ModelSerializer):
@@ -115,7 +99,7 @@ class IndividualProjectSerializer(serializers.ModelSerializer):
 
 class SpecialTopicSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.SpecialTopics
+        model = models.SpecialTopic
         fields = ['title', 'objectives', 'description']
 
 
@@ -131,10 +115,8 @@ class ContractSerializer(serializers.ModelSerializer):
     also support write for these nested field by overriding the `create` and `update` method.
     """
 
-    individual_project = IndividualProjectSerializer(source='individualproject',
-                                                     required=False, allow_null=True)
-    special_topics = SpecialTopicSerializer(source='specialtopics',
-                                            required=False, allow_null=True)
+    individual_project = IndividualProjectSerializer(required=False, allow_null=True)
+    special_topic = SpecialTopicSerializer(required=False, allow_null=True)
 
     # Convener related fields
     # Convener is set automatically to the user who approve the contract
@@ -147,7 +129,7 @@ class ContractSerializer(serializers.ModelSerializer):
     create_date = serializers.ReadOnlyField()
     submit_date = serializers.ReadOnlyField()
 
-    supervisor = SuperviseSerializer(read_only=True, many=True)
+    supervise = SuperviseSerializer(read_only=True, many=True)
     assessment_method = AssessmentMethodSerializer(read_only=True, many=True)
 
     class Meta:
@@ -155,7 +137,9 @@ class ContractSerializer(serializers.ModelSerializer):
         fields = ['id', 'year', 'semester', 'duration', 'resources', 'course',
                   'convener', 'is_convener_approved', 'convener_approval_date',
                   'owner', 'create_date', 'submit_date', 'is_submitted',
-                  'individual_project', 'special_topics', 'supervisor', 'assessment_method']
+                  'individual_project', 'special_topic',
+                  'supervise', 'is_all_supervisors_approved',
+                  'assessment_method', 'is_all_assessments_approved']
 
     def create(self, validated_data: dict):
         """
@@ -167,18 +151,18 @@ class ContractSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('You can\'t submit a contract on creation')
 
         try:
-            individual_project = validated_data.pop('individualproject')
+            individual_project = validated_data.pop('individual_project')
         except KeyError:
             individual_project = None
 
         try:
-            special_topics = validated_data.pop('specialtopics')
+            special_topic = validated_data.pop('special_topic')
         except KeyError:
-            special_topics = None
+            special_topic = None
 
         # Check only one type of contract is provided, this logic cannot be done in validate()
         # because this checking is different for partial update.
-        iterator = iter([individual_project, special_topics])
+        iterator = iter([individual_project, special_topic])
         has_true = any(iterator)
         has_another_true = any(iterator)
         if not (has_true and not has_another_true):
@@ -186,8 +170,8 @@ class ContractSerializer(serializers.ModelSerializer):
 
         if individual_project:
             return models.IndividualProject.objects.create(**validated_data, **individual_project)
-        if special_topics:
-            return models.SpecialTopics.objects.create(**validated_data, **special_topics)
+        if special_topic:
+            return models.SpecialTopic.objects.create(**validated_data, **special_topic)
 
     def update(self, instance: models.Contract, validated_data: dict):
         """
@@ -198,10 +182,10 @@ class ContractSerializer(serializers.ModelSerializer):
         try:
             # We can't use get() because we need to treat missing key and
             # key's value is None differently.
-            individual_project: dict = validated_data.pop('individualproject')
+            individual_project: dict = validated_data.pop('individual_project')
         except KeyError:
             # PATCH may missing this field, but the request is still valid
-            if hasattr(instance, 'individualproject'):
+            if hasattr(instance, 'individual_project'):
                 individual_project = {}
             else:
                 individual_project = None
@@ -209,31 +193,31 @@ class ContractSerializer(serializers.ModelSerializer):
         try:
             # We can't use get() because we need to treat missing key and
             # key's value is None differently.
-            special_topics: dict = validated_data.pop('specialtopics')
+            special_topic: dict = validated_data.pop('special_topic')
         except KeyError:
             # PATCH may missing this field, but the request is still valid
-            if hasattr(instance, 'specialtopics'):
-                special_topics = {}
+            if hasattr(instance, 'special_topic'):
+                special_topic = {}
             else:
-                special_topics = None
+                special_topic = None
 
         # Check only one type of contract is provided, this logic cannot be done in validate()
         # because this checking is different for update.
         iterator = iter([individual_project is not None,
-                         special_topics is not None])
+                         special_topic is not None])
         has_true = any(iterator)
         has_another_true = any(iterator)
         if not (has_true and not has_another_true):
             raise serializers.ValidationError('Contract must be one and only one type')
 
         # Set contract type related data
-        if hasattr(instance, 'individualproject') and individual_project is not None:
-            instance = instance.individualproject
+        if hasattr(instance, 'individual_project') and individual_project is not None:
+            instance = instance.individual_project
             for attr, value in individual_project.items():
                 setattr(instance, attr, value)
-        elif hasattr(instance, 'specialtopics') and special_topics is not None:
-            instance = instance.specialtopics
-            for attr, value in special_topics.items():
+        elif hasattr(instance, 'special_topic') and special_topic is not None:
+            instance = instance.special_topic
+            for attr, value in special_topic.items():
                 setattr(instance, attr, value)
         else:
             raise serializers.ValidationError('Illegal data for provided contract type.')

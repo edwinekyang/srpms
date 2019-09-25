@@ -112,18 +112,34 @@ class Contract(models.Model):
         if self.pk:
             pass
 
+        # Check every condition satisfy on final approval
+        if self.convener_approval_date:
+            if not self.is_submitted():
+                errors['is_submitted'] = 'Un-submitted contract cannot be approved'
+            if not self.is_all_assessments_approved():
+                errors['is_all_assessments_approved'] = 'All assessments must be approved ' \
+                                                        'before final approval'
+            if not self.is_all_supervisors_approved():
+                errors['is_all_supervisors_approved'] = 'All supervisors must approve this ' \
+                                                        'contract before final approval'
+
         if errors:
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         self.full_clean()
+
+        # Final approval passed, clean up examiners that does not examine anything on this contract
+        if self.convener_approval_date:
+            Examine.objects.filter(contract=self, assessment_examine__isnull=True).delete()
+
         super(Contract, self).save(*args, **kwargs)
 
     def __str__(self):
-        if hasattr(self, 'individualproject'):
-            return str(self.individualproject)
-        elif hasattr(self, 'specialtopics'):
-            return str(self.specialtopics.title)
+        if hasattr(self, 'individual_project'):
+            return str(self.individual_project)
+        elif hasattr(self, 'special_topic'):
+            return str(self.special_topic)
         else:
             return super(Contract, self).__str__()
 
@@ -154,6 +170,10 @@ class SpecialTopic(Contract):
     title = models.CharField(max_length=100, default='Topic title', null=False, blank=False)
     objectives = models.CharField(max_length=500, default='', blank=True)
     description = models.CharField(max_length=1000, default='', blank=True)
+
+    def save(self, *args, **kwargs):
+        # TODO: on submit, apply all constraints
+        super(SpecialTopic, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.title

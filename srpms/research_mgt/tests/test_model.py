@@ -1,11 +1,25 @@
 from django.core.exceptions import ValidationError
 
-from research_mgt.models import Contract, AssessmentMethod, Examine, AssessmentExamine
+from research_mgt.models import (Contract, IndividualProject, SpecialTopic, AssessmentMethod, \
+                                 Examine, AssessmentExamine)
 from . import utils
 from . import data
 
 
 class TestModel(utils.SrpmsTest):
+    def test_contract_str(self):
+        individual_project_data = {**data.contract_01_request, 'course': data.comp8755}
+        individual_project_data = {**individual_project_data.pop('individual_project'),
+                                   **individual_project_data}
+        c = IndividualProject.objects.create(owner=self.user_01.obj, **individual_project_data)
+        self.assertEqual(str(c), c.title)
+
+        special_topic_data = {**data.contract_02_request, 'course': data.comp6470}
+        special_topic_data = {**special_topic_data.pop('special_topic'),
+                              **special_topic_data}
+        c = SpecialTopic.objects.create(owner=self.user_01.obj, **special_topic_data)
+        self.assertEqual(str(c), c.title)
+
     def test_assessment_examine(self):
         contract_01 = Contract.objects.create(year=2019, semester=2, duration=1,
                                               course=data.comp8755,
