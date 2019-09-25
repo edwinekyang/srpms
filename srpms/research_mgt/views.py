@@ -1,7 +1,8 @@
-from rest_framework import viewsets
+from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.settings import api_settings
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from . import serializers
 from . import models
@@ -12,7 +13,7 @@ from accounts.models import SrpmsUser
 default_perms: list = api_settings.DEFAULT_PERMISSION_CLASSES
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(ReadOnlyModelViewSet):
     """
     Provides read-only user information, as well as the contract they
     involves (own, supervise, convene).
@@ -21,7 +22,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.UserContractSerializer
 
 
-class CourseViewSet(viewsets.ModelViewSet):
+class CourseViewSet(ModelViewSet):
     """
     A view the allow users to Create, Read, Update, Delete courses.
     """
@@ -39,7 +40,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         return [permission() for permission in default_perms]
 
 
-class AssessmentTemplateViewSet(viewsets.ModelViewSet):
+class AssessmentTemplateViewSet(ModelViewSet):
     """
     A view the allow users to Create, Read, Update, Delete assessment templates.
     """
@@ -57,7 +58,7 @@ class AssessmentTemplateViewSet(viewsets.ModelViewSet):
         return [permission() for permission in default_perms]
 
 
-class ContractViewSet(viewsets.ModelViewSet):
+class ContractViewSet(ModelViewSet):
     """
     A view the allow users to Create, Read, Update, Delete contracts.
     """
@@ -109,7 +110,7 @@ class ContractViewSet(viewsets.ModelViewSet):
         pass
 
 
-class AssessmentMethodViewSet(viewsets.ModelViewSet):
+class AssessmentMethodViewSet(NestedViewSetMixin, ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,
     `update` and `destroy` actions.
@@ -124,11 +125,14 @@ class AssessmentMethodViewSet(viewsets.ModelViewSet):
         permission_class check passed, and data in serializer has been validated
         """
 
+        # Attach contract according to the contract specified in url
+        contract = models.Contract.objects.get(pk=int(self.kwargs['parent_lookup_contract']))
+        serializer.validated_data['contract'] = contract
+
         # TODO: field level permission
 
         # Check if the user is allowed to create assessment for a contract
         requester: SrpmsUser = self.request.user
-        contract: models.Contract = serializer.validated_data['contract']
         if requester.has_perm('research_mgt.is_mgt_superuser'):
             # Allow superuser
             pass
@@ -158,7 +162,7 @@ class AssessmentMethodViewSet(viewsets.ModelViewSet):
         super(AssessmentMethodViewSet, self).perform_update(serializer)
 
 
-class SuperviseViewSet(viewsets.ModelViewSet):
+class SuperviseViewSet(NestedViewSetMixin, ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,
     `update` and `destroy` actions.
@@ -173,9 +177,12 @@ class SuperviseViewSet(viewsets.ModelViewSet):
         permission_class check passed, and data in serializer has been validated
         """
 
+        # Attach contract according to the contract specified in url
+        contract = models.Contract.objects.get(pk=int(self.kwargs['parent_lookup_contract']))
+        serializer.validated_data['contract'] = contract
+
         # Check if the user is allowed to create supervise relation
         requester: SrpmsUser = self.request.user
-        contract: models.Contract = serializer.validated_data['contract']
         supervisor: SrpmsUser = serializer.validated_data['supervisor']
         if requester.has_perm('research_mgt.is_mgt_superuser'):
             # Allow superuser

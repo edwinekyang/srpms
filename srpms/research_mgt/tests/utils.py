@@ -10,10 +10,10 @@ from accounts.models import SrpmsUser
 class ApiUrls(object):
     mgt_user = '/api/research_mgt/users/'
     assess_temp = '/api/research_mgt/assessment-templates/'
-    assess_meth = '/api/research_mgt/assessment-methods/'
-    course = '/api/research_mgt/course/'
+    course = '/api/research_mgt/courses/'
     contract = '/api/research_mgt/contracts/'
-    supervise = '/api/research_mgt/supervise/'
+    supervise = 'supervise'
+    assess_meth = 'assessment-methods'
 
     all = [mgt_user, assess_temp, assess_meth, course, contract, supervise]
 

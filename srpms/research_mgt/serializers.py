@@ -55,7 +55,7 @@ class CourseSerializer(serializers.ModelSerializer):
 class AssessmentTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.AssessmentTemplate
-        fields = ['id', 'name', 'description', 'max_mark', 'min_mark', 'default_mark']
+        fields = ['id', 'name', 'description', 'weight', 'min_weight', 'default_weight']
 
 
 class UserContractSerializer(serializers.ModelSerializer):
@@ -83,6 +83,9 @@ class UserContractSerializer(serializers.ModelSerializer):
 
 
 class SuperviseSerializer(serializers.ModelSerializer):
+    # Contract would be attached automatically to the nested view
+    contract = serializers.PrimaryKeyRelatedField(read_only=True)
+
     is_formal = serializers.ReadOnlyField()
     supervisor_approval_date = serializers.ReadOnlyField()
 
@@ -93,11 +96,14 @@ class SuperviseSerializer(serializers.ModelSerializer):
 
 
 class AssessmentMethodSerializer(serializers.ModelSerializer):
+    # Contract would be attached automatically to the nested view
+    contract = serializers.PrimaryKeyRelatedField(read_only=True)
+
     examiner_approval_date = serializers.ReadOnlyField()
 
     class Meta:
         model = models.AssessmentMethod
-        fields = ['id', 'template', 'contract', 'additional_description', 'due', 'max_mark',
+        fields = ['id', 'template', 'contract', 'additional_description', 'due', 'weight',
                   'examiner', 'is_examiner_approved', 'examiner_approval_date']
 
 
@@ -141,7 +147,7 @@ class ContractSerializer(serializers.ModelSerializer):
     create_date = serializers.ReadOnlyField()
     submit_date = serializers.ReadOnlyField()
 
-    supervise = SuperviseSerializer(source='supervisor', read_only=True, many=True)
+    supervisor = SuperviseSerializer(read_only=True, many=True)
     assessment_method = AssessmentMethodSerializer(read_only=True, many=True)
 
     class Meta:
@@ -149,7 +155,7 @@ class ContractSerializer(serializers.ModelSerializer):
         fields = ['id', 'year', 'semester', 'duration', 'resources', 'course',
                   'convener', 'is_convener_approved', 'convener_approval_date',
                   'owner', 'create_date', 'submit_date', 'is_submitted',
-                  'individual_project', 'special_topics', 'supervise', 'assessment_method']
+                  'individual_project', 'special_topics', 'supervisor', 'assessment_method']
 
     def create(self, validated_data: dict):
         """

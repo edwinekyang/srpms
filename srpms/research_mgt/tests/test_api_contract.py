@@ -1,7 +1,18 @@
+from django.test import TestCase
 from rest_framework import status
 
 from . import utils
 from . import data
+
+
+def assert_contract_response(test_case: TestCase, response, true_data):
+    if response.data.get('id', False):
+        raise AttributeError("Please remove id before passing data into this function")
+
+    test_case.assertTrue(response.data.pop('create_date'))
+    test_case.assertTrue(response.data.pop('supervisor') is not None)
+    test_case.assertTrue(response.data.pop('assessment_method') is not None)
+    test_case.assertEqual(response.data, true_data)
 
 
 class TestContract(utils.SrpmsTest):
@@ -12,8 +23,7 @@ class TestContract(utils.SrpmsTest):
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             con_id = response.data.pop('id')
             self.assertTrue(con_id)
-            self.assertTrue(response.data.pop('create_date'))
-            self.assertEqual(response.data, con_resp)
+            assert_contract_response(self, response, con_resp)
 
         for con_req in data.contract_list_valid:
             response = self.user_01.post(utils.ApiUrls.contract, con_req)
@@ -56,11 +66,10 @@ class TestContract(utils.SrpmsTest):
                                     con_req)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data.pop('id'))
-        self.assertTrue(response.data.pop('create_date'))
-        self.assertEqual(response.data, con_resp)
+        assert_contract_response(self, response, con_resp)
 
         # Illegal modification
-        if con_req['special_topics']:
+        if con_req['special_topic']:
             con_req['individual_project'] = {'title': 'fioe23', 'objectives': '',
                                              'description': ''}
             response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
@@ -71,15 +80,15 @@ class TestContract(utils.SrpmsTest):
 
         # Illegal modification
         if con_req['individual_project']:
-            con_req['special_topics'] = {'title': 'fioe23', 'objectives': '', 'description': ''}
+            con_req['special_topic'] = {'title': 'fioe23', 'objectives': '', 'description': ''}
             response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
                                         con_req)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST,
                              'Contract of multiple types should not be allowed')
-            con_req['special_topics'] = None
+            con_req['special_topic'] = None
 
         # Illegal modification
-        con_req['special_topics'] = {'title': 'fioe23', 'objectives': '', 'description': ''}
+        con_req['special_topic'] = {'title': 'fioe23', 'objectives': '', 'description': ''}
         con_req['individual_project'] = {'title': 'fioe23', 'objectives': '', 'description': ''}
         response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
                                     con_req)
@@ -87,7 +96,7 @@ class TestContract(utils.SrpmsTest):
                          'Contract of multiple types should not be allowed')
 
         # Illegal modification
-        con_req['special_topics'] = None
+        con_req['special_topic'] = None
         con_req['individual_project'] = None
         response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
                                     con_req)
@@ -100,6 +109,7 @@ class TestContract(utils.SrpmsTest):
         # Create first
         response = self.user_01.post(utils.ApiUrls.contract, con_req)
         con_id = response.data.pop('id')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         ########################################
         # Non-owner requests
@@ -110,9 +120,10 @@ class TestContract(utils.SrpmsTest):
         # Supervisor requests
 
         # Add supervisor first
-        response = self.convener.post(utils.ApiUrls.supervise,
-                                      {'contract': con_id,
-                                       'supervisor': self.supervisor_non_formal.id})
+        response = self.convener.post('{}{}/{}/'.format(utils.ApiUrls.contract,
+                                                        con_id,
+                                                        utils.ApiUrls.supervise),
+                                      {'supervisor': self.supervisor_non_formal.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Legal request
@@ -121,8 +132,7 @@ class TestContract(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          'Supervisor of the contract should be allowed to edit')
         self.assertTrue(response.data.pop('id'))
-        self.assertTrue(response.data.pop('create_date'))
-        self.assertEqual(response.data, con_resp)
+        assert_contract_response(self, response, con_resp)
 
         # Illegal request
         response = self.supervisor_formal.put(utils.ApiUrls.contract + str(con_id) + '/', con_req)
@@ -135,8 +145,7 @@ class TestContract(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          'Course convener should be allowed to edit')
         self.assertTrue(response.data.pop('id'))
-        self.assertTrue(response.data.pop('create_date'))
-        self.assertEqual(response.data, con_resp)
+        assert_contract_response(self, response, con_resp)
 
         ########################################
         # Superuser requests
@@ -144,8 +153,7 @@ class TestContract(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          'Course convener should be allowed to edit')
         self.assertTrue(response.data.pop('id'))
-        self.assertTrue(response.data.pop('create_date'))
-        self.assertEqual(response.data, con_resp)
+        assert_contract_response(self, response, con_resp)
 
     def test_PATCH(self):
         con_req, con_resp = data.get_contract(owner=self.user_01)
@@ -162,10 +170,9 @@ class TestContract(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          'Partial update with only a subset of fields should be allowed')
         self.assertTrue(response.data.pop('id'))
-        self.assertTrue(response.data.pop('create_date'))
-        self.assertEqual(response.data, con_resp)
+        assert_contract_response(self, response, con_resp)
 
-        if con_req['special_topics']:
+        if con_req['special_topic']:
             # Illegal modification
             response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
                                         {'individual_project': {'title': 'fioe23'}})
@@ -173,22 +180,21 @@ class TestContract(utils.SrpmsTest):
                              'Contract of multiple types should not be allowed')
 
             # Legal modification
-            con_req['special_topics'] = {'title': 'cacier2', 'objectives': '', 'description': ''}
-            con_resp['special_topics'] = {'title': 'cacier2', 'objectives': '', 'description': ''}
+            con_req['special_topic'] = {'title': 'cacier2', 'objectives': '', 'description': ''}
+            con_resp['special_topic'] = {'title': 'cacier2', 'objectives': '', 'description': ''}
             response = self.user_01.patch(utils.ApiUrls.contract + str(con_id) + '/',
-                                          {'special_topics': {'title': 'cacier2',
-                                                              'objectives': '',
-                                                              'description': ''}})
+                                          {'special_topic': {'title': 'cacier2',
+                                                             'objectives': '',
+                                                             'description': ''}})
             self.assertEqual(response.status_code, status.HTTP_200_OK,
                              'Partial update of nested field should be allowed')
             self.assertTrue(response.data.pop('id'))
-            self.assertTrue(response.data.pop('create_date'))
-            self.assertEqual(response.data, con_resp)
+            assert_contract_response(self, response, con_resp)
 
         if con_req['individual_project']:
             # Illegal modification
             response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
-                                        {'special_topics': {'title': 'fioe23'}})
+                                        {'special_topic': {'title': 'fioe23'}})
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST,
                              'Contract of multiple types should not be allowed')
 
@@ -204,24 +210,23 @@ class TestContract(utils.SrpmsTest):
             self.assertEqual(response.status_code, status.HTTP_200_OK,
                              'Partial update of nested field should be allowed')
             self.assertTrue(response.data.pop('id'))
-            self.assertTrue(response.data.pop('create_date'))
-            self.assertEqual(response.data, con_resp)
+            assert_contract_response(self, response, con_resp)
 
         # Illegal modification
         response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
                                     {'individual_project': {'objectives': ''},
-                                     'special_topics': {'objectives': ''}})
+                                     'special_topic': {'objectives': ''}})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST,
                          'Contract of multiple types should not be allowed')
 
         # Illegal modification
         response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
-                                    {'individual_project': None, 'special_topics': None})
+                                    {'individual_project': None, 'special_topic': None})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST,
                          'Contract of no type should not be allowed')
 
         # Illegal modification
-        con_req['special_topics'] = None
+        con_req['special_topic'] = None
         con_req['individual_project'] = None
         response = self.user_01.put(utils.ApiUrls.contract + str(con_id) + '/',
                                     con_req)
@@ -234,6 +239,7 @@ class TestContract(utils.SrpmsTest):
         # Create first
         response = self.user_01.post(utils.ApiUrls.contract, con_req)
         con_id = response.data.pop('id')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         ########################################
         # Non-owner requests
@@ -244,9 +250,10 @@ class TestContract(utils.SrpmsTest):
         # Supervisor requests
 
         # Add supervisor first
-        response = self.convener.post(utils.ApiUrls.supervise,
-                                      {'contract': con_id,
-                                       'supervisor': self.supervisor_non_formal.id})
+        response = self.convener.post('{}{}/{}/'.format(utils.ApiUrls.contract,
+                                                        con_id,
+                                                        utils.ApiUrls.supervise),
+                                      {'supervisor': self.supervisor_non_formal.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Legal request
@@ -255,8 +262,7 @@ class TestContract(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          'Supervisor of the contract should be allowed to edit')
         self.assertTrue(response.data.pop('id'))
-        self.assertTrue(response.data.pop('create_date'))
-        self.assertEqual(response.data, con_resp)
+        assert_contract_response(self, response, con_resp)
 
         # Illegal request
         response = self.supervisor_formal.patch(utils.ApiUrls.contract + str(con_id) + '/', con_req)
@@ -269,8 +275,7 @@ class TestContract(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          'Course convener should be allowed to edit')
         self.assertTrue(response.data.pop('id'))
-        self.assertTrue(response.data.pop('create_date'))
-        self.assertEqual(response.data, con_resp)
+        assert_contract_response(self, response, con_resp)
 
         ########################################
         # Superuser requests
@@ -278,8 +283,7 @@ class TestContract(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          'Course convener should be allowed to edit')
         self.assertTrue(response.data.pop('id'))
-        self.assertTrue(response.data.pop('create_date'))
-        self.assertEqual(response.data, con_resp)
+        assert_contract_response(self, response, con_resp)
 
     def test_DELETE(self):
         con_req, con_resp = data.get_contract(owner=self.user_01)
@@ -310,9 +314,10 @@ class TestContract(utils.SrpmsTest):
         # Supervisor requests
 
         # Add supervisor first
-        response = self.convener.post(utils.ApiUrls.supervise,
-                                      {'contract': con_id,
-                                       'supervisor': self.supervisor_non_formal.id})
+        response = self.convener.post('{}{}/{}/'.format(utils.ApiUrls.contract,
+                                                        con_id,
+                                                        utils.ApiUrls.supervise),
+                                      {'supervisor': self.supervisor_non_formal.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Illegal

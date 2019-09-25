@@ -61,6 +61,10 @@
 
 - Read-only for everyone
 
+### Special notes
+
+- Convener does not have permission to edit, delete a contract, but can create, edit, delete supervise and examine items before he/she approve.
+
 # Limitations
 
 - Cannot enforce contract to must have some assessment method in the back-end
