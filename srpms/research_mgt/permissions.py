@@ -70,10 +70,13 @@ class DefaultObjectPermission(permissions.BasePermission):
             if obj.is_convener_approved():
                 # No PUT, PATCH, DELETE allow after final approval
                 return False
+            elif requester.has_perm('research_mgt.can_convene'):
+                # Convener can PUT, PATCH, DELETE
+                return True
             elif requester == obj.owner:
                 # Allow PUT, PATCH, DELETE for owner
                 return True
-            elif obj in requester.supervise.all() \
+            elif requester.supervise.all() & obj.supervisor.all() \
                     and request.method in ['PUT', 'PATCH']:
                 # Allow PUT, PATCH for formal supervisors of this contract
                 return True
