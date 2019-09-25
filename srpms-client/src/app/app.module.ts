@@ -27,6 +27,7 @@ import { AuthInterceptor } from './auth-interceptor.service';
 import { ContractFormComponent } from './contract-form/contract-form.component';
 import { ContractFormElementComponent } from './contract-form-element/contract-form-element.component';
 import {MatCheckboxModule, MatRadioModule, MatSelectModule} from '@angular/material';
+import { SupervisorComponent } from './supervisor/supervisor.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +38,8 @@ import {MatCheckboxModule, MatRadioModule, MatSelectModule} from '@angular/mater
     HeaderComponent,
     LoginDialogComponent,
     ContractFormComponent,
-    ContractFormElementComponent
+    ContractFormElementComponent,
+    SupervisorComponent
   ],
     imports: [
         BrowserModule,
