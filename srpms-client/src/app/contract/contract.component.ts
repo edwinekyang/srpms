@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { ContractService, Course } from '../contract.service';
 import { ElementService } from '../element.service';
+import {ElementBase} from '../element-base';
 
 @Component({
   selector: 'app-contract',
@@ -14,31 +14,21 @@ import { ElementService } from '../element.service';
 })
 
 export class ContractComponent implements OnInit {
-  errorMessage: string;
-  course: Course;
-  elements: any[];
+  course: Course[] = [];
+  elements: ElementBase<any>[] = [];
+  formFlag: string;
 
   constructor(
-    public contractService: ContractService,
     public elementService: ElementService
   ) {
-      this.elements = elementService.getElements();
+    this.elements = this.elementService.getElements();
   }
 
   ngOnInit() {
+    this.formFlag = '';
   }
 
-  showCourses() {
-    this.contractService.getCourses()
-      .subscribe(
-          (data: Course) => this.course = {
-        id: data.id,
-        course_number: data.course_number,
-        name: data.name},
-          error => {
-            if (error instanceof HttpErrorResponse) {
-              this.errorMessage = error.error.detail;
-            }
-          });
+  receiveFormFlag($event) {
+    this.formFlag = $event;
   }
 }

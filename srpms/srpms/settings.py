@@ -176,13 +176,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # REST framework related settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
+    'EXCEPTION_HANDLER': 'srpms.utils.custom_exception_handler'
 }
 
 # Disable browsable API in production
@@ -214,8 +215,8 @@ SIMPLE_JWT = {
 }
 
 AUTHENTICATION_BACKENDS = [
-    'accounts.authentication.ANULDAPBackend',
-    'django.contrib.auth.backends.ModelBackend'  # Django default
+    'django.contrib.auth.backends.ModelBackend',  # Django default
+    'accounts.authentication.ANULDAPBackend'
 ]
 
 # LDAP related settings
@@ -271,7 +272,7 @@ if DEBUG:
 
     # Enable Django debug toolbar during debug
     DEBUG_TOOLBAR_CONFIG = {
-        "SHOW_TOOLBAR_CALLBACK": lambda x: True,  # Change this to false if you want to disable
+        "SHOW_TOOLBAR_CALLBACK": lambda x: False,  # Change this to false if you want to disable
         "RENDER_PANELS": True
     }
     INSTALLED_APPS = ['debug_toolbar', ] + INSTALLED_APPS

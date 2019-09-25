@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ElementBase } from '../element-base';
 import { ContractFormControlService } from '../contract-form-control.service';
@@ -8,18 +8,27 @@ import { ContractService } from '../contract.service';
 @Component({
   selector: 'app-contract-form',
   templateUrl: './contract-form.component.html',
+  styleUrls: ['./contract-form.component.scss'],
   providers: [ ContractFormControlService, ContractService ]
 })
 export class ContractFormComponent implements OnInit {
   errorMessage: string;
   @Input() elements: ElementBase<any>[] = [];
   form: FormGroup;
-  payLoad = '';
+  payLoad = {};
   assessment1 = {};
   assessment2 = {};
   assessment3 = {};
   supervise = {};
   contractId: number;
+  sectionList = [];
+  formFlag: string;
+  elementFlag: string;
+  individualProject = {
+  };
+  specialTopics = {
+  };
+  @Output() formFlagEvent = new EventEmitter<string>();
 
   constructor(
     private cfcs: ContractFormControlService,
@@ -28,12 +37,83 @@ export class ContractFormComponent implements OnInit {
 
   ngOnInit() {
     this.form = this.cfcs.toFormGroup(this.elements);
+    this.sectionList = [
+      '',
+      'Course and Supervisor',
+      'Project',
+      'Assessment',
+      'Assessment',
+      'Assessment',
+    ];
+  }
+
+  receiveFormFlag($event) {
+    this.formFlag = $event;
+    this.sendFormFlag();
+    this.elementFlag = $event;
+  }
+
+  sendFormFlag() {
+    this.formFlagEvent.emit(this.formFlag);
+  }
+
+  isAnotherSection(order): boolean {
+    if (order > 1) {
+      return (order % 10 === 0);
+    } else {
+      return true;
+    }
+  }
+
+  isTextArea(type): boolean {
+    return (type === 'textarea');
+  }
+
+  isLastElement(val, elements): boolean {
+    if (elements.indexOf(val) + 1 < elements.length) {
+      return elements[elements.indexOf(val) + 1].order - val.order > 1;
+    }
+  }
+
+  sectionDivider(order): number {
+    if (order === 1) {
+      return order;
+    } else {
+      return (order / 10) + 1;
+    }
   }
 
   onSubmit() {
-    this.payLoad = JSON.stringify(this.form.value);
-
-    this.contractService.addContract(this.payLoad)
+    this.payLoad = {
+      year: this.form.value.year,
+      semester: this.form.value.semester,
+      duration: this.form.value.duration,
+      resources: '',
+      course: this.form.value.course,
+      owner: JSON.parse(localStorage.getItem('srpmsUser')).id,
+      test: ''
+    };
+    if (this.formFlag === 'project') {
+      this.individualProject = {
+        individual_project: {
+          title: this.form.value.title,
+          objectives: this.form.value.objectives,
+          description: this.form.value.description
+        },
+      };
+      Object.assign(this.payLoad, this.individualProject);
+    } else if (this.formFlag === 'special') {
+      this.specialTopics = {
+        special_topics: {
+          title: this.form.value.title,
+          objectives: this.form.value.objectives,
+          description: this.form.value.description
+        },
+      };
+      Object.assign(this.payLoad, this.specialTopics);
+    }
+    console.log(JSON.stringify(this.payLoad));
+    this.contractService.addContract(JSON.stringify(this.payLoad))
       .subscribe((res) => {
         this.contractId = res.id;
         this.addAssessmentMethod();

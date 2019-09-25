@@ -1,3 +1,9 @@
-<h1>Contract</h1>
-<app-contract-form [elements]="elements"></app-contract-form>
-
+<div>
+    <p class="contract-title mat-h1">INDEPENDENT STUDY CONTRACT</p><br>
+    <p *ngIf="formFlag === 'project'" class="contract-title-flag mat-h1" id="project">PROJECT</p><br>
+    <p *ngIf="formFlag === 'special'" class="contract-title-flag mat-h1" id="special">SPECIAL TOPICS</p><br>
+    <p class="contract-title-disclaimer mat-h3">Note: Enrolment is subject to approval by the course convener</p>
+</div>
+<mat-card class="form-card">
+<app-contract-form [elements]="elements" (formFlagEvent)="receiveFormFlag($event)"></app-contract-form>
+</mat-card>

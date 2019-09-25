@@ -14,17 +14,18 @@ RUN apk add --no-cache --virtual .build-deps \
                        gcc \
                        musl-dev \
                        openldap-dev \
-    && pip install psycopg2==2.7 \
-                   gunicorn==19.9 \
-                   django==2.2 \
-                   djangorestframework==3.10 \
-                   django-auth-ldap==2.0 \
-                   django-filter==2.2 \
-                   markdown==3.1 \
-                   djangorestframework_simplejwt==4.3 \
-                   django-cors-headers==3.1 \
-                   ipython \
-                   pylint_django \
+    && pip install psycopg2==2.7.* \
+                   gunicorn==19.9.* \
+                   django==2.2.* \
+                   djangorestframework==3.10.* \
+                   django-auth-ldap==2.0.* \
+                   django-filter==2.2.* \
+                   markdown==3.1.* \
+                   djangorestframework_simplejwt==4.3.* \
+                   django-cors-headers==3.1.* \
+                   ipython==7.7.* \
+                   pylint_django==2.0.* \
+                   coverage==4.5.* \
     && find /usr/local \
         \( -type d -a -name test -o -name tests \) \
         -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
