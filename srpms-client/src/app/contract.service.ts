@@ -69,4 +69,11 @@ export class ContractService {
         catchError(this.handleError<any>('addSupervise'))
       );
   }
+
+  getContracts(): Observable<any> {
+    return this.http.get<any>(`${this.API_URL}research_mgt/contracts/`, this.httpOptions)
+        .pipe(
+            catchError(this.handleError<any>('getContracts'))
+        );
+  }
 }
