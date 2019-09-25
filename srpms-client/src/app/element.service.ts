@@ -38,7 +38,7 @@ export class ElementService {
         this.course.forEach((item) => {
             this.courseDropdown.push({key: item.course_number + '(' + item.name + ')', value: item.id
                 , flag:
-                    (item.course_number === 'COMP2710' || item.course_number === 'COMP3710') ? 'specialTopics' :
+                    (item.course_number === 'COMP2710' || item.course_number === 'COMP3710') ? 'special' :
                     'project'});
         });
 
