@@ -23,8 +23,8 @@ export interface SuperviseList<T> {
 
 export class SupervisorComponent implements OnInit {
   private errorMessage: string;
-  private awaitingContractList: ContractList<any>[] = [];
-  private approvedContractList: ContractList<any>[] = [];
+  public awaitingContractList: ContractList<any>[] = [];
+  public approvedContractList: ContractList<any>[] = [];
   private readonly superviseList: SuperviseList<any>[] = [];
   private readonly approvedList: SuperviseList<any>[] = [];
   // private supervisorID: string;
@@ -51,7 +51,8 @@ export class SupervisorComponent implements OnInit {
         .subscribe(
             (data: any) => {
               data.forEach(supervise => {
-                if (supervise.supervisor === JSON.parse(localStorage.getItem('srpmsUser')).id && !supervise.supervisor_approval_date) {
+                if (supervise.supervisor === JSON.parse(localStorage.getItem('srpmsUser')).id &&
+                    !supervise.supervisor_approval_date) {
                   superviseList.push({
                     id: supervise.contract,
                     // supervisor: supervise.supervisor,
@@ -73,7 +74,8 @@ export class SupervisorComponent implements OnInit {
         .subscribe(
             (data: any) => {
               data.forEach(supervise => {
-                if (supervise.supervisor === JSON.parse(localStorage.getItem('srpmsUser')).id && supervise.supervisor_approval_date) {
+                if (supervise.supervisor === JSON.parse(localStorage.getItem('srpmsUser')).id &&
+                    supervise.supervisor_approval_date) {
                   approvedList.push({
                     id: supervise.contract,
                     // supervisor: supervise.supervisor,
