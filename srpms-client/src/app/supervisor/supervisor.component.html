@@ -1,4 +1,16 @@
-<p class="mat-h1">INDEPENDENT STUDY CONTRACTS MANAGEMENT</p>
+<p class="title mat-h1">INDEPENDENT STUDY CONTRACTS MANAGEMENT</p>
 <mat-card>
-
+<mat-list>
+    <h3 mat-subheader>Awaiting Contracts</h3>
+    <mat-list-item *ngFor="let contract of awaitingContractList">
+        <div class="contract-button">
+        <a mat-line mat-button color="secondary" routerLink="/">{{contract.title}}, {{contract.studentName}}
+            ({{contract.studentId}})</a>
+        </div>
+    </mat-list-item>
+    <mat-divider></mat-divider>
+    <h3 mat-subheader>Approved Contracts</h3>
+    <mat-list-item *ngFor="let contract of approvedContractList">
+    </mat-list-item>
+</mat-list>
 </mat-card>
