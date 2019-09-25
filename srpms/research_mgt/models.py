@@ -58,12 +58,12 @@ class Contract(models.Model):
         """Check if all assessments approved"""
 
         # A contract should have at least one assessment, otherwise it won't be approved
-        if not self.assessment_method.all():
+        if not self.assessment.all():
             return False
 
-        # An assessment method should have at least one examiner, otherwise it won't be approved
-        if bool(AssessmentMethod.objects.filter(contract=self,
-                                                assessment_examine__isnull=True)):
+        # An assessment should have at least one examiner, otherwise it won't be approved
+        if bool(Assessment.objects.filter(contract=self,
+                                          assessment_examine__isnull=True)):
             return False
 
         return not bool(AssessmentExamine.objects.filter(contract=self,
@@ -87,8 +87,8 @@ class Contract(models.Model):
     def get_all_examiners(self):
         """
         Get all examiners of the contract. Note that there might be the case that an examiner
-        of the contract does not belong to any assessment method, in this case only examiners
-        part of a assessment method would be return.
+        of the contract does not belong to any assessment, in this case only examiners
+        part of a assessment would be return.
         """
         return SrpmsUser.objects.filter(examine__assessment_examine__contract=self)
 
@@ -231,10 +231,10 @@ class AssessmentTemplate(models.Model):
         return self.name
 
 
-class AssessmentMethod(models.Model):
-    template = models.ForeignKey(AssessmentTemplate, related_name='assessment_method',
+class Assessment(models.Model):
+    template = models.ForeignKey(AssessmentTemplate, related_name='assessment',
                                  on_delete=models.PROTECT, null=False, blank=False)
-    contract = models.ForeignKey(Contract, related_name='assessment_method',
+    contract = models.ForeignKey(Contract, related_name='assessment',
                                  on_delete=models.CASCADE, null=False, blank=False)
     additional_description = models.CharField(max_length=200, default='', blank=True)
     due = models.DateField(null=True, blank=True)
@@ -279,7 +279,7 @@ class AssessmentMethod(models.Model):
         if not self.weight:
             self.weight = self.template.default_weight
 
-        super(AssessmentMethod, self).save(*args, **kwargs)
+        super(Assessment, self).save(*args, **kwargs)
 
 
 class Examine(models.Model):
@@ -320,7 +320,7 @@ class AssessmentExamine(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True,
                                  related_name='+')
 
-    assessment = models.ForeignKey(AssessmentMethod, related_name='assessment_examine',
+    assessment = models.ForeignKey(Assessment, related_name='assessment_examine',
                                    on_delete=models.CASCADE)
     examine = models.ForeignKey(Examine, related_name='assessment_examine',
                                 on_delete=models.CASCADE)

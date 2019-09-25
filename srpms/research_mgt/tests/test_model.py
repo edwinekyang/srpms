@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 
-from research_mgt.models import (Contract, IndividualProject, SpecialTopic, AssessmentMethod, \
+from research_mgt.models import (Contract, IndividualProject, SpecialTopic, Assessment, \
                                  Examine, AssessmentExamine)
 from . import utils
 from . import data
@@ -31,13 +31,13 @@ class TestModel(utils.SrpmsTest):
                                               convener=self.convener.obj,
                                               owner=self.user_01.obj)
 
-        assessment_01 = AssessmentMethod.objects.create(template=data.temp_report,
-                                                        contract=contract_01,
-                                                        weight=50)
+        assessment_01 = Assessment.objects.create(template=data.temp_report,
+                                                  contract=contract_01,
+                                                  weight=50)
 
-        assessment_02 = AssessmentMethod.objects.create(template=data.temp_report,
-                                                        contract=contract_02,
-                                                        weight=50)
+        assessment_02 = Assessment.objects.create(template=data.temp_report,
+                                                  contract=contract_02,
+                                                  weight=50)
 
         examine_01 = Examine.objects.create(contract=contract_01,
                                             examiner=self.user_02.obj)

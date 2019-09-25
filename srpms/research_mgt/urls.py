@@ -39,21 +39,21 @@ contract_routes.register(r'supervise',
                          parents_query_lookups=['contract'])
 
 # Generate the following URL patterns
-# 'contracts/{parents_query_lookups}/assessment-methods/$' - 'contract-assessment-method-list'
-# 'contracts/{parents_query_lookups}/assessment-methods/{pk}$ - 'contract-assessment-method-detail'
-assessment_routes = contract_routes.register(r'assessment-methods',
-                                             views.AssessmentMethodViewSet,
-                                             basename='contract-assessment-method',
+# 'contracts/{parents_query_lookups}/assessments/$' - 'contract-assessment-list'
+# 'contracts/{parents_query_lookups}/assessments/{pk}$ - 'contract-assessment-detail'
+assessment_routes = contract_routes.register(r'assessments',
+                                             views.AssessmentViewSet,
+                                             basename='contract-assessment',
                                              parents_query_lookups=['contract'])
 
 # Generate the following URL patterns
-# 'contracts/{parents_query_lookups[0]}/assessment-methods/{parents_query_lookups[1]}/$'
-# -> 'contract-assessment-method-examine-list'
-# 'contracts/{parents_query_lookups[0]}/assessment-methods/{parents_query_lookups[1]}/examine/{pk}$'
-# -> 'contract-assessment-method-examine-detail'
+# 'contracts/{parents_query_lookups[0]}/assessments/{parents_query_lookups[1]}/$'
+# -> 'contract-assessment-examine-list'
+# 'contracts/{parents_query_lookups[0]}/assessments/{parents_query_lookups[1]}/examine/{pk}$'
+# -> 'contract-assessment-examine-detail'
 assessment_routes.register(r'examine',
                            views.AssessmentExamineViewSet,
-                           basename='contract-assessment-method-examine',
+                           basename='contract-assessment-examine',
                            parents_query_lookups=['contract', 'assessment'])
 
 urlpatterns = [

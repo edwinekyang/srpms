@@ -37,7 +37,7 @@ class UserContractSerializer(serializers.ModelSerializer):
     # noinspection PyMethodMayBeStatic
     def get_examine(self, obj: SrpmsUser) -> tuple:
         """
-        User's supervise field was pointed to instances of AssessmentMethod relation, not contract
+        User's supervise field was pointed to instances of Assessment relation, not contract
         """
         return models.AssessmentExamine.objects.filter(examiner=obj).values_list('contract').get()
 
@@ -79,14 +79,14 @@ class AssessmentExamineSerializer(serializers.ModelSerializer):
         return super(AssessmentExamineSerializer, self).update(instance, validated_data)
 
 
-class AssessmentMethodSerializer(serializers.ModelSerializer):
+class AssessmentSerializer(serializers.ModelSerializer):
     # Contract would be attached automatically to the nested view
     contract = serializers.PrimaryKeyRelatedField(read_only=True)
 
     assessment_examine = AssessmentExamineSerializer(read_only=True, many=True)
 
     class Meta:
-        model = models.AssessmentMethod
+        model = models.Assessment
         fields = ['id', 'template', 'contract', 'additional_description', 'due', 'weight',
                   'assessment_examine', 'is_all_examiners_approved']
 
@@ -130,7 +130,7 @@ class ContractSerializer(serializers.ModelSerializer):
     submit_date = serializers.ReadOnlyField()
 
     supervise = SuperviseSerializer(read_only=True, many=True)
-    assessment_method = AssessmentMethodSerializer(read_only=True, many=True)
+    assessment = AssessmentSerializer(read_only=True, many=True)
 
     class Meta:
         model = models.Contract
@@ -139,7 +139,7 @@ class ContractSerializer(serializers.ModelSerializer):
                   'owner', 'create_date', 'submit_date', 'is_submitted',
                   'individual_project', 'special_topic',
                   'supervise', 'is_all_supervisors_approved',
-                  'assessment_method', 'is_all_assessments_approved']
+                  'assessment', 'is_all_assessments_approved']
 
     def create(self, validated_data: dict):
         """

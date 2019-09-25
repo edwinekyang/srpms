@@ -151,18 +151,18 @@ class AssessmentExamineViewSet(CreateModelMixin,
             raise ValidationError()
 
 
-class AssessmentMethodViewSet(CreateModelMixin,
-                              RetrieveModelMixin,
-                              UpdateModelMixin,
-                              DestroyModelMixin,
-                              ListModelMixin,
-                              NestedGenericViewSet):
+class AssessmentViewSet(CreateModelMixin,
+                        RetrieveModelMixin,
+                        UpdateModelMixin,
+                        DestroyModelMixin,
+                        ListModelMixin,
+                        NestedGenericViewSet):
     """
     This ViewSet automatically provides `list`, `create`, `retrieve`,
     `update` and `destroy` actions.
     """
-    queryset = models.AssessmentMethod.objects.all()
-    serializer_class = serializers.AssessmentMethodSerializer
+    queryset = models.Assessment.objects.all()
+    serializer_class = serializers.AssessmentSerializer
     permission_classes = default_perms + [app_perms.ReadOnly |
                                           app_perms.IsSuperuser |
                                           app_perms.IsConvener |
