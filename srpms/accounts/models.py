@@ -42,5 +42,3 @@ class SrpmsUser(AbstractUser):
     def save(self, *args, **kwargs):
         self.full_clean()
         super(SrpmsUser, self).save(*args, **kwargs)
-
-# TODO: Create permission for approved supervisor, and approved convener

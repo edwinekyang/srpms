@@ -1,0 +1,47 @@
+"""
+Create existing courses.
+"""
+
+__author__ = 'Dajie Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
+from django.db import migrations
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+from research_mgt.models import Course
+from django.apps.registry import Apps
+
+
+def create_courses(apps: Apps, schema_editor: BaseDatabaseSchemaEditor):
+    TheCourse: Course = apps.get_model('research_mgt', 'Course')
+
+    TheCourse.objects.create(course_number='COMP2710', name='Special Topics in Computer Science')
+    TheCourse.objects.create(course_number='COMP3710', name='Topics in Computer Science')
+    TheCourse.objects.create(course_number='COMP3740', name='Project Work in Computing')
+    TheCourse.objects.create(course_number='COMP3770', name='Individual Research Project')
+    TheCourse.objects.create(course_number='COMP4560', name='Advanced Computing Project')
+    TheCourse.objects.create(course_number='COMP6470', name='Special Topics in Computing')
+    TheCourse.objects.create(course_number='COMP8755', name='Individual Computing Project')
+
+
+def revert_create_courses(apps: Apps, schema_editor: BaseDatabaseSchemaEditor):
+    TheCourse: Course = apps.get_model('research_mgt', 'Course')
+
+    TheCourse.objects.filter(course_number__in=[
+        'COMP2710',
+        'COMP3710',
+        'COMP3740',
+        'COMP3770',
+        'COMP4560',
+        'COMP6470',
+        'COMP8755'
+    ]).delete()
+
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ('research_mgt', '0003_create_assessment_template'),
+    ]
+
+    operations = [
+        migrations.RunPython(create_courses, revert_create_courses),
+    ]
