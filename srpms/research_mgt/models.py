@@ -35,7 +35,7 @@ class Contract(models.Model):
         validators.MinValueValidator(1, 'Duration semesters should >= 1'),
         validators.MaxValueValidator(8, 'Max duration supported is 8')
     ])
-    resources = models.CharField(max_length=500, blank=True)
+    resources = models.CharField(max_length=500, default='', blank=True)
     course = models.ForeignKey(Course, related_name='contract',
                                on_delete=models.PROTECT, blank=False, null=False)
 
@@ -54,17 +54,49 @@ class Contract(models.Model):
         """Check if the contract is submitted"""
         return bool(self.submit_date)
 
-    def is_examiners_approved(self) -> bool:
-        """Check if all examiners approved"""
-        return all([a.examiner_approval_date for a in AssessmentMethod.objects.get(contract=self)])
+    def is_all_assessments_approved(self) -> bool:
+        """Check if all assessments approved"""
 
-    def is_supervisors_approved(self) -> bool:
+        # A contract should have at least one assessment, otherwise it won't be approved
+        if not self.assessment_method.all():
+            return False
+
+        # An assessment method should have at least one examiner, otherwise it won't be approved
+        if bool(AssessmentMethod.objects.filter(contract=self,
+                                                assessment_examine__isnull=True)):
+            return False
+
+        return not bool(AssessmentExamine.objects.filter(contract=self,
+                                                         examiner_approval_date__isnull=True))
+
+    def is_all_supervisors_approved(self) -> bool:
         """Check if all supervisors approved"""
-        return all([s.supervisor_approval_date for s in Supervise.objects.get(contract=self)])
+
+        # A contract should at least have one supervise relation
+        if not self.supervise.all():
+            return False
+
+        # Check if any non-approval-date supervise relation exist
+        return not bool(SrpmsUser.objects.filter(supervise__contract=self,
+                                                 supervise__supervisor_approval_date__isnull=True))
 
     def is_convener_approved(self) -> bool:
         """No one should be allowed to change after convener approved"""
         return bool(self.convener_approval_date)
+
+    def get_all_examiners(self):
+        """
+        Get all examiners of the contract. Note that there might be the case that an examiner
+        of the contract does not belong to any assessment method, in this case only examiners
+        part of a assessment method would be return.
+        """
+        return SrpmsUser.objects.filter(examine__assessment_examine__contract=self)
+
+    def get_all_formal_supervisors(self):
+        return SrpmsUser.objects.filter(supervise__contract=self, supervise__is_formal=True)
+
+    def get_all_supervisors(self):
+        return SrpmsUser.objects.filter(supervise__contract=self)
 
     def clean(self):
         """
@@ -96,12 +128,43 @@ class Contract(models.Model):
             return super(Contract, self).__str__()
 
 
+class IndividualProject(Contract):
+    # Explicitly define OneToOne inheritance link, the default's on_delete policy is NOT CASCADE
+    contract = models.OneToOneField(Contract, on_delete=models.CASCADE, parent_link=True,
+                                    related_name='individual_project')
+
+    title = models.CharField(max_length=100, default='Project title', null=False, blank=False)
+    objectives = models.CharField(max_length=500, default='', blank=True)
+    description = models.CharField(max_length=1000, default='', blank=True)
+
+    def save(self, *args, **kwargs):
+        # TODO: on submit, apply all constraints
+        # TODO: on create, create associated assessments
+        super(IndividualProject, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
+
+class SpecialTopic(Contract):
+    # Explicitly define OneToOne inheritance link, the default's on_delete policy is NOT CASCADE
+    contract = models.OneToOneField(Contract, on_delete=models.CASCADE, parent_link=True,
+                                    related_name='special_topic')
+
+    title = models.CharField(max_length=100, default='Topic title', null=False, blank=False)
+    objectives = models.CharField(max_length=500, default='', blank=True)
+    description = models.CharField(max_length=1000, default='', blank=True)
+
+    def __str__(self):
+        return self.title
+
+
 class Supervise(models.Model):
     supervisor = models.ForeignKey(SrpmsUser, related_name='supervise',
                                    on_delete=models.PROTECT, blank=False, null=False)
     is_formal = models.BooleanField(blank=False, null=False)
     supervisor_approval_date = models.DateTimeField(null=True, blank=True)
-    contract = models.ForeignKey(Contract, related_name='supervisor',
+    contract = models.ForeignKey(Contract, related_name='supervise',
                                  on_delete=models.CASCADE, blank=False, null=False)
 
     # TODO: Add an partial id that increases when a new supervisor is being added to a contract
@@ -118,47 +181,24 @@ class Supervise(models.Model):
         return bool(self.supervisor_approval_date)
 
 
-class IndividualProject(Contract):
-    title = models.CharField(max_length=100, default='Project title', null=False, blank=False)
-    objectives = models.CharField(max_length=500, blank=True)
-    description = models.CharField(max_length=1000, blank=True)
-
-    def save(self, *args, **kwargs):
-        # TODO: on submit, apply all constraints
-        # TODO: on create, create associated assessments
-        super(IndividualProject, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
-
-
-class SpecialTopics(Contract):
-    title = models.CharField(max_length=100, default='Topic title', null=False, blank=False)
-    objectives = models.CharField(max_length=500, blank=True)
-    description = models.CharField(max_length=1000, blank=True)
-
-    def __str__(self):
-        return self.title
-
-
 class AssessmentTemplate(models.Model):
     name = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    description = models.CharField(max_length=200, blank=True)
-    max_mark = models.IntegerField(null=False, blank=False)
-    min_mark = models.IntegerField(null=False, blank=False)
-    default_mark = models.IntegerField(null=True, blank=True)
+    description = models.CharField(max_length=200, default='', blank=True)
+    max_weight = models.IntegerField(null=False, blank=False)
+    min_weight = models.IntegerField(null=False, blank=False)
+    default_weight = models.IntegerField(null=True, blank=True)
 
     # TODO: Add an partial id that increases when a new assessment item is being added to a contract
 
     def clean(self):
         errors = {}
 
-        if not self.min_mark <= self.max_mark <= 100:
-            errors['max_mark'] = 'mark must within the range of min_mark to 100'
-        if not 0 <= self.min_mark <= self.max_mark:
-            errors['min_mark'] = 'mark must within the range of 0 to max_mark'
-        if not self.min_mark <= self.default_mark <= self.max_mark:
-            errors['default_mark'] = 'mark must within the range of min_mark to max_mark'
+        if not self.min_weight <= self.max_weight <= 100:
+            errors['max_weight'] = 'weight must within the range of min_weight to 100'
+        if not 0 <= self.min_weight <= self.max_weight:
+            errors['min_weight'] = 'weight must within the range of 0 to max_weight'
+        if not self.min_weight <= self.default_weight <= self.max_weight:
+            errors['default_weight'] = 'weight must within the range of min_weight to max_weight'
 
         if errors:
             raise ValidationError(errors)
@@ -176,35 +216,38 @@ class AssessmentMethod(models.Model):
                                  on_delete=models.PROTECT, null=False, blank=False)
     contract = models.ForeignKey(Contract, related_name='assessment_method',
                                  on_delete=models.CASCADE, null=False, blank=False)
-    additional_description = models.CharField(max_length=200, blank=True)
+    additional_description = models.CharField(max_length=200, default='', blank=True)
     due = models.DateField(null=True, blank=True)
-    max_mark = models.IntegerField(null=False, blank=False)
-    examiner = models.ForeignKey(SrpmsUser, related_name='examine',
-                                 on_delete=models.PROTECT, null=True, blank=True)
-    examiner_approval_date = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        unique_together = ('contract', 'examiner')
+    weight = models.IntegerField(null=False, blank=False)
 
     def is_convener_approved(self) -> bool:
         """No one should be allowed to change after convener approved"""
         return self.contract.is_convener_approved()
 
-    def is_supervisors_approved(self) -> bool:
+    def is_all_supervisors_approved(self) -> bool:
         """No one should be allowed to change after all supervisors approved"""
-        return self.contract.is_supervisors_approved()
+        return self.contract.is_all_supervisors_approved()
+
+    def is_all_examiners_approved(self) -> bool:
+        """
+        Check if this assessment has been approved by all its examiners, one assessment
+        should at least have one examiner.
+        """
+        if not self.assessment_examine.all():
+            return False
+        return not bool(AssessmentExamine.objects.filter(assessment=self,
+                                                         examiner_approval_date__isnull=True))
+
+    def get_all_examiners(self):
+        return SrpmsUser.objects.filter(examine__assessment_examine__assessment=self)
 
     def clean(self):
-        """
-        Apply constraint to the model
-
-        TODO: remove the ambiguity of max_mark
-        """
+        """Apply constraint to the model"""
 
         errors = {}
         # Ensure each assessment item is within the valid rage specified by the template
-        if self.max_mark > self.template.max_mark or self.max_mark < self.template.min_mark:
-            errors['max_mark'] = 'Please keep the mark within the valid range'
+        if self.weight > self.template.max_weight or self.weight < self.template.min_weight:
+            errors['weight'] = 'Please keep the mark within the valid range'
 
         if errors:
             raise ValidationError(errors)
@@ -213,10 +256,73 @@ class AssessmentMethod(models.Model):
         self.full_clean()
 
         # Assign default marking weight based on template if not given
-        if not self.max_mark:
-            self.max_mark = self.template.default_mark
+        if not self.weight:
+            self.weight = self.template.default_weight
 
         super(AssessmentMethod, self).save(*args, **kwargs)
+
+
+class Examine(models.Model):
+    contract = models.ForeignKey(Contract, related_name='examine', on_delete=models.CASCADE)
+    examiner = models.ForeignKey(SrpmsUser, related_name='examine', on_delete=models.PROTECT)
+
+    class Meta:
+        unique_together = ('contract', 'examiner')
+
+
+class AssessmentExamine(models.Model):
+    """
+    Store the assessment-examine relation, this is to allow multiple examiner for the same
+    assessment method.
+
+    The original EER diagram was a many-to-many relation with one side being a weak entity:
+
+    [SrpmsUser] -- n -- <examine> -- m -- [[assessment]]
+    [[assessment]] -- m -- <assess> -- 1 -- [contract]
+
+
+    However this is not possible to implement in Django ORM, since it does not support weak
+    entity, as such it must be decomposed to a diamond shape relation:
+
+    [contract] -- 1 -- <examine by> -- n -- [examine] -- 1 -- <examine>
+                                                                   |
+                                                                   p
+                                                                   |
+                                                         [assessment examine]
+                                                                   |
+                                                                   q
+                                                                   |
+    [contract] -- 1 -- <assess by> -- m -- [assessment] -- 1 -- <examine by>
+    """
+
+    # This field exists sorely for convenient indexing, and would be overwrite to assessment's
+    # contract on save.
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True,
+                                 related_name='+')
+
+    assessment = models.ForeignKey(AssessmentMethod, related_name='assessment_examine',
+                                   on_delete=models.CASCADE)
+    examine = models.ForeignKey(Examine, related_name='assessment_examine',
+                                on_delete=models.CASCADE)
+    examiner_approval_date = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('assessment', 'examine')
+
+    def clean(self):
+        errors = {}
+
+        if self.assessment.contract != self.examine.contract:
+            errors['assessment'] = 'assessment\'s contract is different from examine\'s contract'
+            errors['examine'] = 'examine\'s contract is different from assessment\'s contract'
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        self.contract = self.assessment.contract
+        super(AssessmentExamine, self).save(*args, **kwargs)
 
 
 class AppPermission(models.Model):

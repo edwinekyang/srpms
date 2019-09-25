@@ -10,9 +10,9 @@ class APITests(utils.SrpmsTest):
                                        {
                                            'name': 'test',
                                            'description': '',
-                                           'max_mark': 30,
-                                           'min_mark': 60,
-                                           'default_mark': 90
+                                           'weight': 30,
+                                           'min_weight': 60,
+                                           'default_weight': 90
                                        })
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

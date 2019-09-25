@@ -15,7 +15,7 @@ class ApiUrls(object):
     supervise = 'supervise'
     assess_meth = 'assessment-methods'
 
-    all = [mgt_user, assess_temp, assess_meth, course, contract, supervise]
+    all = [mgt_user, assess_temp, course, contract]
 
 
 class Client(APIClient):

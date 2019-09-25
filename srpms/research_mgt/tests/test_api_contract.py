@@ -9,9 +9,21 @@ def assert_contract_response(test_case: TestCase, response, true_data):
     if response.data.get('id', False):
         raise AttributeError("Please remove id before passing data into this function")
 
+    # Not check-able
     test_case.assertTrue(response.data.pop('create_date'))
-    test_case.assertTrue(response.data.pop('supervisor') is not None)
+    test_case.assertTrue(response.data.pop('supervise') is not None)
     test_case.assertTrue(response.data.pop('assessment_method') is not None)
+
+    # Contract should at least have one supervisor, otherwise is_all_supervisors_approved
+    # would be false. Contract test also does not approve any supervise relation, as such
+    # is_all_supervisors_approved should always be False.
+    test_case.assertFalse(response.data.pop('is_all_supervisors_approved'))
+
+    # Contract should at least have one assessment, otherwise is_all_assessments_approved
+    # would be false. Contract test also does not approve any assessment method, as such
+    # is_all_assessments_approved should always be False.
+    test_case.assertFalse(response.data.pop('is_all_assessments_approved'))
+
     test_case.assertEqual(response.data, true_data)
 
 

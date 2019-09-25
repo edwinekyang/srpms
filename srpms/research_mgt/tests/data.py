@@ -56,24 +56,24 @@ temp_custom = models.AssessmentTemplate.objects.get(name='custom')
 temp_list_valid = [
     {'name': 'test01',
      'description': '',
-     'max_mark': 100,
-     'min_mark': 0,
-     'default_mark': 50},
+     'max_weight': 100,
+     'min_weight': 0,
+     'default_weight': 50},
     {'name': 'test02',
      'description': '',
-     'max_mark': 50,
-     'min_mark': 50,
-     'default_mark': 50},
+     'max_weight': 50,
+     'min_weight': 50,
+     'default_weight': 50},
     {'name': 'test03',
      'description': '',
-     'max_mark': 60,
-     'min_mark': 50,
-     'default_mark': 60},
+     'max_weight': 60,
+     'min_weight': 50,
+     'default_weight': 60},
     {'name': 'test04',
      'description': '',
-     'max_mark': 50,
-     'min_mark': 30,
-     'default_mark': 30}
+     'max_weight': 50,
+     'min_weight': 30,
+     'default_weight': 30}
 ]
 
 
@@ -92,24 +92,24 @@ def get_temps() -> List[Dict]:
 temp_list_invalid = [
     {'name': '',  # Empty name
      'description': 'asd',
-     'max_mark': 100,
-     'min_mark': 0,
-     'default_mark': 50},
+     'max_weight': 100,
+     'min_weight': 0,
+     'default_weight': 50},
     {'name': 'test02',
      'description': '',
-     'max_mark': 101,  # > 100
-     'min_mark': -1,  # < 0
-     'default_mark': 50},
+     'max_weight': 101,  # > 100
+     'min_weight': -1,  # < 0
+     'default_weight': 50},
     {'name': 'test03',
      'description': '',
-     'max_mark': 60,
-     'min_mark': 50,
-     'default_mark': 70},  # Out of range
+     'max_weight': 60,
+     'min_weight': 50,
+     'default_weight': 70},  # Out of range
     {'name': 'test04',
      'description': '',
-     'max_mark': 50,
-     'min_mark': 30,
-     'default_mark': 10}  # Out of range
+     'max_weight': 50,
+     'min_weight': 30,
+     'default_weight': 10}  # Out of range
 ]
 
 ############################################################################################
@@ -126,7 +126,7 @@ contract_01_request = {
         'objectives': '',
         'description': ''
     },
-    'special_topics': None,
+    'special_topic': None,
 }
 
 contract_01_response = {
@@ -146,7 +146,7 @@ contract_01_response = {
         'objectives': '',
         'description': ''
     },
-    'special_topics': None
+    'special_topic': None
 }
 
 contract_02_valid_request = {
@@ -156,7 +156,7 @@ contract_02_valid_request = {
     'resources': '',
     'course': comp8755.id,
     'individual_project': None,
-    'special_topics': {
+    'special_topic': {
         'title': 'Test',
         'objectives': '',
         'description': ''
@@ -176,7 +176,7 @@ contract_02_valid_response = {
     'submit_date': None,
     'is_submitted': False,
     'individual_project': None,
-    'special_topics': {
+    'special_topic': {
         'title': 'Test',
         'objectives': '',
         'description': ''

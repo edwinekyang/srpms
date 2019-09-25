@@ -76,7 +76,7 @@ class DefaultObjectPermission(permissions.BasePermission):
             elif requester == obj.owner:
                 # Allow PUT, PATCH, DELETE for owner
                 return True
-            elif requester.supervise.all() & obj.supervisor.all() \
+            elif requester.supervise.all() & obj.supervise.all() \
                     and request.method in ['PUT', 'PATCH']:
                 # Allow PUT, PATCH for formal supervisors of this contract
                 return True
@@ -119,7 +119,7 @@ class DefaultObjectPermission(permissions.BasePermission):
             elif requester.has_perm('research_mgt.can_convene'):
                 # Allow PUT, PATCH, DELETE for convener
                 return True
-            elif request.method in ['PUT', 'PATCH'] and requester == obj.examiner:
+            elif request.method in ['PUT', 'PATCH'] and requester in obj.get_all_examiners():
                 # Allow PUT, PATCH for examiner of this assessment
                 return True
             elif requester == obj.contract.owner:
