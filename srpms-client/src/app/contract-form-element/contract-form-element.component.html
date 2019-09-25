@@ -4,12 +4,23 @@
     <div *ngSwitchCase="'textbox'">
     <div class="form-container" *ngIf="elementFlag?
     (element.flag==='common')||(element.flag === elementFlag):false">
-    <mat-form-field appearance="outline">
+    <div class="form-container" *ngIf="element.disabled; else elseBlock">
+    <mat-form-field appearance="fill">
     <mat-label>{{element.label}}</mat-label>
-    <input matInput placeholder="{{element.label}}" [formControl]="form.controls[element.key]"
-           [id]="element.key" [type]="element.type">
+    <input matInput placeholder="{{element.label}}" [readonly]="true">
+    <input matInput [formControl]="form.controls[element.key]"
+           [id]="element.key" [type]="element.type" [value]="element.value" [hidden]="true">
     <mat-error *ngIf="form.controls[element.key].invalid">{{getErrorMessage(form.controls[element.key])}}</mat-error>
     </mat-form-field>
+    </div>
+    <ng-template #elseBlock>
+    <mat-form-field appearance="outline">
+        <mat-label>{{element.label}}</mat-label>
+        <input matInput placeholder="{{element.placeholder === ''?element.label:element.placeholder}}" [formControl]="form.controls[element.key]"
+               [id]="element.key" [type]="element.type" [value]="element.value">
+        <mat-error *ngIf="form.controls[element.key].invalid">{{getErrorMessage(form.controls[element.key])}}</mat-error>
+    </mat-form-field>
+    </ng-template>
     </div>
     </div>
 

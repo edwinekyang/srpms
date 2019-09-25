@@ -1,13 +1,15 @@
-import {Component, Injectable, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {ContractService} from '../contract.service';
 import {SupervisorService} from '../supervisor.service';
 import {AccountsService, SrpmsUser} from '../accounts.service';
 
 export interface ContractList<T> {
+  contractId: string;
   studentName: string;
   studentId: string;
   title: string;
+  contractObj: any;
 }
 
 export interface SuperviseList<T> {
@@ -42,6 +44,10 @@ export class SupervisorComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+
+  sendContractObj(contractObj: any) {
+    this.supervisorService.changeMessage(contractObj);
   }
 
   showSupervise(): SuperviseList<any>[] {
@@ -100,11 +106,17 @@ export class SupervisorComponent implements OnInit {
                 this.accountService.getUser(contracts[contract.id - 1].owner)
                     .subscribe(
                         (student: SrpmsUser) => {
+                          Object.assign(contracts[contract.id - 1], {
+                              studentId: student.uni_id,
+                              studentName: student.first_name + ' ' + student.last_name,
+                          });
                           contractList.push({
+                            contractId: contracts[contract.id - 1].id,
                             studentId: student.uni_id,
                             studentName: student.first_name + ' ' + student.last_name,
                             title: contracts[contract.id - 1].special_topics ? contracts[contract.id - 1].special_topics.title :
                                 contracts[contract.id - 1].individual_project.title,
+                            contractObj: contracts[contract.id - 1],
                           });
                         }
                     );

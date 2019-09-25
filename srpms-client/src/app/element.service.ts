@@ -38,7 +38,7 @@ export class ElementService {
         this.course.forEach((item) => {
             this.courseDropdown.push({key: item.course_number + '(' + item.name + ')', value: item.id
                 , flag:
-                    (item.course_number === 'COMP2710' || item.course_number === 'COMP3710') ? 'specialTopics' :
+                    (item.course_number === 'COMP2710' || item.course_number === 'COMP3710') ? 'special' :
                     'project'});
         });
 
@@ -146,7 +146,17 @@ export class ElementService {
                     {key: 'Presentation', value: 3},
                 ],
                 order: 21,
-                flag: 'common'
+                flag: 'special'
+            }),
+
+            new TextboxElement({
+               key: 'assessment1',
+               label: 'Assessment: Report',
+               value: 1,
+               required: true,
+               order: 22,
+               flag: 'project',
+               disabled: true,
             }),
 
             new TextboxElement({
@@ -154,8 +164,18 @@ export class ElementService {
                 label: 'STYLE',
                 value: '',
                 required: false,
-                order: 22,
-                flag: 'common'
+                order: 23,
+                flag: 'project',
+                placeholder: '(e.g. research report, software description, ...)',
+            }),
+
+            new TextboxElement({
+                key: 'assessment1Description',
+                label: 'STYLE',
+                value: '',
+                required: false,
+                order: 24,
+                flag: 'special',
             }),
 
             new TextboxElement({
@@ -163,7 +183,7 @@ export class ElementService {
                 label: 'MARK',
                 value: '',
                 required: true,
-                order: 23,
+                order: 25,
                 flag: 'common'
             }),
 
@@ -172,7 +192,7 @@ export class ElementService {
                 label: 'DUE DATE',
                 value: '',
                 required: true,
-                order: 24,
+                order: 26,
                 flag: 'common'
             }),
 
@@ -181,13 +201,23 @@ export class ElementService {
                 label: 'EXAMINER',
                 value: '',
                 required: false,
-                order: 25,
+                order: 27,
                 flag: 'common'
             }),
 
             // For Section Divider
             new TextboxElement({
                 order: 30
+            }),
+
+            new TextboxElement({
+                key: 'assessment2',
+                label: 'Assessment: Artefact',
+                value: 2,
+                required: true,
+                order: 31,
+                flag: 'project',
+                disabled: true,
             }),
 
             new DropdownElement({
@@ -198,8 +228,8 @@ export class ElementService {
                     {key: 'Artefact', value: 2},
                     {key: 'Presentation', value: 3},
                 ],
-                order: 31,
-                flag: 'common'
+                order: 32,
+                flag: 'special'
             }),
 
             new TextboxElement({
@@ -207,8 +237,18 @@ export class ElementService {
                 label: 'STYLE',
                 value: '',
                 required: false,
-                order: 32,
-                flag: 'common'
+                order: 33,
+                flag: 'project',
+                placeholder: '(e.g. software, user interface, robot, ...)'
+            }),
+
+            new TextboxElement({
+                key: 'assessment2Description',
+                label: 'STYLE',
+                value: '',
+                required: false,
+                order: 34,
+                flag: 'special'
             }),
 
             new TextboxElement({
@@ -216,7 +256,7 @@ export class ElementService {
                 label: 'MARK',
                 value: '',
                 required: true,
-                order: 33,
+                order: 35,
                 flag: 'common'
             }),
 
@@ -225,7 +265,7 @@ export class ElementService {
                 label: 'DUE DATE',
                 value: '',
                 required: true,
-                order: 34,
+                order: 36,
                 flag: 'common'
             }),
 
@@ -234,8 +274,17 @@ export class ElementService {
                 label: 'SUPERVISOR',
                 value: '',
                 required: true,
-                order: 35,
-                flag: 'common'
+                order: 37,
+                flag: 'project'
+            }),
+
+            new TextboxElement({
+                key: 'assessment2Examiner',
+                label: 'EXAMINER',
+                value: '',
+                required: false,
+                order: 38,
+                flag: 'special'
             }),
 
             // For Section Divider
@@ -245,11 +294,12 @@ export class ElementService {
 
             new TextboxElement({
                 key: 'assessment3',
-                label: 'PRESENTATION',
-                value: '3',
+                label: 'Assessment: Presentation',
+                value: 3,
                 required: true,
                 order: 41,
-                flag: 'project'
+                flag: 'project',
+                disabled: true,
             }),
 
             new DropdownElement({
@@ -270,7 +320,27 @@ export class ElementService {
                 value: '',
                 required: false,
                 order: 43,
-                flag: 'common'
+                flag: 'special'
+            }),
+
+            new TextboxElement({
+                key: 'assessment3Description',
+                label: 'Style: Presentation',
+                value: 'Presentation',
+                required: true,
+                order: 44,
+                flag: 'project',
+                disabled: true,
+            }),
+
+            new TextboxElement({
+                key: 'assessment3Mark',
+                label: '% of Mark: 10',
+                value: 10,
+                required: true,
+                order: 45,
+                flag: 'project',
+                disabled: true
             }),
 
             new TextboxElement({
@@ -278,8 +348,8 @@ export class ElementService {
                 label: 'MARK',
                 value: '',
                 required: true,
-                order: 44,
-                flag: 'common'
+                order: 46,
+                flag: 'special'
             }),
 
             new TextboxElement({
@@ -287,7 +357,7 @@ export class ElementService {
                 label: 'DUE DATE',
                 value: '',
                 required: true,
-                order: 45,
+                order: 47,
                 flag: 'common'
             }),
 
@@ -296,8 +366,18 @@ export class ElementService {
                 label: 'COURSE CONVENOR',
                 value: '',
                 required: true,
-                order: 46,
-                flag: 'common'
+                order: 48,
+                flag: 'project'
+            }),
+
+
+            new TextboxElement({
+                key: 'assessment3Examiner',
+                label: 'EXAMINER',
+                value: '',
+                required: true,
+                order: 49,
+                flag: 'special'
             }),
 
         ];

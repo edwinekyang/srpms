@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 
 
 @Injectable({
@@ -11,6 +12,8 @@ export class SupervisorService {
     constructor(private http: HttpClient) { }
 
     private API_URL = '/api/';
+    private messageSource = new BehaviorSubject('');
+    currentMessage = this.messageSource.asObservable();
 
     public httpOptions = {
         headers: new HttpHeaders({
@@ -22,10 +25,21 @@ export class SupervisorService {
         console.log(`Supervisor Service: ${message}`);
     }
 
+    changeMessage(message: any) {
+        this.messageSource.next(message);
+    }
+
     getSupervise(): Observable<any[]> {
         return this.http.get<any[]>(`${this.API_URL}research_mgt/supervise/`, this.httpOptions)
             .pipe(
                 catchError(this.handleError<any[]>('getSupervise'))
+            );
+    }
+
+    getAssessmentMethods(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API_URL}research_mgt/assessment-methods/`, this.httpOptions)
+            .pipe(
+                catchError(this.handleError<any[]>('getAssessmentMethods'))
             );
     }
 

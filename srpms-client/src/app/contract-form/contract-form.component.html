@@ -1,6 +1,8 @@
 <div>
   <form (ngSubmit)="onSubmit()" [formGroup]="form">
-	  <div *ngFor="let element of elements" [className]="isAnotherSection(element.order) ?
+	  <div *ngFor="let element of elements">
+          <div *ngIf="element.flag === elementFlag || element.flag === 'common' || element.flag === '' ||
+          element.key === 'course'" [className]="isAnotherSection(element.order) ?
 	  'new-line' : (isTextArea(element.controlType) ? 'textarea-new-line' :
 	  (isLastElement(element, elements) ? 'section-last-element' : 'form-element'))">
           <div *ngIf="isAnotherSection(element.order); else elseBlock">
@@ -10,6 +12,7 @@
           <ng-template #elseBlock>
             <app-contract-form-element [elementFlag]="elementFlag" [element]="element" [form]="form" (formFlagEvent)="receiveFormFlag($event)"></app-contract-form-element>
           </ng-template>
+          </div>
       </div>
 	<div class="new-line">
 	  <button class="form-submit-button" mat-raised-button color="primary" type="submit" [disabled]="!form.valid">Save</button>

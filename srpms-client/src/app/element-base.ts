@@ -8,6 +8,8 @@ export class ElementBase<T> {
   choices: any;
   type: any;
   flag: string;
+  disabled: boolean;
+  placeholder: string;
 
     constructor(options: {
       value?: T,

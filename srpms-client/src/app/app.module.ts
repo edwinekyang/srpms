@@ -28,6 +28,7 @@ import { ContractFormComponent } from './contract-form/contract-form.component';
 import { ContractFormElementComponent } from './contract-form-element/contract-form-element.component';
 import {MatCheckboxModule, MatRadioModule, MatSelectModule} from '@angular/material';
 import { SupervisorComponent } from './supervisor/supervisor.component';
+import { ContractViewerComponent } from './contract-viewer/contract-viewer.component';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,8 @@ import { SupervisorComponent } from './supervisor/supervisor.component';
     LoginDialogComponent,
     ContractFormComponent,
     ContractFormElementComponent,
-    SupervisorComponent
+    SupervisorComponent,
+    ContractViewerComponent
   ],
     imports: [
         BrowserModule,
