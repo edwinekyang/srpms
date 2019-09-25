@@ -10,6 +10,7 @@ export class ElementBase<T> {
   flag: string;
   disabled: boolean;
   placeholder: string;
+  maxlength: number;
 
     constructor(options: {
       value?: T,

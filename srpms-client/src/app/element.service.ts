@@ -52,7 +52,7 @@ export class ElementService {
 
             new DropdownElement({
                 key: 'course',
-                label: 'Course',
+                label: 'Course List',
                 choices: this.courseDropdown,
                 order: 2,
             }),
@@ -68,7 +68,7 @@ export class ElementService {
 
             new RadioBoxElement({
                 key: 'semester',
-                label: 'COMMENCING SEMESTER',
+                label: 'COMMENCING SEMESTER*',
                 choices: [
                     {key: 'S1', value: 1},
                     {key: 'S2', value: 2}
@@ -85,12 +85,13 @@ export class ElementService {
                 required: true,
                 order: 5,
                 placeholder: '(ex: 2019)',
-                flag: 'common'
+                flag: 'common',
+                maxlength: 4
             }),
 
             new RadioBoxElement({
                 key: 'duration',
-                label: 'DURATION',
+                label: 'DURATION*',
                 choices: [
                     {key: '1 Semester', value: 1},
                     {key: '2 Semesters(12u courses only)', value: 2}
@@ -111,7 +112,8 @@ export class ElementService {
                 value: '',
                 required: true,
                 order: 11,
-                flag: 'common'
+                flag: 'common',
+                maxlength: 80
             }),
 
             new TextareaElement({
@@ -120,7 +122,8 @@ export class ElementService {
                 value: '',
                 required: true,
                 order: 12,
-                flag: 'common'
+                flag: 'common',
+                maxlength: 400
             }),
 
             new TextareaElement({
@@ -129,7 +132,8 @@ export class ElementService {
                 value: '',
                 required: true,
                 order: 13,
-                flag: 'common'
+                flag: 'common',
+                maxlength: 800
             }),
 
             // For Section Divider
@@ -184,7 +188,8 @@ export class ElementService {
                 value: '',
                 required: true,
                 order: 25,
-                flag: 'common'
+                flag: 'common',
+                maxlength: 2
             }),
 
             new TextboxElement({
@@ -193,7 +198,9 @@ export class ElementService {
                 value: '',
                 required: true,
                 order: 26,
-                flag: 'common'
+                flag: 'common',
+                placeholder: '(e.g. 2019-01-01)',
+                maxlength: 10
             }),
 
             new TextboxElement({
@@ -257,7 +264,8 @@ export class ElementService {
                 value: '',
                 required: true,
                 order: 35,
-                flag: 'common'
+                flag: 'common',
+                maxlength: 2
             }),
 
             new TextboxElement({
@@ -266,7 +274,9 @@ export class ElementService {
                 value: '',
                 required: true,
                 order: 36,
-                flag: 'common'
+                flag: 'common',
+                placeholder: '(e.g. 2019-01-01)',
+                maxlength: 10
             }),
 
             new TextboxElement({
@@ -349,7 +359,8 @@ export class ElementService {
                 value: '',
                 required: true,
                 order: 46,
-                flag: 'special'
+                flag: 'special',
+                maxlength: 2
             }),
 
             new TextboxElement({
@@ -358,7 +369,9 @@ export class ElementService {
                 value: '',
                 required: true,
                 order: 47,
-                flag: 'common'
+                flag: 'common',
+                placeholder: '(e.g. 2019-01-01)',
+                maxlength: 10
             }),
 
             new TextboxElement({
@@ -375,7 +388,7 @@ export class ElementService {
                 key: 'assessment3Examiner',
                 label: 'EXAMINER',
                 value: '',
-                required: true,
+                required: false,
                 order: 49,
                 flag: 'special'
             }),

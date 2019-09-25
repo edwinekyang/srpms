@@ -5,5 +5,6 @@
     <p class="contract-title-disclaimer mat-h3">Note: Enrolment is subject to approval by the course convener</p>
 </div>
 <mat-card class="form-card">
+    <p *ngIf="!formFlag" class="mat-h4"><b>*Please choose the course from the Course List first</b></p>
 <app-contract-form [elements]="elements" (formFlagEvent)="receiveFormFlag($event)"></app-contract-form>
 </mat-card>

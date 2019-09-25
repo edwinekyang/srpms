@@ -94,6 +94,7 @@ export class ContractViewerComponent implements OnInit {
             assessment3Examiner: message,
             submit_date: message.submit_date,
           };
+          console.log(this.contractViewer);
         }
     );
     // this.contractViewer = this.showContract();
