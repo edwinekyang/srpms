@@ -30,7 +30,8 @@ export interface AssessmentMethodList<T> {
 @Component({
     selector: 'app-supervisor',
     templateUrl: './contract-mgt.component.html',
-    styleUrls: ['./contract-mgt.component.scss']
+    styleUrls: ['./contract-mgt.component.scss'],
+    providers: [Router]
 })
 
 
@@ -114,7 +115,7 @@ export class ContractMgtComponent implements OnInit {
                 if (error instanceof HttpErrorResponse) {
                     this.errorMessage = error.error.detail;
                 }
-            })
+            });
         return;
     }
 
