@@ -20,7 +20,6 @@ export class ContractFormElementComponent implements OnInit {
 
   @Output() formFlagEvent = new EventEmitter<any>();
 
-  get isValid() { return this.form.controls[this.element.key].valid; }
   constructor() {
   }
   ngOnInit(): void {

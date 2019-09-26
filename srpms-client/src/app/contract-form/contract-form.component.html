@@ -1,10 +1,9 @@
 <div>
   <form (ngSubmit)="onSubmit()" [formGroup]="form">
 	  <div *ngFor="let element of elements">
-          <div *ngIf="element.flag === elementFlag || element.flag === 'common' || element.flag === '' ||
-          element.key === 'course'" [className]="isAnotherSection(element.order) ?
+          <div [className]="isAnotherSection(element.order) ?
 	  'new-line' : (isTextArea(element.controlType) ? 'textarea-new-line' :
-	  (isLastElement(element, elements) ? 'section-last-element' : 'form-element'))">
+	  (isLastElement(element, elements) ? 'section-last-element' : (courseSelected)? 'form-element' : 'first-course'))">
           <div *ngIf="isAnotherSection(element.order); else elseBlock">
               <h1>Section {{sectionDivider(element.order)}}: {{sectionList[sectionDivider(element.order)]}}</h1>
             <mat-divider></mat-divider>
@@ -14,7 +13,7 @@
           </ng-template>
           </div>
       </div>
-	<div class="new-line">
+	<div *ngIf="courseSelected" class="new-line">
 	  <button class="form-submit-button" mat-raised-button color="primary" type="submit" [disabled]="!form.valid">Save</button>
 	</div>
   </form>

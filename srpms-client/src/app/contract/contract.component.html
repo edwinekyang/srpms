@@ -1,9 +1,15 @@
 <div>
     <p class="contract-title mat-h1">INDEPENDENT STUDY CONTRACT</p><br>
-    <p class="contract-title-flag mat-h1">{{(formFlag === '')?'':(formFlag === 'special')?'SPECIAL TOPICS':'PROJECT'}}</p><br>
+    <p class="contract-title-flag mat-h1">{{(formFlag)?(formFlag === 'special')?'SPECIAL TOPICS':'PROJECT':''}}</p><br>
     <p class="contract-title-disclaimer mat-h3">Note: Enrolment is subject to approval by the course convener</p>
 </div>
 <mat-card class="form-card">
     <p *ngIf="!formFlag" class="mat-h4"><b>*Please choose the course from the Course List first</b></p>
-<app-contract-form [elements]="elements" (formFlagEvent)="receiveFormFlag($event)"></app-contract-form>
+<div *ngIf="formFlag; else elseBlock">
+    <app-contract-form [courseSelected]="courseValue" [elements]="filteredElements"
+                       (formFlagEvent)="receiveFormFlag($event)"></app-contract-form>
+</div>
+<ng-template #elseBlock>
+    <app-contract-form [elements]="courseElement" (formFlagEvent)="receiveFormFlag($event)"></app-contract-form>
+</ng-template>
 </mat-card>
