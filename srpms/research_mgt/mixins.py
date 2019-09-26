@@ -35,8 +35,15 @@ class NestedGenericViewSet(GenericViewSet):
         PATCH the parent models can be reused in our perform_create and perform_update
         handlers to avoid accessing the DB twice.
         """
-        super(NestedGenericViewSet, self).initial(request, *args, **kwargs)
-        self.resolve_parent_lookup_fields()
+        try:
+            # Parents resolve need to be done before initial(), as these parent
+            # objects may be used for permission checking during initial().
+            self.resolve_parent_lookup_fields()
+            super(NestedGenericViewSet, self).initial(request, *args, **kwargs)
+        except NotFound as exc:
+            # If any parent notfound, render the response context and throw the exception.
+            super(NestedGenericViewSet, self).initial(request, *args, **kwargs)
+            raise exc
 
     def get_queryset(self):
         return self.filter_queryset_by_parents_lookups(

@@ -61,7 +61,22 @@
 
 - Read-only for everyone
 
-### Special notes
+## Questions
+
+- Contract
+  - Who is allowed to edit contracts?
+  - Who is allowed to delete contract?
+  - Who is allowed to submit?
+- Assessment
+  - Who is allowed to add new assessments?
+  - Who is allowed to edit assessments?
+  - Who is allowed to delete assessments?
+  - Who is allowed to approve?
+- Supervise
+  - Who is allowed to add supervisor?
+  - Who is allowed to edit supervise relation?
+  - Who is allowed to delete supervisor?
+  - Who is allowed to approve?
 
 - Convener does not have permission to edit, delete a contract, but can create, edit, delete supervise and examine items before he/she approve.
 
