@@ -3,14 +3,15 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { HomeComponent } from './home/home.component';
 import { ContractComponent } from './contract/contract.component';
-import {SupervisorComponent} from './supervisor/supervisor.component';
+import {ContractMgtComponent} from './contract-mgt/contract-mgt.component';
 import {ContractViewerComponent} from './contract-viewer/contract-viewer.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'contract', component: ContractComponent },
-  { path: 'supervisor', component: SupervisorComponent },
+  { path: 'supervisor', component: ContractMgtComponent },
   { path: 'contract-viewer', component: ContractViewerComponent },
+  { path: 'examiner', component: ContractMgtComponent },
 ];
 
 @NgModule({

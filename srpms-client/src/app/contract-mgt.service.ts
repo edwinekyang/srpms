@@ -8,7 +8,7 @@ import { BehaviorSubject } from 'rxjs';
 @Injectable({
     providedIn: 'root'
 })
-export class SupervisorService {
+export class ContractMgtService {
     constructor(private http: HttpClient) { }
 
     private API_URL = '/api/';
@@ -22,7 +22,7 @@ export class SupervisorService {
     };
 
     private static log(message: string) {
-        console.log(`Supervisor Service: ${message}`);
+        console.log(`ContractMgt Service: ${message}`);
     }
 
     changeMessage(message: any) {
@@ -33,6 +33,13 @@ export class SupervisorService {
         return this.http.get<any[]>(`${this.API_URL}research_mgt/supervise/`, this.httpOptions)
             .pipe(
                 catchError(this.handleError<any[]>('getSupervise'))
+            );
+    }
+
+    getExamine(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API_URL}research_mgt/supervise/`, this.httpOptions)
+            .pipe(
+                catchError(this.handleError<any[]>('getExamine'))
             );
     }
 
@@ -50,7 +57,7 @@ export class SupervisorService {
             console.error(error); // log to console instead
 
             // TODO: better job of transforming error for user consumption
-            SupervisorService.log(`${operation} failed: ${error.message}`);
+            ContractMgtService.log(`${operation} failed: ${error.message}`);
 
             // Let the app keep running by returning an empty result.
             return of(result as T);

@@ -1,0 +1,19 @@
+<p class="title mat-h1">INDEPENDENT STUDY CONTRACTS MANAGEMENT</p>
+<mat-card>
+    <mat-list>
+        <h3 mat-subheader>{{(this.route === '/supervisor' || this.route === '/convenor')?
+            'Awaiting Contracts':'Awaiting Requests'}}</h3>
+        <mat-list-item *ngFor="let contract of awaitingContractList">
+            <div class="contract-button">
+                <a mat-line mat-button color="secondary" routerLink="/contract-viewer"
+                   (click)="sendContractObj(contract.contractObj)">{{contract.title}}, {{contract.studentName}}
+                    ({{contract.studentId}})</a>
+            </div>
+        </mat-list-item>
+        <mat-divider></mat-divider>
+        <h3 mat-subheader>{{(this.route === '/supervisor' || this.route === '/convenor')?
+            'Approved Contracts':'Confirmed Requests'}}</h3>
+        <mat-list-item *ngFor="let contract of approvedContractList">
+        </mat-list-item>
+    </mat-list>
+</mat-card>

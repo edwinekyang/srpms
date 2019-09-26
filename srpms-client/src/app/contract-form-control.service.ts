@@ -6,11 +6,14 @@ import { ElementBase } from './element-base';
 export class ContractFormControlService {
     constructor() { }
 
-    toFormGroup(elements: ElementBase<any>[] ) {
+    toFormGroup(elements: ElementBase<any>[], flag: string) {
+        let elementFlag: string;
+        elementFlag = flag ? flag : 'course';
         const group: any = {};
 
         elements.forEach(element => {
-            group[element.key] = element.required ? new FormControl(element.value || '', Validators.required)
+            group[element.key] = element.required && (element.flag === 'common' || element.flag === elementFlag) ?
+                new FormControl(element.value || '', Validators.required)
                 : new FormControl(element.value || '');
         });
         return new FormGroup(group);

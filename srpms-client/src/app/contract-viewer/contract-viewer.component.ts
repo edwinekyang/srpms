@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {SupervisorService} from '../supervisor.service';
+import {ContractMgtService} from '../contract-mgt.service';
 
 export interface ContractViewer {
   studentId: string;
@@ -52,7 +52,7 @@ export class ContractViewerComponent implements OnInit {
   private contractViewer: ContractViewer;
 
   constructor(
-      private supervisorService: SupervisorService,
+      private supervisorService: ContractMgtService,
   ) { }
 
   ngOnInit() {

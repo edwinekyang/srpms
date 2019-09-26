@@ -28,6 +28,7 @@ export class ContractFormComponent implements OnInit {
   };
   specialTopics = {
   };
+  courseValue: string;
   @Output() formFlagEvent = new EventEmitter<string>();
 
   constructor(
@@ -36,7 +37,7 @@ export class ContractFormComponent implements OnInit {
   ) {  }
 
   ngOnInit() {
-    this.form = this.cfcs.toFormGroup(this.elements);
+    this.form = this.cfcs.toFormGroup(this.elements, '');
     this.sectionList = [
       '',
       'Course and Supervisor',
@@ -48,9 +49,13 @@ export class ContractFormComponent implements OnInit {
   }
 
   receiveFormFlag($event) {
-    this.formFlag = $event;
+    console.log($event);
+    this.formFlag = $event.formFlag;
     this.sendFormFlag();
-    this.elementFlag = $event;
+    this.elementFlag = $event.formFlag;
+    this.courseValue = $event.courseValue;
+    this.form = this.cfcs.toFormGroup(this.elements, this.elementFlag);
+    this.form.controls.course.setValue(this.courseValue);
   }
 
   sendFormFlag() {

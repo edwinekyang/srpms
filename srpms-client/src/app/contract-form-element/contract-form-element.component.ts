@@ -15,8 +15,10 @@ export class ContractFormElementComponent implements OnInit {
   @Input() elementFlag: string;
   order: number;
   formFlag: string;
+  courseValue: number;
+  message = {};
 
-  @Output() formFlagEvent = new EventEmitter<string>();
+  @Output() formFlagEvent = new EventEmitter<any>();
 
   get isValid() { return this.form.controls[this.element.key].valid; }
   constructor() {
@@ -33,7 +35,12 @@ export class ContractFormElementComponent implements OnInit {
     this.element.choices.forEach((item) => {
       if (item.value === this.form.controls.course.value) {
           this.formFlag = item.flag;
-          this.formFlagEvent.emit(this.formFlag);
+          this.courseValue = item.value;
+          this.message = {
+            formFlag: this.formFlag,
+            courseValue: item.value,
+          };
+          this.formFlagEvent.emit(this.message);
       }
     });
   }

@@ -19,7 +19,7 @@
         <input #input matInput placeholder="{{element.placeholder === ''?element.label:element.placeholder}}" [formControl]="form.controls[element.key]"
                [id]="element.key" [type]="element.type" [value]="element.value" [required]="element.required"
                [maxLength]="element.maxlength?element.maxlength:200">
-        <mat-hint align="end">{{input.maxLength === 200?'':input.value?.length || 0}} / {{element.maxlength}}</mat-hint>
+        <mat-hint align="end">{{input.maxLength === 200?'':input.value?.length + ' / ' || 0}}{{element.maxlength}}</mat-hint>
         <mat-error *ngIf="form.controls[element.key].invalid">{{getErrorMessage(form.controls[element.key])}}</mat-error>
     </mat-form-field>
     </ng-template>
@@ -70,4 +70,6 @@
     </div>
     </div>
 </div>
+
 </div>
+
