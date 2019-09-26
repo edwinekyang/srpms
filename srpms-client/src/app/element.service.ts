@@ -58,7 +58,7 @@ export class ElementService {
             }),
 
             new TextboxElement({
-                key: 'proejctSupervisor',
+                key: 'projectSupervisor',
                 label: 'PROJECT SUPERVISOR',
                 value: 1,
                 required: true,

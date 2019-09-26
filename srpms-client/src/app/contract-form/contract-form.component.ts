@@ -189,7 +189,7 @@ export class ContractFormComponent implements OnInit {
 
   addSupervise() {
     this.supervise = {
-      supervisor: this.form.value.proejctSupervisor,
+      supervisor: this.form.value.projectSupervisor,
       contract: this.contractId,
       is_formal: true
     };

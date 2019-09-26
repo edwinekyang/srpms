@@ -31,7 +31,6 @@ export interface AssessmentMethodList<T> {
     selector: 'app-supervisor',
     templateUrl: './contract-mgt.component.html',
     styleUrls: ['./contract-mgt.component.scss'],
-    providers: [Router]
 })
 
 

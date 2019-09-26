@@ -9,7 +9,6 @@ describe('ContractViewerComponent', () => {
   let fixture: ComponentFixture<ContractViewerComponent>;
   let httpClient: HttpClient;
   let httpTestingController: HttpTestingController;
-  let message: any;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
