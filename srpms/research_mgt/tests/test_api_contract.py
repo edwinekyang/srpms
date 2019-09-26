@@ -154,10 +154,7 @@ class TestContract(utils.SrpmsTest):
         ########################################
         # Convener requests
         response = self.convener.put(utils.ApiUrls.contract + str(con_id) + '/', con_req)
-        self.assertEqual(response.status_code, status.HTTP_200_OK,
-                         'Course convener should be allowed to edit')
-        self.assertTrue(response.data.pop('id'))
-        assert_contract_response(self, response, con_resp)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         ########################################
         # Superuser requests
@@ -284,10 +281,7 @@ class TestContract(utils.SrpmsTest):
         ########################################
         # Convener requests
         response = self.convener.patch(utils.ApiUrls.contract + str(con_id) + '/', con_req)
-        self.assertEqual(response.status_code, status.HTTP_200_OK,
-                         'Course convener should be allowed to edit')
-        self.assertTrue(response.data.pop('id'))
-        assert_contract_response(self, response, con_resp)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         ########################################
         # Superuser requests
@@ -342,10 +336,8 @@ class TestContract(utils.SrpmsTest):
 
         ########################################
         # Convener requests
-
-        # Before final approval, convener is able to delete
         response = self.convener.delete(utils.ApiUrls.contract + str(con_id) + '/')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         ########################################
         # Superuser requests

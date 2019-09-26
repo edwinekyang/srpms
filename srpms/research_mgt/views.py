@@ -74,9 +74,10 @@ class ContractViewSet(ModelViewSet):
     queryset = models.Contract.objects.all()
     serializer_class = serializers.ContractSerializer
     permission_classes = default_perms + [app_perms.ReadOnly |
+                                          app_perms.AllowPOST |
                                           app_perms.IsSuperuser |
                                           app_perms.IsContractOwner |
-                                          app_perms.IsContractFormalSupervisor, ]
+                                          app_perms.IsContractSupervisor, ]
 
     def perform_create(self, serializer: serializers.ContractSerializer):
 
@@ -190,6 +191,8 @@ class SuperviseViewSet(CreateModelMixin,
 
     def perform_create(self, serializer: serializers.SuperviseSerializer):
 
+        serializer.validated_data['contract'] = self.resolved_parents['contract']
+
         # Check if supervisor is an approved supervisor, if yes, set the is_form attribute
         supervisor = serializer.validated_data['supervisor']
         if supervisor.has_perm('can_supervise'):
@@ -200,6 +203,8 @@ class SuperviseViewSet(CreateModelMixin,
         return super(SuperviseViewSet, self).perform_create(serializer)
 
     def perform_update(self, serializer: serializers.SuperviseSerializer):
+
+        serializer.validated_data['contract'] = self.resolved_parents['contract']
 
         # Check if supervisor is approved, if yes, set the is_formal attribute
         supervisor = serializer.validated_data['supervisor']

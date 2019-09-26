@@ -4,17 +4,28 @@ from rest_framework.request import Request
 
 from . import models
 from . import views
-from accounts.models import SrpmsUser
 
 
 class ReadOnly(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:
         if request.method in permissions.SAFE_METHODS:
             return True
+        return False
 
     def has_object_permission(self, request, view, obj) -> bool:
         if request.method in permissions.SAFE_METHODS:
             return True
+        return False
+
+
+class AllowPOST(permissions.BasePermission):
+    def has_permission(self, request, view) -> bool:
+        if request.method == 'POST':
+            return True
+        return False
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        return False
 
 
 class IsConvener(permissions.BasePermission):
@@ -35,39 +46,67 @@ class IsSuperuser(permissions.BasePermission):
 
 class IsContractOwner(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:
+        if type(view) in [views.ContractViewSet]:
+            return True
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        pass
+        if isinstance(obj, models.Contract):
+            if obj.owner == request.user:
+                return True
+        else:
+            return False
+
+        return False
 
 
 class IsContractFormalSupervisor(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:
-        pass
+        if type(view) in [views.ContractViewSet]:
+            return True
+        return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        pass
+        if isinstance(obj, models.Contract):
+            if request.method == 'DELETE':
+                return False
+            elif request.user in obj.get_all_formal_supervisors():
+                return True
+        else:
+            return False
+
+        return False
 
 
 class IsContractSupervisor(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:
-        pass
+        if type(view) in [views.ContractViewSet]:
+            return True
+        return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        pass
+        if isinstance(obj, models.Contract):
+            if request.method == 'DELETE':
+                return False
+            elif request.user in obj.get_all_supervisors():
+                return True
+        else:
+            return False
+
+        return False
 
 
 class IsContractSuperviseOwner(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:
-        pass
+        return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        pass
+        return False
 
 
 class IsContractAssessmentExamineOwner(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:
-        pass
+        return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        pass
+        return False
