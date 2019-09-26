@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 
 from accounts.models import SrpmsUser
@@ -29,17 +30,11 @@ class UserContractSerializer(serializers.ModelSerializer):
 
     # noinspection PyMethodMayBeStatic
     def get_supervise(self, obj: SrpmsUser) -> tuple:
-        """
-        User's supervise field was pointed to instances of Supervise relation, not contract
-        """
-        return obj.supervise.all().values_list('contract').get()
+        return tuple(obj.supervise.all().values_list('contract', flat=True))
 
     # noinspection PyMethodMayBeStatic
     def get_examine(self, obj: SrpmsUser) -> tuple:
-        """
-        User's supervise field was pointed to instances of Assessment relation, not contract
-        """
-        return models.AssessmentExamine.objects.filter(examiner=obj).values_list('contract').get()
+        return tuple(models.AssessmentExamine.objects.filter(examiner=obj).values_list('contract'))
 
 
 class SuperviseSerializer(serializers.ModelSerializer):
@@ -169,7 +164,22 @@ class ContractSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Contract must be one and only one type')
 
         if individual_project:
-            return models.IndividualProject.objects.create(**validated_data, **individual_project)
+            # Create individual project contract and all its associated assessments, and use
+            # transaction to make sure all creation success, otherwise rollback to previous
+            # state.
+            with transaction.atomic():
+                contract = models.IndividualProject.objects.create(**validated_data,
+                                                                   **individual_project)
+                models.Assessment.objects.create(
+                        template=models.AssessmentTemplate.objects.get(name='report'),
+                        contract=contract)
+                models.Assessment.objects.create(
+                        template=models.AssessmentTemplate.objects.get(name='artifact'),
+                        contract=contract)
+                models.Assessment.objects.create(
+                        template=models.AssessmentTemplate.objects.get(name='presentation'),
+                        contract=contract)
+            return contract
         if special_topic:
             return models.SpecialTopic.objects.create(**validated_data, **special_topic)
 

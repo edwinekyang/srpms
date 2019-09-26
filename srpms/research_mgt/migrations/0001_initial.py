@@ -104,7 +104,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('additional_description', models.CharField(blank=True, default='', max_length=200)),
                 ('due', models.DateField(blank=True, null=True)),
-                ('weight', models.IntegerField()),
+                ('weight', models.IntegerField(blank=True)),
                 ('contract', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assessment', to='research_mgt.Contract')),
                 ('template', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='assessment', to='research_mgt.AssessmentTemplate')),
             ],

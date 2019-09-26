@@ -108,9 +108,16 @@ class Contract(models.Model):
 
         errors = {}
 
+        if self.submit_date:
+            # Make sure every contract have assessments sum to 100 on submit
+            weights = list(Assessment.objects.filter(contract=self)
+                           .values_list('weight', flat=True))
+            if not sum(weights) == 100:
+                errors['submit'] = 'The sum of all assessments\' weight should be 100'
+
         # Update only check, self.pk would not present during create
         if self.pk:
-            pass
+            pass  # Don't have anything to check at the moment
 
         # Check every condition satisfy on final approval
         if self.convener_approval_date:
@@ -133,7 +140,7 @@ class Contract(models.Model):
         if self.convener_approval_date:
             Examine.objects.filter(contract=self, assessment_examine__isnull=True).delete()
 
-        super(Contract, self).save(*args, **kwargs)
+        return super(Contract, self).save(*args, **kwargs)
 
     def __str__(self):
         if hasattr(self, 'individual_project'):
@@ -155,8 +162,7 @@ class IndividualProject(Contract):
 
     def save(self, *args, **kwargs):
         # TODO: on submit, apply all constraints
-        # TODO: on create, create associated assessments
-        super(IndividualProject, self).save(*args, **kwargs)
+        return super(IndividualProject, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -173,7 +179,7 @@ class SpecialTopic(Contract):
 
     def save(self, *args, **kwargs):
         # TODO: on submit, apply all constraints
-        super(SpecialTopic, self).save(*args, **kwargs)
+        return super(SpecialTopic, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -200,6 +206,14 @@ class Supervise(models.Model):
         """Whether this supervisor have approved this contract"""
         return bool(self.supervisor_approval_date)
 
+    def clean(self) -> None:
+        # TODO: Should we allow the last supervisor to approve contract if not all
+        #       examiner has been approved?
+        pass
+
+    def save(self, *args, **kwargs):
+        return super(Supervise, self).save(*args, **kwargs)
+
 
 class AssessmentTemplate(models.Model):
     name = models.CharField(max_length=100, unique=True, null=False, blank=False)
@@ -207,8 +221,6 @@ class AssessmentTemplate(models.Model):
     max_weight = models.IntegerField(null=False, blank=False)
     min_weight = models.IntegerField(null=False, blank=False)
     default_weight = models.IntegerField(null=True, blank=True)
-
-    # TODO: Add an partial id that increases when a new assessment item is being added to a contract
 
     def clean(self):
         errors = {}
@@ -225,7 +237,7 @@ class AssessmentTemplate(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        super(AssessmentTemplate, self).save()
+        return super(AssessmentTemplate, self).save()
 
     def __str__(self):
         return self.name
@@ -238,7 +250,9 @@ class Assessment(models.Model):
                                  on_delete=models.CASCADE, null=False, blank=False)
     additional_description = models.CharField(max_length=200, default='', blank=True)
     due = models.DateField(null=True, blank=True)
-    weight = models.IntegerField(null=False, blank=False)
+    weight = models.IntegerField(null=False, blank=True)
+
+    # TODO: Add an partial id that increases when a new assessment item is being added to a contract
 
     def is_convener_approved(self) -> bool:
         """No one should be allowed to change after convener approved"""
@@ -265,9 +279,11 @@ class Assessment(models.Model):
         """Apply constraint to the model"""
 
         errors = {}
-        # Ensure each assessment item is within the valid rage specified by the template
-        if self.weight > self.template.max_weight or self.weight < self.template.min_weight:
-            errors['weight'] = 'Please keep the mark within the valid range'
+
+        if self.weight:
+            # Ensure each assessment item is within the valid rage specified by the template
+            if self.weight > self.template.max_weight or self.weight < self.template.min_weight:
+                errors['weight'] = 'Please keep the weight within the valid range given by template'
 
         if errors:
             raise ValidationError(errors)
@@ -279,7 +295,7 @@ class Assessment(models.Model):
         if not self.weight:
             self.weight = self.template.default_weight
 
-        super(Assessment, self).save(*args, **kwargs)
+        return super(Assessment, self).save(*args, **kwargs)
 
 
 class Examine(models.Model):
@@ -297,7 +313,7 @@ class AssessmentExamine(models.Model):
 
     The original EER diagram was a many-to-many relation with one side being a weak entity:
 
-    [SrpmsUser] -- n -- <examine> -- m -- [[assessment]]
+    [SrpmsUser] -- n -- <examine> -- m -- [[assessment]] -- m -- [Contract]
     [[assessment]] -- m -- <assess> -- 1 -- [contract]
 
 
@@ -342,7 +358,7 @@ class AssessmentExamine(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         self.contract = self.assessment.contract
-        super(AssessmentExamine, self).save(*args, **kwargs)
+        return super(AssessmentExamine, self).save(*args, **kwargs)
 
 
 class AppPermission(models.Model):

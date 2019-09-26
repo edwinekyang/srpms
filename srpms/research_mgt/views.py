@@ -33,18 +33,9 @@ class CourseViewSet(ModelViewSet):
     """
     queryset = models.Course.objects.all()
     serializer_class = serializers.CourseSerializer
-
-    def get_permissions(self):
-        permission_class = default_perms
-        if self.request.method == 'GET':
-            pass
-        else:
-            permission_class += [app_perms.ReadOnly |
-                                 app_perms.IsSuperuser |
-                                 app_perms.IsConvener, ]
-
-        # Below line is from super method
-        return [permission() for permission in default_perms]
+    permission_classes = default_perms + [app_perms.AllowSafeMethods |
+                                          app_perms.IsSuperuser |
+                                          app_perms.IsConvener, ]
 
 
 class AssessmentTemplateViewSet(ModelViewSet):
@@ -54,12 +45,14 @@ class AssessmentTemplateViewSet(ModelViewSet):
     queryset = models.AssessmentTemplate.objects.all()
     serializer_class = serializers.AssessmentTemplateSerializer
 
+    # TODO: forbid update of template name, as its tight to business logic???
+
     def get_permissions(self):
         permission_class = default_perms
         if self.request.method == 'GET':
             pass
         else:
-            permission_class += [app_perms.ReadOnly |
+            permission_class += [app_perms.AllowSafeMethods |
                                  app_perms.IsSuperuser |
                                  app_perms.IsConvener, ]
 
@@ -73,7 +66,7 @@ class ContractViewSet(ModelViewSet):
     """
     queryset = models.Contract.objects.all()
     serializer_class = serializers.ContractSerializer
-    permission_classes = default_perms + [app_perms.ReadOnly |
+    permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.AllowPOST |
                                           app_perms.IsSuperuser |
                                           app_perms.IsContractOwner |
@@ -93,8 +86,9 @@ class ContractViewSet(ModelViewSet):
         # TODO: permission
         serializer: SubmitSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            models.Contract.objects.filter(pk=pk).update(
-                    submit_date=serializer.validated_data['submit'])
+            contract = self.get_object()
+            contract.submit_date = serializer.validated_data['submit']
+            contract.save()
             return Response(status=HTTP_200_OK)
         else:
             raise ValidationError()
@@ -106,9 +100,15 @@ class ContractViewSet(ModelViewSet):
         # TODO: permission
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            models.Contract.objects.filter(pk=pk).update(
-                    convener_approval_date=serializer.validated_data['approve'],
-                    convener=self.request.user)
+            contract = self.get_object()
+            approve_date = serializer.validated_data['approve']
+            if approve_date:
+                contract.convener = self.request.user
+                contract.convener_approval_date = approve_date
+            else:
+                contract.convener = None
+                contract.convener_approval_date = None
+            contract.save()
             return Response(status=HTTP_200_OK)
         else:
             raise ValidationError()
@@ -122,13 +122,18 @@ class AssessmentExamineViewSet(CreateModelMixin,
                                NestedGenericViewSet):
     queryset = models.AssessmentExamine.objects.all()
     serializer_class = serializers.AssessmentExamineSerializer
-    permission_classes = default_perms + [app_perms.IsSuperuser |
+    permission_classes = default_perms + [app_perms.AllowSafeMethods |
+                                          app_perms.IsContractAssessmentExaminer |
+                                          app_perms.IsContractSupervisor |
                                           app_perms.IsConvener |
-                                          app_perms.IsContractSupervisor, ]
+                                          app_perms.IsSuperuser, ]
 
     def perform_create(self, serializer: serializers.AssessmentExamineSerializer):
         serializer.validated_data['assessment'] = self.resolved_parents['assessment']
         serializer.validated_data['contract'] = self.resolved_parents['contract']
+
+        # TODO: don't allow individual project to have more than one examine for each assessment
+
         return super(AssessmentExamineViewSet, self).perform_create(serializer)
 
     def perform_update(self, serializer):
@@ -139,14 +144,14 @@ class AssessmentExamineViewSet(CreateModelMixin,
     @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=ApproveSerializer,
             permission_classes=default_perms + [app_perms.IsSuperuser |
                                                 app_perms.IsConvener |
-                                                app_perms.IsContractAssessmentExamineOwner, ])
+                                                app_perms.IsContractAssessmentExaminer, ])
     def approve(self, request, pk=None):
         """Allow examiners to approve assessments"""
         # TODO: permission
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            models.Contract.objects.filter(pk=pk).update(
-                    examiner_approval_date=serializer.validated_data['approve'])
+            assessment_examine = self.get_object()
+            assessment_examine.examiner_approval_date = serializer.validated_data['approve']
             return Response(status=HTTP_200_OK)
         else:
             raise ValidationError()
@@ -164,11 +169,21 @@ class AssessmentViewSet(CreateModelMixin,
     """
     queryset = models.Assessment.objects.all()
     serializer_class = serializers.AssessmentSerializer
-    permission_classes = default_perms + [app_perms.ReadOnly |
+    permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.IsSuperuser |
                                           app_perms.IsConvener |
                                           app_perms.IsContractOwner |
                                           app_perms.IsContractSupervisor, ]
+
+    # TODO: don't allow individual project to create assessment
+
+    def perform_create(self, serializer):
+        serializer.validated_data['contract'] = self.resolved_parents['contract']
+        return super(AssessmentViewSet, self).perform_create(serializer)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['contract'] = self.resolved_parents['contract']
+        return super(AssessmentViewSet, self).perform_update(serializer)
 
 
 class SuperviseViewSet(CreateModelMixin,
@@ -183,17 +198,18 @@ class SuperviseViewSet(CreateModelMixin,
     """
     queryset = models.Supervise.objects.all()
     serializer_class = serializers.SuperviseSerializer
-    permission_classes = default_perms + [app_perms.ReadOnly |
+    permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.IsSuperuser |
                                           app_perms.IsConvener |
                                           app_perms.IsContractOwner |
                                           app_perms.IsContractFormalSupervisor, ]
 
     def perform_create(self, serializer: serializers.SuperviseSerializer):
-
         serializer.validated_data['contract'] = self.resolved_parents['contract']
 
-        # Check if supervisor is an approved supervisor, if yes, set the is_form attribute
+        # TODO: don't allow individual project to have more than one supervise
+
+        # Check if supervisor is an approved supervisor, if yes, set the is_formal attribute
         supervisor = serializer.validated_data['supervisor']
         if supervisor.has_perm('can_supervise'):
             serializer.validated_data['is_formal'] = True
@@ -223,8 +239,8 @@ class SuperviseViewSet(CreateModelMixin,
         """Allow supervisor to approve supervise relation"""
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            models.Contract.objects.filter(pk=pk).update(
-                    supervisor_approval_date=serializer.validated_data['approve'])
+            supervise = self.get_object()
+            supervise.supervisor_approval_date = serializer.validated_data['approve']
             return Response(status=HTTP_200_OK)
         else:
             raise ValidationError()

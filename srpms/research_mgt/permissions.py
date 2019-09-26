@@ -4,9 +4,10 @@ from rest_framework.request import Request
 
 from . import models
 from . import views
+from accounts.models import SrpmsUser
 
 
-class ReadOnly(permissions.BasePermission):
+class AllowSafeMethods(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -29,30 +30,47 @@ class AllowPOST(permissions.BasePermission):
 
 
 class IsConvener(permissions.BasePermission):
+    @staticmethod
+    def check(user: SrpmsUser):
+        return user.has_perm('research_mgt.can_convene')
+
     def has_permission(self, request: Request, view: viewsets.ModelViewSet) -> bool:
-        return request.user.has_perm('research_mgt.can_convene')
+        return self.check(request.user)
 
     def has_object_permission(self, request: Request, view, obj) -> bool:
-        return request.user.has_perm('research_mgt.can_convene')
+        return self.check(request.user)
 
 
 class IsSuperuser(permissions.BasePermission):
+    @staticmethod
+    def check(user: SrpmsUser):
+        return user.has_perm('research_mgt.is_mgt_superuser')
+
     def has_permission(self, request: Request, view: viewsets.ModelViewSet) -> bool:
-        return request.user.has_perm('research_mgt.is_mgt_superuser')
+        return self.check(request.user)
 
     def has_object_permission(self, request: Request, view, obj) -> bool:
-        return request.user.has_perm('research_mgt.is_mgt_superuser')
+        return self.check(request.user)
 
 
 class IsContractOwner(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:
-        if type(view) in [views.ContractViewSet]:
+        if isinstance(view, views.ContractViewSet):
             return True
+        elif isinstance(view, views.AssessmentViewSet):
+            if request.method in ['POST', 'DELETE'] and \
+                    hasattr(view.resolved_parents['contract'], 'individual_project'):
+                return False
+            else:
+                return True
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
         if isinstance(obj, models.Contract):
             if obj.owner == request.user:
+                return True
+        elif isinstance(obj, models.Assessment):
+            if obj.contract.owner == request.user:
                 return True
         else:
             return False
@@ -104,7 +122,7 @@ class IsContractSuperviseOwner(permissions.BasePermission):
         return False
 
 
-class IsContractAssessmentExamineOwner(permissions.BasePermission):
+class IsContractAssessmentExaminer(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:
         return False
 
