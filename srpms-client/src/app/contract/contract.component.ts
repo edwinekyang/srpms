@@ -44,6 +44,5 @@ export class ContractComponent implements OnInit {
         this.filteredElements.push(element);
       }
     });
-    console.log(this.filteredElements);
   }
 }

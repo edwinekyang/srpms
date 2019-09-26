@@ -44,7 +44,6 @@ export class ContractFormComponent implements OnInit, OnChanges {
             this.form = this.cfcs.toFormGroup(this.elements, 'course');
         } else {
             this.form = this.cfcs.toFormGroup(this.elements, '');
-            console.log(this.form);
         }
         this.sectionList = [
             '',
@@ -60,7 +59,6 @@ export class ContractFormComponent implements OnInit, OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        console.log(changes);
         this.form = this.cfcs.toFormGroup(changes.elements.currentValue, '');
         if (this.courseSelected) {
             this.form.controls.course.setValue(changes.courseSelected.currentValue);
@@ -158,7 +156,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
         this.assessment1 = {
             template: this.form.value.assessment1,
             contract: this.contractId,
-            additional_description: '',
+            additional_description: this.form.value.assessment1Description,
             due: this.form.value.assessment1Due,
             max_mark: this.form.value.assessment1Mark,
             examiner: this.form.value.assessment1Examiner
@@ -176,7 +174,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
         this.assessment2 = {
             template: this.form.value.assessment2,
             contract: this.contractId,
-            additional_description: '',
+            additional_description: this.form.value.assessment2Description,
             due: this.form.value.assessment2Due,
             max_mark: this.form.value.assessment2Mark,
             examiner: this.form.value.assessment2Examiner
@@ -194,7 +192,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
         this.assessment3 = {
             template: this.form.value.assessment3,
             contract: this.contractId,
-            additional_description: '',
+            additional_description: this.form.value.assessment3Description,
             due: this.form.value.assessment3Due,
             max_mark: this.form.value.assessment3Mark,
             examiner: this.form.value.assessment3Examiner

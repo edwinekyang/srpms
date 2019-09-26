@@ -26,7 +26,7 @@ import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 import { AuthInterceptor } from './auth-interceptor.service';
 import { ContractFormComponent } from './contract-form/contract-form.component';
 import { ContractFormElementComponent } from './contract-form-element/contract-form-element.component';
-import {MatCheckboxModule, MatRadioModule, MatSelectModule} from '@angular/material';
+import {MatCheckboxModule, MatExpansionModule, MatRadioModule, MatSelectModule} from '@angular/material';
 import { ContractMgtComponent } from './contract-mgt/contract-mgt.component';
 import { ContractViewerComponent } from './contract-viewer/contract-viewer.component';
 
@@ -64,6 +64,7 @@ import { ContractViewerComponent } from './contract-viewer/contract-viewer.compo
         MatSelectModule,
         MatCheckboxModule,
         MatRadioModule,
+        MatExpansionModule,
     ],
   entryComponents: [
     LoginDialogComponent
