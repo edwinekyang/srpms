@@ -6,13 +6,19 @@ import { ElementBase } from './element-base';
 export class ContractFormControlService {
     constructor() { }
 
-    toFormGroup(elements: ElementBase<any>[] ) {
+    toFormGroup(elements: ElementBase<any>[], flag: string) {
         const group: any = {};
-
-        elements.forEach(element => {
-            group[element.key] = element.required ? new FormControl(element.value || '', Validators.required)
-                : new FormControl(element.value || '');
-        });
+        if (flag === 'course') {
+            elements.forEach(element => {
+                group[element.key] = (element.flag === 'course') ? new FormControl(element.value || '',
+                    Validators.required) : new FormControl(element.value || '');
+            });
+        } else {
+            elements.forEach(element => {
+                group[element.key] = element.required ? new FormControl(element.value || '', Validators.required) :
+                    new FormControl(element.value || '');
+            });
+        }
         return new FormGroup(group);
     }
 }

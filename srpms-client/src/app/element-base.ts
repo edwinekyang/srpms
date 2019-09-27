@@ -8,6 +8,9 @@ export class ElementBase<T> {
   choices: any;
   type: any;
   flag: string;
+  disabled: boolean;
+  placeholder: string;
+  maxlength: number;
 
     constructor(options: {
       value?: T,

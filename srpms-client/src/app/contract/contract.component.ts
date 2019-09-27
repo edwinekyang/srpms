@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import { ContractService, Course } from '../contract.service';
+import { ContractService } from '../contract.service';
 import { ElementService } from '../element.service';
 import {ElementBase} from '../element-base';
 
@@ -14,21 +14,35 @@ import {ElementBase} from '../element-base';
 })
 
 export class ContractComponent implements OnInit {
-  course: Course[] = [];
   elements: ElementBase<any>[] = [];
   formFlag: string;
+  filteredElements: ElementBase<any>[] = [];
+  courseElement: ElementBase<any>[] = [];
+  courseValue: string;
 
   constructor(
     public elementService: ElementService
   ) {
     this.elements = this.elementService.getElements();
+    this.elements.forEach((data: any) => {
+      if (data.key === 'course') {
+        this.courseElement.push(data);
+      }
+    });
   }
 
   ngOnInit() {
-    this.formFlag = '';
+
   }
 
   receiveFormFlag($event) {
-    this.formFlag = $event;
+    this.filteredElements = [];
+    this.formFlag = $event.formFlag;
+    this.courseValue = $event.courseValue;
+    this.elements.forEach((element: any) => {
+      if (element.flag === 'common' || element.flag === this.formFlag || element.flag === '') {
+        this.filteredElements.push(element);
+      }
+    });
   }
 }

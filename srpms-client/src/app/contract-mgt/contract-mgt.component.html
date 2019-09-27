@@ -1,0 +1,138 @@
+<p class="title mat-h1">INDEPENDENT STUDY CONTRACTS MANAGEMENT</p>
+<mat-card>
+    <mat-list>
+        <h3 mat-subheader>{{(this.route === '/supervisor' || this.route === '/convenor')?
+            'Awaiting Contracts':'Awaiting Requests'}}</h3>
+<!--        <mat-list-item *ngFor="let contract of awaitingContractList">-->
+<!--            <div class="contract-button">-->
+<!--                <a mat-line mat-button color="secondary" routerLink="/contract-viewer"-->
+<!--                   (click)="sendContractObj(contract.contractObj)">{{contract.title}}, {{contract.studentName}}-->
+<!--                    ({{contract.studentId}})</a>-->
+<!--            </div>-->
+<!--        </mat-list-item>-->
+        <mat-accordion>
+            <mat-expansion-panel *ngFor="let contract of awaitingContractList">
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                        <p>{{contract.title}}</p>
+                    </mat-panel-title>
+                    <mat-panel-description>
+                        {{contract.studentName}}({{contract.studentId}})
+                    </mat-panel-description>
+                </mat-expansion-panel-header>
+                <mat-grid-list cols="5" rowHeight="6:1">
+                    <mat-list>
+                    <mat-grid-tile colspan="3">
+                        <h3 mat-subheader>Course</h3>
+                        <mat-list-item>
+                            <h4 mat-line>{{contract.courseNumber}}, {{contract.courseName}}</h4>
+                        </mat-list-item>
+                    </mat-grid-tile>
+                    <mat-grid-tile>
+                        <h3 mat-subheader>Year/Semester</h3>
+                        <mat-list-item>
+                            <h4 mat-line>{{contract.contractObj["year"]}}/S{{contract.contractObj["semester"]}}</h4>
+                        </mat-list-item>
+                    </mat-grid-tile>
+                    <mat-grid-tile>
+                        <h3 mat-subheader>Duration</h3>
+                        <mat-list-item>
+                            <h4 mat-line>1 Semester</h4>
+                        </mat-list-item>
+                    </mat-grid-tile>
+
+                    <mat-grid-tile colspan="5">
+                        <h3 mat-subheader>Project Objectives</h3>
+                        <mat-list-item></mat-list-item>
+
+                    </mat-grid-tile>
+                        <mat-grid-tile colspan="5">
+                            <mat-list-item>
+                                <h4 mat-line>{{contract.contractObj['special_topics']?
+                                    contract.contractObj['special_topics']['objectives']:
+                                    contract.contractObj['individual_project']['objectives']}}</h4>
+                            </mat-list-item>
+                        </mat-grid-tile>
+                    <mat-grid-tile colspan="5">
+                        <h3 mat-subheader>Project Description</h3>
+                        <mat-list-item></mat-list-item>
+                    </mat-grid-tile>
+                        <mat-grid-tile>
+                            <mat-list-item>
+                                <h4 mat-line>{{contract.contractObj['special_topics']?
+                                    contract.contractObj['special_topics']['description']:
+                                    contract.contractObj['individual_project']['description']}}</h4>
+                            </mat-list-item>
+                        </mat-grid-tile>
+                    <mat-grid-tile colspan="5">
+                        <h3 mat-subheader>Assessment 1: </h3>
+                        <mat-list-item>
+
+                        </mat-list-item>
+                    </mat-grid-tile>
+                    <mat-grid-tile>
+                        <h3 mat-subheader>Style</h3>
+                        <mat-list-item>
+                            <h4 mat-line></h4>
+                        </mat-list-item>
+                    </mat-grid-tile>
+                    <mat-grid-tile>
+                        <h3 mat-subheader>Mark</h3>
+                    </mat-grid-tile>
+                        <mat-grid-tile>
+                            <h3 mat-subheader>Due date</h3>
+                        </mat-grid-tile>
+                        <mat-grid-tile colspan="2">
+                            <h3 mat-subheader>Evaluated by</h3>
+                        </mat-grid-tile>
+                    <mat-grid-tile colspan="5">
+                        <h3 mat-subheader>Assessment 2: </h3>
+                        <mat-list-item>
+
+                        </mat-list-item>
+                    </mat-grid-tile>
+                        <mat-grid-tile>
+                            <h3 mat-subheader>Style</h3>
+                        </mat-grid-tile>
+                        <mat-grid-tile>
+                            <h3 mat-subheader>Mark</h3>
+                        </mat-grid-tile>
+                        <mat-grid-tile>
+                            <h3 mat-subheader>Due date</h3>
+                        </mat-grid-tile>
+                        <mat-grid-tile colspan="2">
+                            <h3 mat-subheader>Evaluated by</h3>
+                        </mat-grid-tile>
+                    <mat-grid-tile colspan="5">
+                        <h3 mat-subheader>Assessment 3: </h3>
+                        <mat-list-item>
+
+                        </mat-list-item>
+                    </mat-grid-tile>
+                        <mat-grid-tile>
+                            <h3 mat-subheader>Style</h3>
+                        </mat-grid-tile>
+                        <mat-grid-tile>
+                            <h3 mat-subheader>Mark</h3>
+                        </mat-grid-tile>
+                        <mat-grid-tile>
+                            <h3 mat-subheader>Due date</h3>
+                        </mat-grid-tile>
+                        <mat-grid-tile colspan="2">
+                            <h3 mat-subheader>Evaluated by</h3>
+                        </mat-grid-tile>
+                    </mat-list>
+                </mat-grid-list>
+                <div class="control-button-row">
+                <a mat-raised-button color="primary" routerLink="/">EDIT</a>
+                <a mat-raised-button color="primary" routerLink="/">APPROVE</a>
+                </div>
+            </mat-expansion-panel>
+        </mat-accordion>
+        <mat-divider></mat-divider>
+        <h3 mat-subheader>{{(this.route === '/supervisor' || this.route === '/convenor')?
+            'Approved Contracts':'Confirmed Requests'}}</h3>
+        <mat-list-item *ngFor="let contract of approvedContractList">
+        </mat-list-item>
+    </mat-list>
+</mat-card>
