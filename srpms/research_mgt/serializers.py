@@ -1,3 +1,4 @@
+from typing import Tuple
 from django.db import transaction
 from rest_framework import serializers
 
@@ -20,21 +21,49 @@ class AssessmentTemplateSerializer(serializers.ModelSerializer):
 
 
 class UserContractSerializer(serializers.ModelSerializer):
+    """For serializing user and its associated contracts"""
+
     own = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    convene = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    supervise = serializers.SerializerMethodField(read_only=True)
+    examine = serializers.SerializerMethodField(read_only=True)
+    convene = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SrpmsUser
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'own', 'convene',
-                  'supervise', 'examine']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email',
+                  'is_approved_supervisor',
+                  'own', 'convene', 'supervise', 'examine']
 
     # noinspection PyMethodMayBeStatic
-    def get_supervise(self, obj: SrpmsUser) -> tuple:
-        return tuple(obj.supervise.all().values_list('contract', flat=True))
+    def get_supervise(self, obj: SrpmsUser) -> Tuple[int]:
+        return tuple(models.Contract.objects.filter(submit_date__isnull=False,
+                                                    supervise__supervisor=obj))
 
     # noinspection PyMethodMayBeStatic
-    def get_examine(self, obj: SrpmsUser) -> tuple:
-        return tuple(models.AssessmentExamine.objects.filter(examiner=obj).values_list('contract'))
+    def get_examine(self, obj: SrpmsUser) -> Tuple[int]:
+        """Show contracts a user examine, the contract must has been approved by supervisor"""
+        return tuple(models.Contract.objects.filter(
+                assessment_examine__examine__examiner=obj,
+                supervise__supervisor_approval_date__isnull=False))
+
+    # noinspection PyMethodMayBeStatic
+    def get_convene(self, obj: SrpmsUser) -> Tuple[int]:
+        """
+        Shows submitted contracts for privileged users.
+
+        TODO: Currently convener can only see contracts when its been approved by supervisor
+              and examiners, however convener may need to operate on supervisor/examiner's
+              behalf in the case that they don't want to use this system.
+        """
+        if obj.has_perm('research_mgt.is_mgt_superuser'):
+            return tuple(models.Contract.objects.all().values_list('pk', flat=True))
+        elif obj.has_perm('research_mgt.can_convene'):
+            return tuple(models.Contract.objects.filter(
+                    submit_date__isnull=False,
+                    supervise__supervisor_approval_date__isnull=False,
+                    assessment_examine__examiner_approval_date__isnull=False))
+        else:
+            return tuple()
 
 
 class SuperviseSerializer(serializers.ModelSerializer):
@@ -75,6 +104,8 @@ class AssessmentExamineSerializer(serializers.ModelSerializer):
 
 
 class AssessmentSerializer(serializers.ModelSerializer):
+    template = AssessmentTemplateSerializer(read_only=True)
+
     # Contract would be attached automatically to the nested view
     contract = serializers.PrimaryKeyRelatedField(read_only=True)
 

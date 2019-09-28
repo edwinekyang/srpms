@@ -22,6 +22,8 @@ class UserViewSet(ReadOnlyModelViewSet):
     """
     Provides read-only user information, as well as the contract they
     involves (own, supervise, convene).
+
+    TODO: let un-privileged users only sees their own contract
     """
     queryset = SrpmsUser.objects.all()
     serializer_class = serializers.UserContractSerializer

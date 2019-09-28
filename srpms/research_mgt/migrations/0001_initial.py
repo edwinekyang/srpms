@@ -128,7 +128,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('examiner_approval_date', models.DateTimeField(blank=True, null=True)),
                 ('assessment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assessment_examine', to='research_mgt.Assessment')),
-                ('contract', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='research_mgt.Contract')),
+                ('contract', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='assessment_examine', to='research_mgt.Contract')),
                 ('examine', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assessment_examine', to='research_mgt.Examine')),
             ],
             options={

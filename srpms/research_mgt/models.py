@@ -334,7 +334,7 @@ class AssessmentExamine(models.Model):
     # This field exists sorely for convenient indexing, and would be overwrite to assessment's
     # contract on save.
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True,
-                                 related_name='+')
+                                 related_name='assessment_examine')
 
     assessment = models.ForeignKey(Assessment, related_name='assessment_examine',
                                    on_delete=models.CASCADE)
