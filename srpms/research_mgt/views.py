@@ -1,3 +1,5 @@
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
 from rest_framework.status import HTTP_200_OK
 from rest_framework.mixins import (CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
                                    DestroyModelMixin, ListModelMixin)
@@ -13,6 +15,7 @@ from . import models
 from . import permissions as app_perms
 from accounts.models import SrpmsUser
 from .serializer_utils import SubmitSerializer, ApproveSerializer
+from .filters import UserFilter
 
 # The default settings is set not list
 default_perms: list = api_settings.DEFAULT_PERMISSION_CLASSES
@@ -27,6 +30,10 @@ class UserViewSet(ReadOnlyModelViewSet):
     """
     queryset = SrpmsUser.objects.all()
     serializer_class = serializers.UserContractSerializer
+
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['username', 'first_name', 'last_name', 'uni_id']
+    filterset_class = UserFilter
 
 
 class CourseViewSet(ModelViewSet):

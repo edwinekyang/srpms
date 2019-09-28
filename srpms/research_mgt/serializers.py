@@ -27,6 +27,7 @@ class UserContractSerializer(serializers.ModelSerializer):
     supervise = serializers.SerializerMethodField(read_only=True)
     examine = serializers.SerializerMethodField(read_only=True)
     convene = serializers.SerializerMethodField(read_only=True)
+    is_approved_supervisor = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SrpmsUser
@@ -64,6 +65,10 @@ class UserContractSerializer(serializers.ModelSerializer):
                     assessment_examine__examiner_approval_date__isnull=False))
         else:
             return tuple()
+
+    # noinspection PyMethodMayBeStatic
+    def get_is_approved_supervisor(self, obj: SrpmsUser) -> bool:
+        return obj.has_perm('research_mgt.can_supervise')
 
 
 class SuperviseSerializer(serializers.ModelSerializer):
