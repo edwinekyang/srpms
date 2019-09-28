@@ -46,20 +46,11 @@ class AssessmentTemplateViewSet(ModelViewSet):
     """
     queryset = models.AssessmentTemplate.objects.all()
     serializer_class = serializers.AssessmentTemplateSerializer
+    permission_classes = default_perms + [app_perms.AllowSafeMethods |
+                                          app_perms.IsSuperuser |
+                                          app_perms.IsConvener, ]
 
     # TODO: forbid update of template name, as its tight to business logic???
-
-    def get_permissions(self):
-        permission_class = default_perms
-        if self.request.method == 'GET':
-            pass
-        else:
-            permission_class += [app_perms.AllowSafeMethods |
-                                 app_perms.IsSuperuser |
-                                 app_perms.IsConvener, ]
-
-        # Below line is from super method
-        return [permission() for permission in default_perms]
 
 
 class ContractViewSet(ModelViewSet):
@@ -71,8 +62,7 @@ class ContractViewSet(ModelViewSet):
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.AllowPOST |
                                           app_perms.IsSuperuser |
-                                          app_perms.IsContractOwner |
-                                          app_perms.IsContractSupervisor, ]
+                                          app_perms.IsContractOwner, ]
 
     def perform_create(self, serializer: serializers.ContractSerializer):
 
@@ -125,10 +115,8 @@ class AssessmentExamineViewSet(CreateModelMixin,
     queryset = models.AssessmentExamine.objects.all()
     serializer_class = serializers.AssessmentExamineSerializer
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
-                                          app_perms.IsContractAssessmentExaminer |
-                                          app_perms.IsContractSupervisor |
-                                          app_perms.IsConvener |
-                                          app_perms.IsSuperuser, ]
+                                          app_perms.IsSuperuser |
+                                          app_perms.IsContractSupervisor, ]
 
     def perform_create(self, serializer: serializers.AssessmentExamineSerializer):
         serializer.validated_data['assessment'] = self.resolved_parents['assessment']
@@ -147,7 +135,7 @@ class AssessmentExamineViewSet(CreateModelMixin,
             permission_classes=default_perms + [app_perms.IsSuperuser |
                                                 app_perms.IsConvener |
                                                 app_perms.IsContractAssessmentExaminer, ])
-    def approve(self, request, pk=None):
+    def approve(self, request, pk=None, parent_lookup_contract=None, parent_lookup_assessment=None):
         """Allow examiners to approve assessments"""
         # TODO: permission
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
@@ -173,9 +161,7 @@ class AssessmentViewSet(CreateModelMixin,
     serializer_class = serializers.AssessmentSerializer
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.IsSuperuser |
-                                          app_perms.IsConvener |
-                                          app_perms.IsContractOwner |
-                                          app_perms.IsContractSupervisor, ]
+                                          app_perms.IsContractOwner, ]
 
     # TODO: don't allow individual project to create assessment
 
@@ -202,9 +188,8 @@ class SuperviseViewSet(CreateModelMixin,
     serializer_class = serializers.SuperviseSerializer
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.IsSuperuser |
-                                          app_perms.IsConvener |
                                           app_perms.IsContractOwner |
-                                          app_perms.IsContractFormalSupervisor, ]
+                                          app_perms.IsContractSupervisor, ]
 
     def perform_create(self, serializer: serializers.SuperviseSerializer):
         serializer.validated_data['contract'] = self.resolved_parents['contract']
@@ -237,7 +222,7 @@ class SuperviseViewSet(CreateModelMixin,
             permission_classes=default_perms + [app_perms.IsSuperuser |
                                                 app_perms.IsConvener |
                                                 app_perms.IsContractSuperviseOwner, ])
-    def approve(self, request, pk=None):
+    def approve(self, request, pk=None, parent_lookup_contract=None):
         """Allow supervisor to approve supervise relation"""
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():

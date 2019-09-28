@@ -193,8 +193,6 @@ class Supervise(models.Model):
     contract = models.ForeignKey(Contract, related_name='supervise',
                                  on_delete=models.CASCADE, blank=False, null=False)
 
-    # TODO: Add an partial id that increases when a new supervisor is being added to a contract
-
     class Meta:
         unique_together = ('supervisor', 'contract')
 
@@ -251,8 +249,6 @@ class Assessment(models.Model):
     additional_description = models.CharField(max_length=200, default='', blank=True)
     due = models.DateField(null=True, blank=True)
     weight = models.IntegerField(null=False, blank=True)
-
-    # TODO: Add an partial id that increases when a new assessment item is being added to a contract
 
     def is_convener_approved(self) -> bool:
         """No one should be allowed to change after convener approved"""

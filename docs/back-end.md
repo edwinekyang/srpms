@@ -32,7 +32,6 @@
 - Users aren't allowed to edit, delete if the contract has approved by convener
 - Users are allowed to create contract with them being the owner of the contract
 - Users are allowed to edit, delete if they own the contract
-- Users are allowed to edit for their supervise contract
 
 ### Supervise
 
@@ -52,33 +51,17 @@
 
 - Users with `is_mgt_superuser` permission are allowed to create, edit, delete
 - Users aren't allowed to create, edit, delete after the related contract has approved by convener
-- Users with `can_convene` permission are allowed to create, edit, delete
-- Users are allowed to edit if they are the examiner of this assessment
 - Users are allowed to create, edit, delete for their own contract
-- Users are allowed to create, edit, delete for their supervise contract
 
 ### User
 
 - Read-only for everyone
 
-## Questions
+## Implications
 
-- Contract
-  - Who is allowed to edit contracts?
-  - Who is allowed to delete contract?
-  - Who is allowed to submit?
-- Assessment
-  - Who is allowed to add new assessments?
-  - Who is allowed to edit assessments?
-  - Who is allowed to delete assessments?
-  - Who is allowed to approve?
-- Supervise
-  - Who is allowed to add supervisor?
-  - Who is allowed to edit supervise relation?
-  - Who is allowed to delete supervisor?
-  - Who is allowed to approve?
-
-- Convener does not have permission to edit, delete a contract, but can create, edit, delete supervise and examine items before he/she approve.
+- Convener does not have permission to edit, delete contract, and its assessments.
+- Supervisor can only nominate examiner and approve supervise relation, but not edit assessment or contract
+- Convener can bypass the `is_all_assessment_approved` integrity check
 
 # Limitations
 

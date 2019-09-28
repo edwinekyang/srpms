@@ -32,6 +32,10 @@ router.register(r'assessment-templates',
 # 'contracts/{pk}/$ - 'contract-detail'
 contract_routes = router.register(r'contracts', views.ContractViewSet, basename='contract')
 
+# TODO: After reading RESTful API design best practice, it appears that nested resources is
+#       not a good idea, and would result complicate dependencies. Consider refactor the API
+#       without nested resources, but use hyperlink for related item.
+
 # Generate the following URL patterns
 # 'contracts/{parent_lookup_contract}/supervise/$' - 'contract-supervise-list'
 # 'contracts/{parent_lookup_contract}/supervise/{pk}$ - 'contract-supervise-detail'
