@@ -336,5 +336,12 @@ def get_assessments(contract_id: int) \
         ))
     return results
 
+
 ############################################################################################
 # Assessment Examine
+
+def gen_examine_req_resp(examiner_id: int) \
+        -> Tuple[dict, dict]:
+    request = {'examiner': examiner_id}
+    response = {'examiner': examiner_id}
+    return request, response

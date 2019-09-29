@@ -14,6 +14,7 @@ class ApiUrls(object):
     contract = '/api/research_mgt/contracts/'
     supervise = 'supervise'
     assessment = 'assessments'
+    examine = 'examine'
 
     all = [mgt_user, assess_temp, course, contract]
 
@@ -32,6 +33,17 @@ def get_assessment_url(contract_id: int, assessment_id: int = None) -> str:
     else:
         return "{}{}/{}/{}/".format(ApiUrls.contract, contract_id,
                                     ApiUrls.assessment, assessment_id)
+
+
+def get_examine_url(contract_id: int, assessment_id: int, examine_id: int = None) -> str:
+    if not examine_id:
+        return "{}{}/{}/{}/{}/".format(ApiUrls.contract, contract_id,
+                                       ApiUrls.assessment, assessment_id,
+                                       ApiUrls.examine)
+    else:
+        return "{}{}/{}/{}/{}/{}/".format(ApiUrls.contract, contract_id,
+                                          ApiUrls.assessment, assessment_id,
+                                          ApiUrls.examine, examine_id)
 
 
 class Client(APIClient):

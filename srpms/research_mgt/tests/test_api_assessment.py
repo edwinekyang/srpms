@@ -20,6 +20,7 @@ class IndividualProject(utils.SrpmsTest):
     def setUp(self):
         super(IndividualProject, self).setUp()
 
+        # Create individual contract
         response = self.user_01.post(utils.ApiUrls.contract, data.contract_01_request)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.contract = response.data

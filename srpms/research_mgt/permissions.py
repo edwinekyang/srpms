@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from rest_framework import permissions
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.request import Request
 
 from . import models
@@ -7,19 +7,19 @@ from . import views
 from accounts.models import SrpmsUser
 
 
-class AllowSafeMethods(permissions.BasePermission):
+class AllowSafeMethods(BasePermission):
     def has_permission(self, request, view) -> bool:
-        if request.method in permissions.SAFE_METHODS:
+        if request.method in SAFE_METHODS:
             return True
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if request.method in permissions.SAFE_METHODS:
+        if request.method in SAFE_METHODS:
             return True
         return False
 
 
-class AllowPOST(permissions.BasePermission):
+class AllowPOST(BasePermission):
     def has_permission(self, request, view) -> bool:
         if request.method == 'POST':
             return True
@@ -29,7 +29,7 @@ class AllowPOST(permissions.BasePermission):
         return False
 
 
-class IsConvener(permissions.BasePermission):
+class IsConvener(BasePermission):
     @staticmethod
     def check(user: SrpmsUser):
         return user.has_perm('research_mgt.can_convene')
@@ -41,7 +41,7 @@ class IsConvener(permissions.BasePermission):
         return self.check(request.user)
 
 
-class IsSuperuser(permissions.BasePermission):
+class IsSuperuser(BasePermission):
     @staticmethod
     def check(user: SrpmsUser):
         return user.has_perm('research_mgt.is_mgt_superuser')
@@ -53,7 +53,7 @@ class IsSuperuser(permissions.BasePermission):
         return self.check(request.user)
 
 
-class IsContractOwner(permissions.BasePermission):
+class IsContractOwner(BasePermission):
     @staticmethod
     def check(contract: models.Contract, user: SrpmsUser):
         return contract.owner == user
@@ -83,7 +83,7 @@ class IsContractOwner(permissions.BasePermission):
         return False
 
 
-class IsContractFormalSupervisor(permissions.BasePermission):
+class IsContractFormalSupervisor(BasePermission):
     @staticmethod
     def check(contract: models.Contract, user: SrpmsUser) -> bool:
         if user in contract.get_all_formal_supervisors():
@@ -107,7 +107,7 @@ class IsContractFormalSupervisor(permissions.BasePermission):
         return False
 
 
-class IsContractSupervisor(permissions.BasePermission):
+class IsContractSupervisor(BasePermission):
     @staticmethod
     def check(contract: models.Contract, user: SrpmsUser) -> bool:
         if user in contract.get_all_supervisors():
@@ -116,6 +116,8 @@ class IsContractSupervisor(permissions.BasePermission):
 
     def has_permission(self, request, view) -> bool:
         if isinstance(view, views.SuperviseViewSet):
+            return self.check(view.resolved_parents['contract'], request.user)
+        elif isinstance(view, views.AssessmentExamineViewSet):
             return self.check(view.resolved_parents['contract'], request.user)
         return False
 
@@ -128,7 +130,7 @@ class IsContractSupervisor(permissions.BasePermission):
         return False
 
 
-class IsContractSuperviseOwner(permissions.BasePermission):
+class IsContractSuperviseOwner(BasePermission):
     def has_permission(self, request, view) -> bool:
         return False
 
@@ -136,7 +138,7 @@ class IsContractSuperviseOwner(permissions.BasePermission):
         return False
 
 
-class IsContractAssessmentExaminer(permissions.BasePermission):
+class IsContractAssessmentExaminer(BasePermission):
     @staticmethod
     def check(assessment_examine: models.AssessmentExamine, user: SrpmsUser):
         return assessment_examine.examine.examiner == user
@@ -148,3 +150,27 @@ class IsContractAssessmentExaminer(permissions.BasePermission):
         if isinstance(obj, models.AssessmentExamine):
             return self.check(obj, request.user)
         return False
+
+
+class ContractNotFinalApproved(BasePermission):
+    def has_permission(self, request, view) -> bool:
+        return True
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        return True
+
+
+class ContractNotSubmitted(BasePermission):
+    def has_permission(self, request, view) -> bool:
+        return True
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        return True
+
+
+class ContractApprovedBySupervisor(BasePermission):
+    def has_permission(self, request, view) -> bool:
+        return True
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        return True

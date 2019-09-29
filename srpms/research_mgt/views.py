@@ -70,7 +70,9 @@ class ContractViewSet(ModelViewSet):
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.AllowPOST |
                                           app_perms.IsSuperuser |
-                                          app_perms.IsContractOwner, ]
+                                          app_perms.IsContractOwner,
+                                          app_perms.ContractNotFinalApproved,
+                                          app_perms.ContractNotSubmitted]
 
     def perform_create(self, serializer: serializers.ContractSerializer):
 
@@ -124,18 +126,26 @@ class AssessmentExamineViewSet(CreateModelMixin,
     serializer_class = serializers.AssessmentExamineSerializer
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.IsSuperuser |
-                                          app_perms.IsContractSupervisor, ]
+                                          app_perms.IsConvener |
+                                          app_perms.IsContractSupervisor,
+                                          app_perms.ContractNotFinalApproved,
+                                          app_perms.ContractApprovedBySupervisor]
 
     def perform_create(self, serializer: serializers.AssessmentExamineSerializer):
 
         self.attach_attributes(serializer)
 
-        # Forbid individual project to have more than one examine for each assessment
-        assessment: models.Assessment = serializer.validated_data['assessment']
-        if hasattr(assessment.contract, 'individual_project') and \
-                len(models.AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
-            raise PermissionDenied('Individual project cannot have more than one exmainer for '
-                                   'each assessment.')
+        if not app_perms.IsSuperuser.check(self.request.user):
+            # Forbid individual project to have more than one examine for each assessment
+            assessment: models.Assessment = serializer.validated_data['assessment']
+            if hasattr(assessment.contract, 'individual_project') and \
+                    len(models.AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
+                raise PermissionDenied('Individual project cannot have more than one examiner for '
+                                       'each assessment.')
+            if hasattr(assessment.contract, 'special_topic') and \
+                    len(models.AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
+                raise PermissionDenied('Special topic cannot have more than one examiner for '
+                                       'each assessment.')
 
         return super(AssessmentExamineViewSet, self).perform_create(serializer)
 
@@ -179,7 +189,9 @@ class AssessmentViewSet(CreateModelMixin,
     serializer_class = serializers.AssessmentSerializer
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.IsSuperuser |
-                                          app_perms.IsContractOwner, ]
+                                          app_perms.IsContractOwner,
+                                          app_perms.ContractNotFinalApproved,
+                                          app_perms.ContractNotSubmitted]
 
     def perform_create(self, serializer):
         serializer.validated_data['contract'] = self.resolved_parents['contract']
@@ -213,7 +225,8 @@ class SuperviseViewSet(CreateModelMixin,
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.IsSuperuser |
                                           app_perms.IsContractOwner |
-                                          app_perms.IsContractSupervisor, ]
+                                          app_perms.IsContractSupervisor,
+                                          app_perms.ContractNotFinalApproved]
 
     def perform_create(self, serializer: serializers.SuperviseSerializer):
 
