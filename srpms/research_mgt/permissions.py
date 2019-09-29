@@ -63,6 +63,12 @@ class IsContractOwner(permissions.BasePermission):
             return True
         elif isinstance(view, views.SuperviseViewSet):
             return self.check(view.resolved_parents['contract'], request.user)
+        elif isinstance(view, views.AssessmentViewSet):
+            contract: models.Contract = view.resolved_parents['contract']
+            if hasattr(contract, 'individual_project') and request.method in ['POST', 'DELETE']:
+                return False
+            else:
+                return self.check(view.resolved_parents['contract'], request.user)
 
         return False
 

@@ -183,6 +183,7 @@ contract_02_response = {
 
 contract_list_valid = [
     (contract_01_request, contract_01_response),
+    (contract_02_request, contract_02_response),
 ]
 
 
@@ -256,6 +257,7 @@ contract_list_invalid = [
      }}
 ]
 
+
 ############################################################################################
 # Supervise
 
@@ -267,4 +269,72 @@ def gen_supervise_req_resp(contract_id: int, supervisor_id: int, is_formal: bool
 
 
 ############################################################################################
-# Assessment Methods
+# Assessments
+
+assessment_01_request = {
+    'template': temp_report.id,
+}
+
+assessment_01_response = {
+    "template": temp_report.id,
+    "contract": None,  # Supply data here
+    "additional_description": "",
+    "due": None,
+    "weight": temp_report.default_weight,
+    "is_all_examiners_approved": False
+}
+
+assessment_02_request = {
+    'template': temp_artifact.id,
+    "additional_description": "aisduioeodyhery82",
+    'weight': 40,
+}
+
+assessment_02_response = {
+    "template": temp_artifact.id,
+    "contract": None,  # Supply data here
+    "additional_description": "aisduioeodyhery82",
+    "due": None,
+    "weight": 40,
+    "is_all_examiners_approved": False
+}
+
+assessment_custom_request = {
+    'template': temp_custom.id,
+    "additional_description": "",
+    'weight': 40,
+}
+
+assessment_custom_response = {
+    "template": temp_custom.id,
+    "contract": None,  # Supply data here
+    "additional_description": "",
+    "due": None,
+    "weight": 40,
+    "is_all_examiners_approved": False
+}
+
+assessment_list_valid = [
+    (assessment_01_request, assessment_01_response),
+    (assessment_02_request, assessment_02_response),
+]
+
+
+def get_assessment(contract_id: int) \
+        -> Tuple[dict, dict]:
+    request, response = random.choice(assessment_list_valid)
+    return {**request}, {**response, 'contract': contract_id}
+
+
+def get_assessments(contract_id: int) \
+        -> List[Tuple[dict, dict]]:
+    results = []
+    for request, response in contract_list_valid:
+        results.append((
+            {**request},
+            {**response, 'contract': contract_id}
+        ))
+    return results
+
+############################################################################################
+# Assessment Examine

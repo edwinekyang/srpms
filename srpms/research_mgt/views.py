@@ -183,21 +183,17 @@ class AssessmentViewSet(CreateModelMixin,
 
     def perform_create(self, serializer):
         serializer.validated_data['contract'] = self.resolved_parents['contract']
-
-        # Forbid creation of extra assessments for individual project
-        contract = serializer.validated_data['contract']
-        if hasattr(contract, 'individual_project'):
-            raise PermissionDenied('Cannot create assessments for individual project ')
-
         return super(AssessmentViewSet, self).perform_create(serializer)
 
     def perform_update(self, serializer):
         serializer.validated_data['contract'] = self.resolved_parents['contract']
 
         # Forbid editing assessment template for individual project
-        contract = serializer.validated_data['contract']
-        if hasattr(contract, 'individual_project') and serializer.validated_data['template']:
-            raise PermissionDenied('Cannot edit template for individual project ')
+        if not app_perms.IsSuperuser.check(self.request.user):
+            contract = serializer.validated_data['contract']
+            if hasattr(contract, 'individual_project') and \
+                    serializer.validated_data.get('template', False):
+                raise PermissionDenied('Cannot edit template for individual project ')
 
         return super(AssessmentViewSet, self).perform_update(serializer)
 
