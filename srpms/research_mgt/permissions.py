@@ -79,6 +79,12 @@ class IsContractOwner(permissions.BasePermission):
 
 
 class IsContractFormalSupervisor(permissions.BasePermission):
+    @staticmethod
+    def check(contract: models.Contract, user: SrpmsUser) -> bool:
+        if user in contract.get_all_formal_supervisors():
+            return True
+        return False
+
     def has_permission(self, request, view) -> bool:
         if type(view) in [views.ContractViewSet]:
             return True
@@ -88,7 +94,7 @@ class IsContractFormalSupervisor(permissions.BasePermission):
         if isinstance(obj, models.Contract):
             if request.method == 'DELETE':
                 return False
-            elif request.user in obj.get_all_formal_supervisors():
+            elif self.check(obj, request.user):
                 return True
         else:
             return False
@@ -97,6 +103,12 @@ class IsContractFormalSupervisor(permissions.BasePermission):
 
 
 class IsContractSupervisor(permissions.BasePermission):
+    @staticmethod
+    def check(contract: models.Contract, user: SrpmsUser) -> bool:
+        if user in contract.get_all_supervisors():
+            return True
+        return False
+
     def has_permission(self, request, view) -> bool:
         if type(view) in [views.ContractViewSet]:
             return True
@@ -106,7 +118,7 @@ class IsContractSupervisor(permissions.BasePermission):
         if isinstance(obj, models.Contract):
             if request.method == 'DELETE':
                 return False
-            elif request.user in obj.get_all_supervisors():
+            elif self.check(obj, request.user):
                 return True
         else:
             return False

@@ -109,7 +109,7 @@ class AssessmentExamineSerializer(serializers.ModelSerializer):
 
 
 class AssessmentSerializer(serializers.ModelSerializer):
-    template = AssessmentTemplateSerializer(read_only=True)
+    template_info = AssessmentTemplateSerializer(source='template', read_only=True)
 
     # Contract would be attached automatically to the nested view
     contract = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -118,8 +118,8 @@ class AssessmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Assessment
-        fields = ['id', 'template', 'contract', 'additional_description', 'due', 'weight',
-                  'assessment_examine', 'is_all_examiners_approved']
+        fields = ['id', 'template', 'template_info', 'contract', 'additional_description', 'due',
+                  'weight', 'assessment_examine', 'is_all_examiners_approved']
 
 
 class IndividualProjectSerializer(serializers.ModelSerializer):

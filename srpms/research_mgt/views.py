@@ -8,6 +8,7 @@ from rest_framework.settings import api_settings
 from rest_framework.decorators import action
 from rest_framework.serializers import ValidationError
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 
 from .mixins import NestedGenericViewSet
 from . import serializers
@@ -78,11 +79,11 @@ class ContractViewSet(ModelViewSet):
 
         return super(ContractViewSet, self).perform_create(serializer)
 
+    # noinspection PyUnusedLocal
     @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=SubmitSerializer,
             permission_classes=default_perms + [app_perms.IsSuperuser |
                                                 app_perms.IsContractOwner, ])
     def submit(self, request, pk=None):
-        # TODO: permission
         serializer: SubmitSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             contract = self.get_object()
@@ -92,11 +93,11 @@ class ContractViewSet(ModelViewSet):
         else:
             raise ValidationError()
 
+    # noinspection PyUnusedLocal
     @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=ApproveSerializer,
             permission_classes=default_perms + [app_perms.IsSuperuser |
                                                 app_perms.IsConvener, ])
     def approve(self, request, pk=None):
-        # TODO: permission
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             contract = self.get_object()
@@ -126,25 +127,31 @@ class AssessmentExamineViewSet(CreateModelMixin,
                                           app_perms.IsContractSupervisor, ]
 
     def perform_create(self, serializer: serializers.AssessmentExamineSerializer):
-        serializer.validated_data['assessment'] = self.resolved_parents['assessment']
-        serializer.validated_data['contract'] = self.resolved_parents['contract']
 
-        # TODO: don't allow individual project to have more than one examine for each assessment
+        self.attach_attributes(serializer)
+
+        # Forbid individual project to have more than one examine for each assessment
+        assessment: models.Assessment = serializer.validated_data['assessment']
+        if hasattr(assessment.contract, 'individual_project') and \
+                len(models.AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
+            raise PermissionDenied('Individual project cannot have more than one exmainer for '
+                                   'each assessment.')
 
         return super(AssessmentExamineViewSet, self).perform_create(serializer)
 
     def perform_update(self, serializer):
-        serializer.validated_data['assessment'] = self.resolved_parents['assessment']
-        serializer.validated_data['contract'] = self.resolved_parents['contract']
+
+        self.attach_attributes(serializer)
+
         return super(AssessmentExamineViewSet, self).perform_update(serializer)
 
+    # noinspection PyUnusedLocal
     @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=ApproveSerializer,
             permission_classes=default_perms + [app_perms.IsSuperuser |
                                                 app_perms.IsConvener |
                                                 app_perms.IsContractAssessmentExaminer, ])
     def approve(self, request, pk=None, parent_lookup_contract=None, parent_lookup_assessment=None):
         """Allow examiners to approve assessments"""
-        # TODO: permission
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             assessment_examine = self.get_object()
@@ -152,6 +159,10 @@ class AssessmentExamineViewSet(CreateModelMixin,
             return Response(status=HTTP_200_OK)
         else:
             raise ValidationError()
+
+    def attach_attributes(self, serializer: serializers.AssessmentExamineSerializer) -> None:
+        serializer.validated_data['assessment'] = self.resolved_parents['assessment']
+        serializer.validated_data['contract'] = self.resolved_parents['contract']
 
 
 class AssessmentViewSet(CreateModelMixin,
@@ -170,14 +181,24 @@ class AssessmentViewSet(CreateModelMixin,
                                           app_perms.IsSuperuser |
                                           app_perms.IsContractOwner, ]
 
-    # TODO: don't allow individual project to create assessment
-
     def perform_create(self, serializer):
         serializer.validated_data['contract'] = self.resolved_parents['contract']
+
+        # Forbid creation of extra assessments for individual project
+        contract = serializer.validated_data['contract']
+        if hasattr(contract, 'individual_project'):
+            raise PermissionDenied('Cannot create assessments for individual project ')
+
         return super(AssessmentViewSet, self).perform_create(serializer)
 
     def perform_update(self, serializer):
         serializer.validated_data['contract'] = self.resolved_parents['contract']
+
+        # Forbid editing assessment template for individual project
+        contract = serializer.validated_data['contract']
+        if hasattr(contract, 'individual_project') and serializer.validated_data['template']:
+            raise PermissionDenied('Cannot edit template for individual project ')
+
         return super(AssessmentViewSet, self).perform_update(serializer)
 
 
@@ -199,29 +220,22 @@ class SuperviseViewSet(CreateModelMixin,
                                           app_perms.IsContractSupervisor, ]
 
     def perform_create(self, serializer: serializers.SuperviseSerializer):
-        serializer.validated_data['contract'] = self.resolved_parents['contract']
 
-        # TODO: don't allow individual project to have more than one supervise
+        self.attach_attributes(serializer)
 
-        # Check if supervisor is an approved supervisor, if yes, set the is_formal attribute
-        supervisor = serializer.validated_data['supervisor']
-        if supervisor.has_perm('can_supervise'):
-            serializer.validated_data['is_formal'] = True
-        else:
-            serializer.validated_data['is_formal'] = False
+        # Forbid more than 1 supervisor for individual project
+        contract: models.Contract = self.resolved_parents['contract']
+        if len(models.Supervise.objects.filter(contract=contract)) >= 1:
+            raise PermissionDenied('Individual project does not allowed more than 1 supervisor.')
+
+        self.check_field_permission(serializer)
 
         return super(SuperviseViewSet, self).perform_create(serializer)
 
     def perform_update(self, serializer: serializers.SuperviseSerializer):
 
-        serializer.validated_data['contract'] = self.resolved_parents['contract']
-
-        # Check if supervisor is approved, if yes, set the is_formal attribute
-        supervisor = serializer.validated_data['supervisor']
-        if supervisor.has_perm('can_supervise'):
-            serializer.validated_data['is_formal'] = True
-        else:
-            serializer.validated_data['is_formal'] = False
+        self.attach_attributes(serializer)
+        self.check_field_permission(serializer)
 
         return super(SuperviseViewSet, self).perform_update(serializer)
 
@@ -238,3 +252,28 @@ class SuperviseViewSet(CreateModelMixin,
             return Response(status=HTTP_200_OK)
         else:
             raise ValidationError()
+
+    def attach_attributes(self, serializer: serializers.SuperviseSerializer) -> None:
+        """Attach automatic attributes according to the request url and content"""
+
+        serializer.validated_data['contract'] = self.resolved_parents['contract']
+
+        # Check if supervisor is approved, if yes, set the is_formal attribute
+        supervisor = serializer.validated_data['supervisor']
+        if supervisor.has_perm('can_supervise'):
+            serializer.validated_data['is_formal'] = True
+        else:
+            serializer.validated_data['is_formal'] = False
+
+    def check_field_permission(self, serializer: serializers.SuperviseSerializer) -> None:
+        # Forbid normal user to nominate unapproved supervisors
+        requester: SrpmsUser = self.request.user
+        if app_perms.IsSuperuser.check(requester) or app_perms.IsConvener.check(requester):
+            pass
+        elif app_perms.IsContractFormalSupervisor.check(self.resolved_parents['contract'],
+                                                        requester):
+            pass
+        elif serializer.validated_data['is_formal']:
+            pass
+        else:
+            raise PermissionDenied('Nominate un-approved supervisor is not allowed')
