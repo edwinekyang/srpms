@@ -13,9 +13,25 @@ class ApiUrls(object):
     course = '/api/research_mgt/courses/'
     contract = '/api/research_mgt/contracts/'
     supervise = 'supervise'
-    assess_meth = 'assessment-methods'
+    assessment = 'assessments'
 
     all = [mgt_user, assess_temp, course, contract]
+
+
+def get_supervise_url(contract_id: int, supervise_id: int = None) -> str:
+    if not supervise_id:
+        return "{}{}/{}/".format(ApiUrls.contract, contract_id, ApiUrls.supervise)
+    else:
+        return "{}{}/{}/{}/".format(ApiUrls.contract, contract_id,
+                                    ApiUrls.supervise, supervise_id)
+
+
+def get_assessment_url(contract_id: int, assessment_id: int = None) -> str:
+    if not assessment_id:
+        return "{}{}/{}/".format(ApiUrls.contract, contract_id, ApiUrls.assessment)
+    else:
+        return "{}{}/{}/{}/".format(ApiUrls.contract, contract_id,
+                                    ApiUrls.assessment, assessment_id)
 
 
 class Client(APIClient):
@@ -98,7 +114,7 @@ class User(object):
 
 
 class SrpmsTest(TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # Users ------------------------------------------------------------------------------------
 
         self.user_01 = User('user_01', 'Basic_12345', '01', 'User', 'user.01@example.com')

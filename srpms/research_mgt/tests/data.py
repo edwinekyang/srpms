@@ -259,5 +259,12 @@ contract_list_invalid = [
 ############################################################################################
 # Supervise
 
+def gen_supervise_req_resp(contract_id: int, supervisor_id: int, is_formal: bool) \
+        -> Tuple[dict, dict]:
+    request = {'supervisor': supervisor_id}
+    response = {'contract': contract_id, 'supervisor': supervisor_id, 'is_formal': is_formal}
+    return request, response
+
+
 ############################################################################################
 # Assessment Methods

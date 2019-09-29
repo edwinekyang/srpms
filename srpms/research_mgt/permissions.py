@@ -54,26 +54,25 @@ class IsSuperuser(permissions.BasePermission):
 
 
 class IsContractOwner(permissions.BasePermission):
+    @staticmethod
+    def check(contract: models.Contract, user: SrpmsUser):
+        return contract.owner == user
+
     def has_permission(self, request, view) -> bool:
         if isinstance(view, views.ContractViewSet):
             return True
-        elif isinstance(view, views.AssessmentViewSet):
-            if request.method in ['POST', 'DELETE'] and \
-                    hasattr(view.resolved_parents['contract'], 'individual_project'):
-                return False
-            else:
-                return True
+        elif isinstance(view, views.SuperviseViewSet):
+            return self.check(view.resolved_parents['contract'], request.user)
+
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
         if isinstance(obj, models.Contract):
-            if obj.owner == request.user:
-                return True
+            return self.check(obj, request.user)
         elif isinstance(obj, models.Assessment):
-            if obj.contract.owner == request.user:
-                return True
-        else:
-            return False
+            return self.check(obj.contract, request.user)
+        elif isinstance(obj, models.Supervise):
+            return self.check(obj.contract, request.user)
 
         return False
 
@@ -110,18 +109,15 @@ class IsContractSupervisor(permissions.BasePermission):
         return False
 
     def has_permission(self, request, view) -> bool:
-        if type(view) in [views.ContractViewSet]:
-            return True
+        if isinstance(view, views.SuperviseViewSet):
+            return self.check(view.resolved_parents['contract'], request.user)
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.Contract):
-            if request.method == 'DELETE':
-                return False
-            elif self.check(obj, request.user):
-                return True
-        else:
-            return False
+        if isinstance(obj, models.AssessmentExamine):
+            return self.check(obj.contract, request.user)
+        elif isinstance(obj, models.Supervise):
+            return self.check(obj.contract, request.user)
 
         return False
 
@@ -135,8 +131,14 @@ class IsContractSuperviseOwner(permissions.BasePermission):
 
 
 class IsContractAssessmentExaminer(permissions.BasePermission):
+    @staticmethod
+    def check(assessment_examine: models.AssessmentExamine, user: SrpmsUser):
+        return assessment_examine.examine.examiner == user
+
     def has_permission(self, request, view) -> bool:
-        return False
+        return True
 
     def has_object_permission(self, request, view, obj) -> bool:
+        if isinstance(obj, models.AssessmentExamine):
+            return self.check(obj, request.user)
         return False

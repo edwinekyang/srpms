@@ -239,6 +239,7 @@ class SuperviseViewSet(CreateModelMixin,
 
         return super(SuperviseViewSet, self).perform_update(serializer)
 
+    # noinspection PyUnusedLocal
     @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=ApproveSerializer,
             permission_classes=default_perms + [app_perms.IsSuperuser |
                                                 app_perms.IsConvener |
@@ -260,7 +261,7 @@ class SuperviseViewSet(CreateModelMixin,
 
         # Check if supervisor is approved, if yes, set the is_formal attribute
         supervisor = serializer.validated_data['supervisor']
-        if supervisor.has_perm('can_supervise'):
+        if supervisor.has_perm('research_mgt.can_supervise'):
             serializer.validated_data['is_formal'] = True
         else:
             serializer.validated_data['is_formal'] = False

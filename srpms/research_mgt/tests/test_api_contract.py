@@ -5,7 +5,7 @@ from . import utils
 from . import data
 
 
-def assert_contract_response(test_case: TestCase, response, true_data):
+def assert_contract_response(test_case: TestCase, response, true_data) -> None:
     if response.data.get('id', False):
         raise AttributeError("Please remove id before passing data into this function")
 
@@ -132,19 +132,16 @@ class TestContract(utils.SrpmsTest):
         # Supervisor requests
 
         # Add supervisor first
-        response = self.convener.post('{}{}/{}/'.format(utils.ApiUrls.contract,
-                                                        con_id,
-                                                        utils.ApiUrls.supervise),
-                                      {'supervisor': self.supervisor_non_formal.id})
+        response = self.superuser.post('{}{}/{}/'.format(utils.ApiUrls.contract,
+                                                         con_id,
+                                                         utils.ApiUrls.supervise),
+                                       {'supervisor': self.supervisor_non_formal.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Legal request
+        # Illegal request
         response = self.supervisor_non_formal.put(utils.ApiUrls.contract + str(con_id) + '/',
                                                   con_req)
-        self.assertEqual(response.status_code, status.HTTP_200_OK,
-                         'Supervisor of the contract should be allowed to edit')
-        self.assertTrue(response.data.pop('id'))
-        assert_contract_response(self, response, con_resp)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Illegal request
         response = self.supervisor_formal.put(utils.ApiUrls.contract + str(con_id) + '/', con_req)
@@ -259,19 +256,16 @@ class TestContract(utils.SrpmsTest):
         # Supervisor requests
 
         # Add supervisor first
-        response = self.convener.post('{}{}/{}/'.format(utils.ApiUrls.contract,
-                                                        con_id,
-                                                        utils.ApiUrls.supervise),
-                                      {'supervisor': self.supervisor_non_formal.id})
+        response = self.superuser.post('{}{}/{}/'.format(utils.ApiUrls.contract,
+                                                         con_id,
+                                                         utils.ApiUrls.supervise),
+                                       {'supervisor': self.supervisor_non_formal.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Legal request
+        # Illegal request
         response = self.supervisor_non_formal.patch(utils.ApiUrls.contract + str(con_id) + '/',
                                                     con_req)
-        self.assertEqual(response.status_code, status.HTTP_200_OK,
-                         'Supervisor of the contract should be allowed to edit')
-        self.assertTrue(response.data.pop('id'))
-        assert_contract_response(self, response, con_resp)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Illegal request
         response = self.supervisor_formal.patch(utils.ApiUrls.contract + str(con_id) + '/', con_req)
@@ -320,10 +314,10 @@ class TestContract(utils.SrpmsTest):
         # Supervisor requests
 
         # Add supervisor first
-        response = self.convener.post('{}{}/{}/'.format(utils.ApiUrls.contract,
-                                                        con_id,
-                                                        utils.ApiUrls.supervise),
-                                      {'supervisor': self.supervisor_non_formal.id})
+        response = self.superuser.post('{}{}/{}/'.format(utils.ApiUrls.contract,
+                                                         con_id,
+                                                         utils.ApiUrls.supervise),
+                                       {'supervisor': self.supervisor_non_formal.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Illegal
