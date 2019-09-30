@@ -60,11 +60,16 @@ test-back-end:
     - cooper
   script:
     - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
-    - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate  # Test migration
-    - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate accounts zero
-    - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate
-    - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' --omit='*/tests*,*/migrations/*,srpms/*' manage.py test --parallel 4  # Test code
-    - $COMPOSE_TEST exec -T django-gunicorn coverage report
+    # NOTE: coverage's result is not reflecting the test correctly, remove for now
+    # - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate  # Test migration
+    # - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate accounts zero
+    # - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate
+    # - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' --omit='*/tests*,*/migrations/*,srpms/*' manage.py test --parallel 4
+    # - $COMPOSE_TEST exec -T django-gunicorn coverage report
+    - $COMPOSE_TEST exec -T django-gunicorn manage.py migrate
+    - $COMPOSE_TEST exec -T django-gunicorn manage.py migrate accounts zero
+    - $COMPOSE_TEST exec -T django-gunicorn manage.py migrate
+    - $COMPOSE_TEST exec -T django-gunicorn manage.py test --parallel 4
 
 clean:
   stage: clean
