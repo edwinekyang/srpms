@@ -212,6 +212,8 @@ class Supervise(models.Model):
         errors = {}
         if self.supervisor_approval_date and not self.contract.is_submitted():
             errors['contract'] = 'Un-submitted contract is not allowed to be approved.'
+        if self.contract.convener_approval_date:
+            errors['convener_approve'] = 'convener approved contract is not allowed to modify.'
 
         if errors:
             raise ValidationError(errors)
@@ -288,6 +290,8 @@ class Assessment(models.Model):
             # Ensure each assessment item is within the valid rage specified by the template
             if self.weight > self.template.max_weight or self.weight < self.template.min_weight:
                 errors['weight'] = 'Please keep the weight within the valid range given by template'
+        if self.contract.convener_approval_date:
+            errors['convener_approve'] = 'convener approved contract is not allowed to modify.'
 
         if errors:
             raise ValidationError(errors)
@@ -308,6 +312,18 @@ class Examine(models.Model):
 
     class Meta:
         unique_together = ('contract', 'examiner')
+
+    def clean(self):
+        errors = {}
+        if self.contract.convener_approval_date:
+            errors['convener_approve'] = 'convener approved contract is not allowed to modify.'
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        self.full_clean()
+        super(Examine, self).save()
 
 
 class AssessmentExamine(models.Model):
@@ -351,6 +367,9 @@ class AssessmentExamine(models.Model):
 
     def clean(self):
         errors = {}
+
+        if self.contract and self.contract.convener_approval_date:
+            errors['convener_approve'] = 'convener approved contract is not allowed to modify.'
 
         if self.assessment.contract != self.examine.contract:
             errors['assessment'] = 'assessment\'s contract is different from examine\'s contract'

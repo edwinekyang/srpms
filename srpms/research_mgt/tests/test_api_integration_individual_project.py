@@ -22,10 +22,18 @@ class IndividualProject(utils.SrpmsTest):
         self.supervise_approve_url = utils.get_supervise_url(self.contract_id, self.supervise_id,
                                                              approve=True)
 
+    def set_supervise_approve(self):
+        # Supervisor approval
+        response = self.supervisor_non_formal.put(self.supervise_approve_url,
+                                                  data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def set_examine(self):
-        # Before nominate examiner, the contract must be submitted and is approved by supervisor
-        self.set_submit()
+        """Assign examiner to every assessment of the contract, examiner is user_04"""
+
+        # Before nominate examiner, the contract must be submitted
         self.set_supervise()
+        self.set_submit()
 
         # Retrieving assessment examine id in prepare for testing examiner approval
         self.assess_report_id = None
@@ -48,7 +56,7 @@ class IndividualProject(utils.SrpmsTest):
                 response = self.supervisor_non_formal.post(
                         utils.get_examine_url(self.contract_id, self.assess_artifact_id), req)
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
-                self.examine_artifact_id_id = response.data['id']
+                self.examine_artifact_id = response.data['id']
             elif assessment['template_info']['name'] == 'presentation':
                 self.assess_present_id = assessment['id']
                 req, _ = data.gen_examine_req_resp(self.user_04.id)
@@ -56,6 +64,15 @@ class IndividualProject(utils.SrpmsTest):
                         utils.get_examine_url(self.contract_id, self.assess_present_id), req)
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
                 self.examine_present_id = response.data['id']
+        self.assertTrue(self.assess_report_id)
+        self.assertTrue(self.assess_artifact_id)
+        self.assertTrue(self.assess_present_id)
+        self.assertTrue(self.examine_report_id)
+        self.assertTrue(self.examine_artifact_id)
+        self.assertTrue(self.examine_present_id)
+
+        # Before examiner approve, supervisor must approved
+        self.set_supervise_approve()
 
     def setUp(self):
         super(IndividualProject, self).setUp()
@@ -113,6 +130,11 @@ class IndividualProject(utils.SrpmsTest):
     def test_owner_un_submit(self):  # Forbidden
         self.set_supervise()
 
+        # Submit first
+        self.user_01.put(utils.get_contract_url(self.contract_id, submit=True),
+                         data.get_submit_data(True))
+
+        # Try undo submit
         response = self.user_01.put(utils.get_contract_url(self.contract_id, submit=True),
                                     data.get_submit_data(False))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
@@ -176,7 +198,7 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
 
-        # Allow DELETE
+        # Allow PATCH
         response = self.superuser.patch(self.supervise_approve_url, data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
@@ -199,7 +221,7 @@ class IndividualProject(utils.SrpmsTest):
         # Un-submitted contract is not allowed to be approved
         response = self.supervisor_non_formal.put(self.supervise_approve_url,
                                                   data.get_approve_data(True))
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
     def test_supervise_approve_submitted_contract(self):
         self.set_supervise()
@@ -222,7 +244,18 @@ class IndividualProject(utils.SrpmsTest):
         # Owner should be able to submit again
         self.set_submit()
 
-    def test_other_users_approve(self):
+    def test_supervise_disapprove_non_submitted_contract(self):
+        self.set_supervise()
+
+        # Un-submitted contract is not allowed to be disapproved
+        response = self.supervisor_non_formal.put(self.supervise_approve_url,
+                                                  data.get_approve_data(False))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+
+        # Owner should be able to submit again
+        self.set_submit()
+
+    def test_other_users_approve_supervisor(self):
         self.set_supervise()
         self.set_submit()
 
@@ -243,7 +276,7 @@ class IndividualProject(utils.SrpmsTest):
         response = self.superuser.put(self.supervise_approve_url, data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
-    def test_other_users_disapprove(self):
+    def test_other_users_disapprove_supervisor(self):
         self.set_supervise()
         self.set_submit()
 
@@ -268,17 +301,145 @@ class IndividualProject(utils.SrpmsTest):
     ########################################
     # Contract examiner approval
 
+    def test_examiner_approve_illegal_method(self):
+        self.set_examine()
+
+        response = self.superuser.post(utils.get_examine_url(self.contract_id,
+                                                             self.assess_report_id,
+                                                             self.examine_report_id, approve=True),
+                                       data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        response = self.superuser.delete(utils.get_examine_url(self.contract_id,
+                                                               self.assess_report_id,
+                                                               self.examine_report_id,
+                                                               approve=True))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_examiner_approve_legal_01(self):
+        self.set_examine()
+
+        response = self.user_04.put(utils.get_examine_url(self.contract_id,
+                                                          self.assess_report_id,
+                                                          self.examine_report_id, approve=True),
+                                    data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_examiner_approve_legal_02(self):
+        self.set_examine()
+
+        response = self.user_04.patch(utils.get_examine_url(self.contract_id,
+                                                            self.assess_artifact_id,
+                                                            self.examine_artifact_id, approve=True),
+                                      data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_examiner_reapprove(self):
+        self.set_examine()
+
+        response = self.user_04.put(utils.get_examine_url(self.contract_id,
+                                                          self.assess_report_id,
+                                                          self.examine_report_id, approve=True),
+                                    data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.user_04.put(utils.get_examine_url(self.contract_id,
+                                                          self.assess_report_id,
+                                                          self.examine_report_id, approve=True),
+                                    data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_examiner_disapprove(self):
+        self.set_examine()
+
+        response = self.user_04.put(utils.get_examine_url(self.contract_id,
+                                                          self.assess_report_id,
+                                                          self.examine_report_id, approve=True),
+                                    data.get_approve_data(False))
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+
+    def test_other_users_approve_examiner(self):
+        self.set_examine()
+
+        examine_url = utils.get_examine_url(self.contract_id, self.assess_report_id,
+                                            self.examine_report_id, approve=True)
+
+        # Forbid normal user
+        response = self.user_01.put(examine_url, data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Forbid un-related can_supervise
+        response = self.supervisor_formal.put(examine_url, data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Allow convener
+        response = self.convener.put(examine_url, data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Allow superuser
+        self.superuser.put(examine_url, data.get_approve_data(False))
+        response = self.superuser.put(examine_url, data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_other_users_disapprove_examiner(self):
+        self.set_examine()
+
+        examine_url = utils.get_examine_url(self.contract_id, self.assess_report_id,
+                                            self.examine_report_id, approve=True)
+
+        # Forbid normal user
+        response = self.user_01.put(examine_url, data.get_approve_data(False))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Forbid un-related can_supervise
+        response = self.supervisor_formal.put(examine_url, data.get_approve_data(False))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Allow convener
+        response = self.convener.put(examine_url, data.get_approve_data(False))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Allow superuser
+        response = self.superuser.put(examine_url, data.get_approve_data(False))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     ########################################
     # Contract convener approval
 
+    def test_convener_approve_illegal_method(self):
+        pass
+
+    def test_convener_approve_legal_01(self):
+        pass
+
+    def test_convener_approve_legal_02(self):
+        pass
+
+    def test_convener_reapprove(self):
+        pass
+
     def test_convener_approve_non_submitted_contract(self):
+        pass
+
+    def test_convener_approve_submitted_contract(self):
+        pass
+
+    def test_convener_disapprove_submitted_contract(self):
+        pass
+
+    def test_convener_disapprove_non_submitted_contract(self):
         # Un-submitted contract is not allowed to be approved
         response = self.convener.put(utils.get_contract_url(self.contract_id, approve=True),
                                      data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
 
+    def test_other_users_approve_convener(self):
+        pass
 
-# class IndividualProjectAssessmentApprove(IndividualProject):
+    def test_other_users_disapprove_convener(self):
+        pass
+
+    # class IndividualProjectAssessmentApprove(IndividualProject):
 #     def setUp(self):
 #         super(IndividualProjectAssessmentApprove, self).setUp()
 #

@@ -51,15 +51,21 @@ def get_assessment_url(contract_id: int, assessment_id: int = None) -> str:
                                     ApiUrls.assessment, assessment_id)
 
 
-def get_examine_url(contract_id: int, assessment_id: int, examine_id: int = None) -> str:
+def get_examine_url(contract_id: int, assessment_id: int, examine_id: int = None,
+                    approve: bool = False) -> str:
     if not examine_id:
         return '{}{}/{}/{}/{}/'.format(ApiUrls.contract, contract_id,
                                        ApiUrls.assessment, assessment_id,
                                        ApiUrls.examine)
     else:
-        return '{}{}/{}/{}/{}/{}/'.format(ApiUrls.contract, contract_id,
-                                          ApiUrls.assessment, assessment_id,
-                                          ApiUrls.examine, examine_id)
+        if approve:
+            return '{}{}/{}/{}/{}/{}/approve/'.format(ApiUrls.contract, contract_id,
+                                                      ApiUrls.assessment, assessment_id,
+                                                      ApiUrls.examine, examine_id)
+        else:
+            return '{}{}/{}/{}/{}/{}/'.format(ApiUrls.contract, contract_id,
+                                              ApiUrls.assessment, assessment_id,
+                                              ApiUrls.examine, examine_id)
 
 
 class Client(APIClient):

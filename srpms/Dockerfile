@@ -27,6 +27,7 @@ RUN apk add --no-cache --virtual .build-deps \
                    ipython==7.7.* \
                    pylint_django==2.0.* \
                    coverage==4.5.* \
+                   tblib==1.4.* \
     && find /usr/local \
         \( -type d -a -name test -o -name tests \) \
         -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
