@@ -4,6 +4,24 @@ from typing import List, Dict, Tuple
 from accounts.models import SrpmsUser
 from research_mgt import models
 
+
+############################################################################################
+# General use
+
+def get_submit_data(submit: bool):
+    if submit:
+        return {'submit': True}
+    else:
+        return {'submit': False}
+
+
+def get_approve_data(approve: bool):
+    if approve:
+        return {'approve': True}
+    else:
+        return {'approve': False}
+
+
 ############################################################################################
 # Courses
 
@@ -276,42 +294,42 @@ assessment_01_request = {
 }
 
 assessment_01_response = {
-    "template": temp_report.id,
-    "contract": None,  # Supply data here
-    "additional_description": "",
-    "due": None,
-    "weight": temp_report.default_weight,
-    "is_all_examiners_approved": False
+    'template': temp_report.id,
+    'contract': None,  # Supply data here
+    'additional_description': '',
+    'due': None,
+    'weight': temp_report.default_weight,
+    'is_all_examiners_approved': False
 }
 
 assessment_02_request = {
     'template': temp_artifact.id,
-    "additional_description": "aisduioeodyhery82",
+    'additional_description': 'aisduioeodyhery82',
     'weight': 40,
 }
 
 assessment_02_response = {
-    "template": temp_artifact.id,
-    "contract": None,  # Supply data here
-    "additional_description": "aisduioeodyhery82",
-    "due": None,
-    "weight": 40,
-    "is_all_examiners_approved": False
+    'template': temp_artifact.id,
+    'contract': None,  # Supply data here
+    'additional_description': 'aisduioeodyhery82',
+    'due': None,
+    'weight': 40,
+    'is_all_examiners_approved': False
 }
 
 assessment_custom_request = {
     'template': temp_custom.id,
-    "additional_description": "",
+    'additional_description': '',
     'weight': 40,
 }
 
 assessment_custom_response = {
-    "template": temp_custom.id,
-    "contract": None,  # Supply data here
-    "additional_description": "",
-    "due": None,
-    "weight": 40,
-    "is_all_examiners_approved": False
+    'template': temp_custom.id,
+    'contract': None,  # Supply data here
+    'additional_description': '',
+    'due': None,
+    'weight': 40,
+    'is_all_examiners_approved': False
 }
 
 assessment_list_valid = [

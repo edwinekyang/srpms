@@ -1,3 +1,4 @@
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from rest_framework.status import HTTP_200_OK
@@ -89,6 +90,16 @@ class ContractViewSet(ModelViewSet):
         serializer: SubmitSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             contract = self.get_object()
+
+            # Extra permission check
+            if app_perms.IsSuperuser.check(request.user):
+                pass
+            elif not serializer.validated_data['submit']:
+                raise PermissionDenied('Undo submission is not allowed')
+            elif contract.submit_date and serializer.validated_data['submit']:
+                raise PermissionDenied('Re-submission is not allowed, please contact contract '
+                                       'supervisor to disapprove.')
+
             contract.submit_date = serializer.validated_data['submit']
             contract.save()
             return Response(status=HTTP_200_OK)
@@ -128,8 +139,8 @@ class AssessmentExamineViewSet(CreateModelMixin,
                                           app_perms.IsSuperuser |
                                           app_perms.IsConvener |
                                           app_perms.IsContractSupervisor,
-                                          app_perms.ContractNotFinalApproved,
-                                          app_perms.ContractApprovedBySupervisor]
+                                          app_perms.ContractSubmitted,
+                                          app_perms.ContractNotFinalApproved, ]
 
     def perform_create(self, serializer: serializers.AssessmentExamineSerializer):
 
@@ -166,6 +177,7 @@ class AssessmentExamineViewSet(CreateModelMixin,
         if serializer.is_valid():
             assessment_examine = self.get_object()
             assessment_examine.examiner_approval_date = serializer.validated_data['approve']
+            assessment_examine.save()
             return Response(status=HTTP_200_OK)
         else:
             raise ValidationError()
@@ -258,8 +270,26 @@ class SuperviseViewSet(CreateModelMixin,
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             supervise = self.get_object()
-            supervise.supervisor_approval_date = serializer.validated_data['approve']
-            return Response(status=HTTP_200_OK)
+
+            # Supervisor cannot undo their approval
+            if not app_perms.IsSuperuser.check(request.user) and \
+                    not app_perms.IsConvener.check(request.user) and \
+                    supervise.supervisor_approval_date and serializer.validated_data['approve']:
+                raise PermissionDenied('Action on approved item is not allowed, please contact '
+                                       'convener if you need to disapprove.')
+
+            # Wrap with transaction since we may need to modify related objects
+            with transaction.atomic():
+                if serializer.validated_data['approve']:
+                    supervise.supervisor_approval_date = serializer.validated_data['approve']
+                    supervise.save()
+                else:
+                    # On disapprove, clean contract's submitted status
+                    supervise.supervisor_approval_date = None
+                    supervise.contract.submit_date = None
+                    supervise.contract.save()
+                    supervise.save()
+                return Response(status=HTTP_200_OK)
         else:
             raise ValidationError()
 

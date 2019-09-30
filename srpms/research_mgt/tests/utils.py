@@ -19,29 +19,45 @@ class ApiUrls(object):
     all = [mgt_user, assess_temp, course, contract]
 
 
-def get_supervise_url(contract_id: int, supervise_id: int = None) -> str:
-    if not supervise_id:
-        return "{}{}/{}/".format(ApiUrls.contract, contract_id, ApiUrls.supervise)
+def get_contract_url(contract_id: int = None, submit: bool = False, approve: bool = False) -> str:
+    if not contract_id:
+        return ApiUrls.contract
     else:
-        return "{}{}/{}/{}/".format(ApiUrls.contract, contract_id,
-                                    ApiUrls.supervise, supervise_id)
+        if submit:
+            return '{}{}/submit/'.format(ApiUrls.contract, contract_id)
+        elif approve:
+            return '{}{}/approve/'.format(ApiUrls.contract, contract_id)
+        else:
+            return '{}{}/'.format(ApiUrls.contract, contract_id)
+
+
+def get_supervise_url(contract_id: int, supervise_id: int = None, approve: bool = False) -> str:
+    if not supervise_id:
+        return '{}{}/{}/'.format(ApiUrls.contract, contract_id, ApiUrls.supervise)
+    else:
+        if approve:
+            return '{}{}/{}/{}/approve/'.format(ApiUrls.contract, contract_id,
+                                                ApiUrls.supervise, supervise_id)
+        else:
+            return '{}{}/{}/{}/'.format(ApiUrls.contract, contract_id,
+                                        ApiUrls.supervise, supervise_id)
 
 
 def get_assessment_url(contract_id: int, assessment_id: int = None) -> str:
     if not assessment_id:
-        return "{}{}/{}/".format(ApiUrls.contract, contract_id, ApiUrls.assessment)
+        return '{}{}/{}/'.format(ApiUrls.contract, contract_id, ApiUrls.assessment)
     else:
-        return "{}{}/{}/{}/".format(ApiUrls.contract, contract_id,
+        return '{}{}/{}/{}/'.format(ApiUrls.contract, contract_id,
                                     ApiUrls.assessment, assessment_id)
 
 
 def get_examine_url(contract_id: int, assessment_id: int, examine_id: int = None) -> str:
     if not examine_id:
-        return "{}{}/{}/{}/{}/".format(ApiUrls.contract, contract_id,
+        return '{}{}/{}/{}/{}/'.format(ApiUrls.contract, contract_id,
                                        ApiUrls.assessment, assessment_id,
                                        ApiUrls.examine)
     else:
-        return "{}{}/{}/{}/{}/{}/".format(ApiUrls.contract, contract_id,
+        return '{}{}/{}/{}/{}/{}/'.format(ApiUrls.contract, contract_id,
                                           ApiUrls.assessment, assessment_id,
                                           ApiUrls.examine, examine_id)
 
@@ -78,7 +94,7 @@ class Client(APIClient):
 
 
 class User(object):
-    def __init__(self, username, password, first_name="", last_name="", email="", uni_id="",
+    def __init__(self, username, password, first_name='', last_name='', email='', uni_id='',
                  is_approved_supervisor=False, is_convener=False, is_superuser=False):
         self.username = username
         self.password = password

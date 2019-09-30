@@ -41,6 +41,11 @@ class IndividualProject(utils.SrpmsTest):
         response = self.superuser.post(utils.get_supervise_url(self.contract['id']), req)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        # Let the user submit the contract, otherwise editing examiner is not allowed
+        response = self.user_01.put(utils.get_contract_url(self.contract['id'], submit=True),
+                                    data.get_submit_data(True))
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+
         self.examine_list_url = utils.get_examine_url(self.contract['id'], assessment_report_id)
 
         # Pick assessment for test edit and delete
@@ -228,10 +233,10 @@ class SpecialTopic(IndividualProject):
         assessment_list_url = utils.get_assessment_url(self.contract['id'])
 
         # Create assessment item to prepare for testing
-        req, resp = data.get_assessment(self.contract['id'])
+        req = {'template': data.temp_custom.id, 'weight': 5}
         response = self.user_01.post(assessment_list_url, req)
         assessment_01_id = response.data['id']
-        req, resp = data.get_assessment(self.contract['id'])
+        req = {'template': data.temp_custom.id, 'weight': 95}
         response = self.user_01.post(assessment_list_url, req)
         assessment_02_id = response.data['id']
 
@@ -241,6 +246,11 @@ class SpecialTopic(IndividualProject):
                                                 self.supervisor_non_formal.id, True)
         response = self.superuser.post(utils.get_supervise_url(self.contract['id']), req)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Let the user submit the contract, otherwise editing examiner is not allowed
+        response = self.user_01.put(utils.get_contract_url(self.contract['id'], submit=True),
+                                    data.get_submit_data(True))
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         self.examine_list_url = utils.get_examine_url(self.contract['id'], assessment_01_id)
 

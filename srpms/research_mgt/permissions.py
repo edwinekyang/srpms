@@ -132,9 +132,13 @@ class IsContractSupervisor(BasePermission):
 
 class IsContractSuperviseOwner(BasePermission):
     def has_permission(self, request, view) -> bool:
+        if isinstance(view, views.SuperviseViewSet):
+            return True
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
+        if isinstance(obj, models.Supervise):
+            return obj.supervisor == request.user
         return False
 
 
@@ -154,23 +158,59 @@ class IsContractAssessmentExaminer(BasePermission):
 
 class ContractNotFinalApproved(BasePermission):
     def has_permission(self, request, view) -> bool:
-        return True
+        if isinstance(view, views.ContractViewSet):
+            return True
+        elif isinstance(view, views.SuperviseViewSet):
+            return True
+        elif isinstance(view, views.AssessmentViewSet):
+            return True
+        elif isinstance(view, views.AssessmentExamineViewSet):
+            return True
+        return False
 
     def has_object_permission(self, request, view, obj) -> bool:
+        if isinstance(obj, models.Contract):
+            return not obj.is_convener_approved()
+        elif isinstance(obj, models.Supervise):
+            return not obj.contract.is_convener_approved()
+        elif isinstance(obj, models.Assessment):
+            return not obj.contract.is_convener_approved()
+        elif isinstance(obj, models.AssessmentExamine):
+            return not obj.contract.is_convener_approved()
+        return False
+
+
+class ContractSubmitted(BasePermission):
+    def has_permission(self, request, view) -> bool:
+        if isinstance(view, views.SuperviseViewSet):
+            return view.resolved_parents['contract'].is_submitted()
+        elif isinstance(view, views.AssessmentExamineViewSet):
+            return view.resolved_parents['contract'].is_submitted()
+        return False
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        if isinstance(obj, models.Supervise):
+            return obj.contract.is_submitted()
+        elif isinstance(obj, models.AssessmentExamine):
+            return obj.contract.is_submitted()
         return True
 
 
 class ContractNotSubmitted(BasePermission):
     def has_permission(self, request, view) -> bool:
-        return True
+        if isinstance(view, views.SuperviseViewSet):
+            return not view.resolved_parents['contract'].is_submitted()
+        elif isinstance(view, views.ContractViewSet):
+            return True
+        elif isinstance(view, views.AssessmentViewSet):
+            return True
+        return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        return True
-
-
-class ContractApprovedBySupervisor(BasePermission):
-    def has_permission(self, request, view) -> bool:
-        return True
-
-    def has_object_permission(self, request, view, obj) -> bool:
-        return True
+        if isinstance(obj, models.Supervise):
+            return not obj.contract.is_submitted()
+        elif isinstance(obj, models.Contract):
+            return not obj.is_submitted()
+        elif isinstance(obj, models.Assessment):
+            return not obj.contract.is_submitted()
+        return False

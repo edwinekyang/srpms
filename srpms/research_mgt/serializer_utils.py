@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.utils import timezone
 from rest_framework import serializers
 
 
@@ -25,7 +26,7 @@ class DateTimeBooleanField(serializers.BooleanField):
         if not isinstance(data, bool):
             raise serializers.ValidationError('Should be a boolean value')
 
-        return datetime.now() if data else None
+        return timezone.now() if data else None
 
     def get_attribute(self, instance) -> bool:
         """

@@ -132,9 +132,7 @@ class TestContract(utils.SrpmsTest):
         # Supervisor requests
 
         # Add supervisor first
-        response = self.superuser.post('{}{}/{}/'.format(utils.ApiUrls.contract,
-                                                         con_id,
-                                                         utils.ApiUrls.supervise),
+        response = self.superuser.post(utils.get_supervise_url(con_id),
                                        {'supervisor': self.supervisor_non_formal.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -256,9 +254,7 @@ class TestContract(utils.SrpmsTest):
         # Supervisor requests
 
         # Add supervisor first
-        response = self.superuser.post('{}{}/{}/'.format(utils.ApiUrls.contract,
-                                                         con_id,
-                                                         utils.ApiUrls.supervise),
+        response = self.superuser.post(utils.get_supervise_url(con_id),
                                        {'supervisor': self.supervisor_non_formal.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -314,9 +310,7 @@ class TestContract(utils.SrpmsTest):
         # Supervisor requests
 
         # Add supervisor first
-        response = self.superuser.post('{}{}/{}/'.format(utils.ApiUrls.contract,
-                                                         con_id,
-                                                         utils.ApiUrls.supervise),
+        response = self.superuser.post(utils.get_supervise_url(con_id),
                                        {'supervisor': self.supervisor_non_formal.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 

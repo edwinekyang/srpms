@@ -113,7 +113,11 @@ class Contract(models.Model):
             weights = list(Assessment.objects.filter(contract=self)
                            .values_list('weight', flat=True))
             if not sum(weights) == 100:
-                errors['submit'] = 'The sum of all assessments\' weight should be 100'
+                errors['assessments'] = 'The sum of all assessments\' weight should be 100'
+
+            # Make sure at least one supervisor is assign on submission
+            if not len(Supervise.objects.filter(contract=self)) >= 1:
+                errors['supervisor'] = 'A contract requires at least one supervisor'
 
         # Update only check, self.pk would not present during create
         if self.pk:
@@ -205,11 +209,15 @@ class Supervise(models.Model):
         return bool(self.supervisor_approval_date)
 
     def clean(self) -> None:
-        # TODO: Should we allow the last supervisor to approve contract if not all
-        #       examiner has been approved?
-        pass
+        errors = {}
+        if self.supervisor_approval_date and not self.contract.is_submitted():
+            errors['contract'] = 'Un-submitted contract is not allowed to be approved.'
+
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        self.full_clean()
         return super(Supervise, self).save(*args, **kwargs)
 
 
@@ -347,6 +355,9 @@ class AssessmentExamine(models.Model):
         if self.assessment.contract != self.examine.contract:
             errors['assessment'] = 'assessment\'s contract is different from examine\'s contract'
             errors['examine'] = 'examine\'s contract is different from assessment\'s contract'
+
+        if self.examiner_approval_date and not self.contract.is_all_supervisors_approved():
+            errors['supervise'] = 'Examiner approval is not allowed before supervisor approve'
 
         if errors:
             raise ValidationError(errors)
