@@ -239,7 +239,7 @@ class IndividualProject(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         req, _ = data.gen_examine_req_resp(examiner_id=self.user_03.id)
-        response = self.convener.put(self.examine_detail_url, req)
+        response = self.supervisor_non_formal.put(self.examine_detail_url, req)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
