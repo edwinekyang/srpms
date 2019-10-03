@@ -104,10 +104,17 @@ class ContractViewSet(ModelViewSet):
                                                 (app_perms.IsConvener &
                                                  app_perms.ContractNotFinalApproved), ])
     def approve(self, request, pk=None):
+        """
+        Note that the permission for this class is relatively incomplete, this is to allow
+        convener getting details regarding what criteria hasn't meet through database's
+        validation error.
+        """
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             contract = self.get_object()
             approve_date = serializer.validated_data['approve']
+
+            # TODO: Should all supervisor's approval be reset upon convener disapprove
 
             # Set the approval date, and set the convener to the user who is doing the
             # approval action to this contract.

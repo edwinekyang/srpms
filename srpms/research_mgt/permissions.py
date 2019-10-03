@@ -195,7 +195,7 @@ class ContractSubmitted(BasePermission):
             return obj.contract.is_submitted()
         elif isinstance(obj, models.Assessment):
             return not obj.contract.is_submitted()
-        return True
+        return False
 
 
 class ContractNotSubmitted(BasePermission):
@@ -231,7 +231,7 @@ class ContractApprovedBySupervisor(BasePermission):
     def has_object_permission(self, request, view, obj) -> bool:
         if isinstance(obj, models.AssessmentExamine):
             return self.check(obj.contract)
-        return True
+        return False
 
 
 class ContractNotApprovedBySupervisor(BasePermission):
@@ -251,4 +251,4 @@ class ContractNotApprovedBySupervisor(BasePermission):
             return self.check(obj.contract)
         if isinstance(obj, models.Supervise):
             return self.check(obj.contract)
-        return True
+        return False

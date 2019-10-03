@@ -236,11 +236,7 @@ class IndividualProject(utils.SrpmsTest):
                                                                           self.supervise_id,
                                                                           approve=True),
                                                   data.get_approve_data(True))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        req, _ = data.gen_examine_req_resp(examiner_id=self.user_03.id)
-        response = self.supervisor_non_formal.put(self.examine_detail_url, req)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
 
 
 class SpecialTopic(IndividualProject):

@@ -210,8 +210,19 @@ class Supervise(models.Model):
 
     def clean(self) -> None:
         errors = {}
-        if self.supervisor_approval_date and not self.contract.is_submitted():
-            errors['contract'] = 'Un-submitted contract is not allowed to be approved.'
+
+        # Approval check
+        if self.supervisor_approval_date:
+            # The contract need to be submitted before approval
+            if not self.contract.is_submitted():
+                errors['contract'] = 'Un-submitted contract is not allowed to be approved.'
+
+            for assessment in self.contract.assessment.all():
+                if len(assessment.assessment_examine.all()) < 1:
+                    errors['assessments'] = 'Please make sure you\'ve assigned at least one ' \
+                                            'examiner for each assessment.'
+                    break
+
         if self.contract.convener_approval_date:
             errors['convener_approve'] = 'convener approved contract is not allowed to modify.'
 
