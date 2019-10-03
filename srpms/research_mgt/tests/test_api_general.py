@@ -27,3 +27,12 @@ class APITests(utils.SrpmsTest):
         for api_url in utils.ApiUrls.all:
             response = self.superuser.get(api_url)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_approved_supervisors(self):
+        response = self.user_01.get(
+            '{}?is_approved_supervisor=true'.format(utils.ApiUrls.mgt_user))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.user_01.get(
+                '{}?is_approved_supervisor=false'.format(utils.ApiUrls.mgt_user))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
