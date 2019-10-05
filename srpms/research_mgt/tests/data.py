@@ -4,6 +4,24 @@ from typing import List, Dict, Tuple
 from accounts.models import SrpmsUser
 from research_mgt import models
 
+
+############################################################################################
+# General use
+
+def get_submit_data(submit: bool):
+    if submit:
+        return {'submit': True}
+    else:
+        return {'submit': False}
+
+
+def get_approve_data(approve: bool):
+    if approve:
+        return {'approve': True}
+    else:
+        return {'approve': False}
+
+
 ############################################################################################
 # Courses
 
@@ -56,24 +74,24 @@ temp_custom = models.AssessmentTemplate.objects.get(name='custom')
 temp_list_valid = [
     {'name': 'test01',
      'description': '',
-     'max_mark': 100,
-     'min_mark': 0,
-     'default_mark': 50},
+     'max_weight': 100,
+     'min_weight': 0,
+     'default_weight': 50},
     {'name': 'test02',
      'description': '',
-     'max_mark': 50,
-     'min_mark': 50,
-     'default_mark': 50},
+     'max_weight': 50,
+     'min_weight': 50,
+     'default_weight': 50},
     {'name': 'test03',
      'description': '',
-     'max_mark': 60,
-     'min_mark': 50,
-     'default_mark': 60},
+     'max_weight': 60,
+     'min_weight': 50,
+     'default_weight': 60},
     {'name': 'test04',
      'description': '',
-     'max_mark': 50,
-     'min_mark': 30,
-     'default_mark': 30}
+     'max_weight': 50,
+     'min_weight': 30,
+     'default_weight': 30}
 ]
 
 
@@ -92,24 +110,24 @@ def get_temps() -> List[Dict]:
 temp_list_invalid = [
     {'name': '',  # Empty name
      'description': 'asd',
-     'max_mark': 100,
-     'min_mark': 0,
-     'default_mark': 50},
+     'max_weight': 100,
+     'min_weight': 0,
+     'default_weight': 50},
     {'name': 'test02',
      'description': '',
-     'max_mark': 101,  # > 100
-     'min_mark': -1,  # < 0
-     'default_mark': 50},
+     'max_weight': 101,  # > 100
+     'min_weight': -1,  # < 0
+     'default_weight': 50},
     {'name': 'test03',
      'description': '',
-     'max_mark': 60,
-     'min_mark': 50,
-     'default_mark': 70},  # Out of range
+     'max_weight': 60,
+     'min_weight': 50,
+     'default_weight': 70},  # Out of range
     {'name': 'test04',
      'description': '',
-     'max_mark': 50,
-     'min_mark': 30,
-     'default_mark': 10}  # Out of range
+     'max_weight': 50,
+     'min_weight': 30,
+     'default_weight': 10}  # Out of range
 ]
 
 ############################################################################################
@@ -121,14 +139,11 @@ contract_01_request = {
     'duration': 1,
     'resources': '',
     'course': comp8755.id,
-    'is_convener_approved': False,
-    'is_submitted': False,
     'individual_project': {
         'title': 'Test',
         'objectives': '',
         'description': ''
-    },
-    'special_topics': None
+    }
 }
 
 contract_01_response = {
@@ -148,26 +163,23 @@ contract_01_response = {
         'objectives': '',
         'description': ''
     },
-    'special_topics': None
+    'special_topic': None
 }
 
-contract_02_valid_request = {
+contract_02_request = {
     'year': 2019,
     'semester': 1,
     'duration': 1,
     'resources': '',
     'course': comp8755.id,
-    'is_convener_approved': False,
-    'is_submitted': False,
-    'individual_project': None,
-    'special_topics': {
+    'special_topic': {
         'title': 'Test',
         'objectives': '',
         'description': ''
     }
 }
 
-contract_02_valid_response = {
+contract_02_response = {
     'year': 2019,
     'semester': 1,
     'duration': 1,
@@ -180,7 +192,7 @@ contract_02_valid_response = {
     'submit_date': None,
     'is_submitted': False,
     'individual_project': None,
-    'special_topics': {
+    'special_topic': {
         'title': 'Test',
         'objectives': '',
         'description': ''
@@ -189,6 +201,7 @@ contract_02_valid_response = {
 
 contract_list_valid = [
     (contract_01_request, contract_01_response),
+    (contract_02_request, contract_02_response),
 ]
 
 
@@ -220,7 +233,7 @@ contract_list_invalid = [
          'objectives': '',
          'description': ''
      },
-     'special_topics': None},
+     'special_topic': None},
     {'year': 2019,
      'semester': 1,
      'duration': 1,
@@ -233,7 +246,7 @@ contract_list_invalid = [
          'objectives': '',
          'description': ''
      },
-     'special_topics': None},
+     'special_topic': None},
     {'year': 2019,
      'semester': 1,
      'duration': 1,
@@ -242,7 +255,7 @@ contract_list_invalid = [
      'is_convener_approved': False,
      'is_submitted': False,
      'individual_project': None,  # Contract type should at least one
-     'special_topics': None},
+     'special_topic': None},
     {'year': 2019,
      'semester': 1,
      'duration': 1,
@@ -255,15 +268,98 @@ contract_list_invalid = [
          'objectives': '',
          'description': ''
      },
-     'special_topics': {
+     'special_topic': {
          'title': 'Test',
          'objectives': '',
          'description': ''
      }}
 ]
 
+
 ############################################################################################
 # Supervise
 
+def gen_supervise_req_resp(contract_id: int, supervisor_id: int, is_formal: bool) \
+        -> Tuple[dict, dict]:
+    request = {'supervisor': supervisor_id}
+    response = {'contract': contract_id, 'supervisor': supervisor_id, 'is_formal': is_formal}
+    return request, response
+
+
 ############################################################################################
-# Assessment Methods
+# Assessments
+
+assessment_01_request = {
+    'template': temp_report.id,
+}
+
+assessment_01_response = {
+    'template': temp_report.id,
+    'contract': None,  # Supply data here
+    'additional_description': '',
+    'due': None,
+    'weight': temp_report.default_weight,
+    'is_all_examiners_approved': False
+}
+
+assessment_02_request = {
+    'template': temp_artifact.id,
+    'additional_description': 'aisduioeodyhery82',
+    'weight': 40,
+}
+
+assessment_02_response = {
+    'template': temp_artifact.id,
+    'contract': None,  # Supply data here
+    'additional_description': 'aisduioeodyhery82',
+    'due': None,
+    'weight': 40,
+    'is_all_examiners_approved': False
+}
+
+assessment_custom_request = {
+    'template': temp_custom.id,
+    'additional_description': '',
+    'weight': 40,
+}
+
+assessment_custom_response = {
+    'template': temp_custom.id,
+    'contract': None,  # Supply data here
+    'additional_description': '',
+    'due': None,
+    'weight': 40,
+    'is_all_examiners_approved': False
+}
+
+assessment_list_valid = [
+    (assessment_01_request, assessment_01_response),
+    (assessment_02_request, assessment_02_response),
+]
+
+
+def get_assessment(contract_id: int) \
+        -> Tuple[dict, dict]:
+    request, response = random.choice(assessment_list_valid)
+    return {**request}, {**response, 'contract': contract_id}
+
+
+def get_assessments(contract_id: int) \
+        -> List[Tuple[dict, dict]]:
+    results = []
+    for request, response in contract_list_valid:
+        results.append((
+            {**request},
+            {**response, 'contract': contract_id}
+        ))
+    return results
+
+
+############################################################################################
+# Assessment Examine
+
+def gen_examine_req_resp(examiner_id: int) \
+        -> Tuple[dict, dict]:
+    request = {'examiner': examiner_id}
+    response = {'examiner': examiner_id}
+    return request, response

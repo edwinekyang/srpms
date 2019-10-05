@@ -110,7 +110,7 @@ class TestAssessmentTemplate(utils.SrpmsTest):
 
         # Legal
         response = self.convener.patch(utils.ApiUrls.assess_temp + str(temp_id) + '/',
-                                       {'default_mark': temp['default_mark']})
+                                       {'default_weight': temp['default_weight']})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data.pop('id'))
         self.assertEqual(response.data, temp)

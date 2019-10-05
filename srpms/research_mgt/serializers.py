@@ -1,46 +1,9 @@
-from datetime import datetime
+from typing import Tuple
+from django.db import transaction
 from rest_framework import serializers
 
 from accounts.models import SrpmsUser
 from . import models
-
-
-class DateTimeBooleanField(serializers.BooleanField):
-    """
-    Special field for retrieving approval status.
-
-    The database does not have a field 'is_approved', instead we check if
-    the 'approval_date' is empty to see if its approved.
-
-    This field can also used to write the DateTimeField, it'll set the
-    source field to datetime.now() if the post date is True.
-    """
-
-    def to_representation(self, value: bool) -> bool:
-        return value
-
-    def to_internal_value(self, data: str) -> datetime:
-        """
-        Return the value that would be used to update the DateTimeField. If
-        True, return the current date & time, otherwise return None.
-        """
-        is_approved = data
-
-        # Only allow boolean value
-        if not isinstance(is_approved, bool):
-            raise serializers.ValidationError('Should be a boolean value')
-
-        return datetime.now() if is_approved else None
-
-    def get_attribute(self, instance) -> bool:
-        """
-        Get attribute from the instance, the return would be passed to
-        `to_representation` function. Note that DRF have this behavior
-        that None return would not trigger `to_representation`, so we
-        need to explicitly set True/False here
-        """
-        attr = super(DateTimeBooleanField, self).get_attribute(instance)
-        return bool(attr)
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -51,6 +14,114 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = ['id', 'course_number', 'name', 'contract']
 
 
+class AssessmentTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.AssessmentTemplate
+        fields = ['id', 'name', 'description', 'max_weight', 'min_weight', 'default_weight']
+
+
+class UserContractSerializer(serializers.ModelSerializer):
+    """For serializing user and its associated contracts"""
+
+    own = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    supervise = serializers.SerializerMethodField(read_only=True)
+    examine = serializers.SerializerMethodField(read_only=True)
+    convene = serializers.SerializerMethodField(read_only=True)
+    is_approved_supervisor = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = SrpmsUser
+        fields = ['id', 'username', 'first_name', 'last_name', 'email',
+                  'is_approved_supervisor',
+                  'own', 'convene', 'supervise', 'examine']
+
+    # noinspection PyMethodMayBeStatic
+    def get_supervise(self, obj: SrpmsUser) -> Tuple[int]:
+        return tuple(models.Contract.objects.filter(submit_date__isnull=False,
+                                                    supervise__supervisor=obj))
+
+    # noinspection PyMethodMayBeStatic
+    def get_examine(self, obj: SrpmsUser) -> Tuple[int]:
+        """Show contracts a user examine, the contract must has been approved by supervisor"""
+        return tuple(models.Contract.objects.filter(
+                assessment_examine__examine__examiner=obj,
+                supervise__supervisor_approval_date__isnull=False))
+
+    # noinspection PyMethodMayBeStatic
+    def get_convene(self, obj: SrpmsUser) -> Tuple[int]:
+        """
+        Shows submitted contracts for privileged users.
+
+        TODO: Currently convener can only see contracts when its been approved by supervisor
+              and examiners, however convener may need to operate on supervisor/examiner's
+              behalf in the case that they don't want to use this system.
+        """
+        if obj.has_perm('research_mgt.is_mgt_superuser'):
+            return tuple(models.Contract.objects.all().values_list('pk', flat=True))
+        elif obj.has_perm('research_mgt.can_convene'):
+            return tuple(models.Contract.objects.filter(
+                    submit_date__isnull=False,
+                    supervise__supervisor_approval_date__isnull=False,
+                    assessment_examine__examiner_approval_date__isnull=False))
+        else:
+            return tuple()
+
+    # noinspection PyMethodMayBeStatic
+    def get_is_approved_supervisor(self, obj: SrpmsUser) -> bool:
+        return obj.has_perm('research_mgt.can_supervise')
+
+
+class SuperviseSerializer(serializers.ModelSerializer):
+    # Contract would be attached automatically to the nested view
+    contract = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    is_formal = serializers.ReadOnlyField()
+    supervisor_approval_date = serializers.ReadOnlyField()
+
+    class Meta:
+        model = models.Supervise
+        fields = ['id', 'contract', 'supervisor', 'is_formal',
+                  'is_supervisor_approved', 'supervisor_approval_date']
+
+
+class AssessmentExamineSerializer(serializers.ModelSerializer):
+    examiner = serializers.PrimaryKeyRelatedField(source='examine.examiner',
+                                                  queryset=SrpmsUser.objects.all())
+    examiner_approval_date = serializers.ReadOnlyField()
+
+    class Meta:
+        model = models.AssessmentExamine
+        fields = ['id', 'examiner', 'examiner_approval_date']
+
+    def create(self, validated_data):
+        examiner = validated_data['examine']['examiner']
+        examine, _ = models.Examine.objects.get_or_create(contract=validated_data['contract'],
+                                                          examiner=examiner)
+        validated_data['examine'] = examine
+        return super(AssessmentExamineSerializer, self).create(validated_data)
+
+    def update(self, instance, validated_data):
+        examiner = validated_data['examine']['examiner']
+        examine, _ = models.Examine.objects.get_or_create(contract=validated_data['contract'],
+                                                          examiner=examiner)
+        validated_data['examine'] = examine
+        return super(AssessmentExamineSerializer, self).update(instance, validated_data)
+
+
+class AssessmentSerializer(serializers.ModelSerializer):
+    template_info = AssessmentTemplateSerializer(source='template', read_only=True)
+
+    # Contract would be attached automatically to the nested view
+    contract = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    assessment_examine = AssessmentExamineSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = models.Assessment
+        fields = ['id', 'template', 'template_info', 'contract', 'additional_description', 'due',
+                  'weight', 'assessment_examine', 'is_all_examiners_approved']
+
+
 class IndividualProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.IndividualProject
@@ -59,7 +130,7 @@ class IndividualProjectSerializer(serializers.ModelSerializer):
 
 class SpecialTopicSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.SpecialTopics
+        model = models.SpecialTopic
         fields = ['title', 'objectives', 'description']
 
 
@@ -75,30 +146,31 @@ class ContractSerializer(serializers.ModelSerializer):
     also support write for these nested field by overriding the `create` and `update` method.
     """
 
-    individual_project = IndividualProjectSerializer(source='individualproject',
-                                                     required=False, allow_null=True)
-    special_topics = SpecialTopicSerializer(source='specialtopics',
-                                            required=False, allow_null=True)
+    individual_project = IndividualProjectSerializer(required=False, allow_null=True)
+    special_topic = SpecialTopicSerializer(required=False, allow_null=True)
 
     # Convener related fields
     # Convener is set automatically to the user who approve the contract
     convener = serializers.PrimaryKeyRelatedField(read_only=True)
     convener_approval_date = serializers.ReadOnlyField()
-    is_convener_approved = DateTimeBooleanField(source='convener_approval_date', required=False)
 
     # Owner related fields
     # Owner is set automatically to the user that create the contract
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     create_date = serializers.ReadOnlyField()
     submit_date = serializers.ReadOnlyField()
-    is_submitted = DateTimeBooleanField(source='submit_date', required=False)
+
+    supervise = SuperviseSerializer(read_only=True, many=True)
+    assessment = AssessmentSerializer(read_only=True, many=True)
 
     class Meta:
         model = models.Contract
         fields = ['id', 'year', 'semester', 'duration', 'resources', 'course',
                   'convener', 'is_convener_approved', 'convener_approval_date',
                   'owner', 'create_date', 'submit_date', 'is_submitted',
-                  'individual_project', 'special_topics']
+                  'individual_project', 'special_topic',
+                  'supervise', 'is_all_supervisors_approved',
+                  'assessment', 'is_all_assessments_approved']
 
     def create(self, validated_data: dict):
         """
@@ -110,27 +182,42 @@ class ContractSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('You can\'t submit a contract on creation')
 
         try:
-            individual_project = validated_data.pop('individualproject')
+            individual_project = validated_data.pop('individual_project')
         except KeyError:
             individual_project = None
 
         try:
-            special_topics = validated_data.pop('specialtopics')
+            special_topic = validated_data.pop('special_topic')
         except KeyError:
-            special_topics = None
+            special_topic = None
 
         # Check only one type of contract is provided, this logic cannot be done in validate()
         # because this checking is different for partial update.
-        iterator = iter([individual_project, special_topics])
+        iterator = iter([individual_project, special_topic])
         has_true = any(iterator)
         has_another_true = any(iterator)
         if not (has_true and not has_another_true):
             raise serializers.ValidationError('Contract must be one and only one type')
 
         if individual_project:
-            return models.IndividualProject.objects.create(**validated_data, **individual_project)
-        if special_topics:
-            return models.SpecialTopics.objects.create(**validated_data, **special_topics)
+            # Create individual project contract and all its associated assessments, and use
+            # transaction to make sure all creation success, otherwise rollback to previous
+            # state.
+            with transaction.atomic():
+                contract = models.IndividualProject.objects.create(**validated_data,
+                                                                   **individual_project)
+                models.Assessment.objects.create(
+                        template=models.AssessmentTemplate.objects.get(name='report'),
+                        contract=contract)
+                models.Assessment.objects.create(
+                        template=models.AssessmentTemplate.objects.get(name='artifact'),
+                        contract=contract)
+                models.Assessment.objects.create(
+                        template=models.AssessmentTemplate.objects.get(name='presentation'),
+                        contract=contract)
+            return contract
+        if special_topic:
+            return models.SpecialTopic.objects.create(**validated_data, **special_topic)
 
     def update(self, instance: models.Contract, validated_data: dict):
         """
@@ -141,10 +228,10 @@ class ContractSerializer(serializers.ModelSerializer):
         try:
             # We can't use get() because we need to treat missing key and
             # key's value is None differently.
-            individual_project: dict = validated_data.pop('individualproject')
+            individual_project: dict = validated_data.pop('individual_project')
         except KeyError:
             # PATCH may missing this field, but the request is still valid
-            if hasattr(instance, 'individualproject'):
+            if hasattr(instance, 'individual_project'):
                 individual_project = {}
             else:
                 individual_project = None
@@ -152,31 +239,31 @@ class ContractSerializer(serializers.ModelSerializer):
         try:
             # We can't use get() because we need to treat missing key and
             # key's value is None differently.
-            special_topics: dict = validated_data.pop('specialtopics')
+            special_topic: dict = validated_data.pop('special_topic')
         except KeyError:
             # PATCH may missing this field, but the request is still valid
-            if hasattr(instance, 'specialtopics'):
-                special_topics = {}
+            if hasattr(instance, 'special_topic'):
+                special_topic = {}
             else:
-                special_topics = None
+                special_topic = None
 
         # Check only one type of contract is provided, this logic cannot be done in validate()
         # because this checking is different for update.
         iterator = iter([individual_project is not None,
-                         special_topics is not None])
+                         special_topic is not None])
         has_true = any(iterator)
         has_another_true = any(iterator)
         if not (has_true and not has_another_true):
             raise serializers.ValidationError('Contract must be one and only one type')
 
         # Set contract type related data
-        if hasattr(instance, 'individualproject') and individual_project is not None:
-            instance = instance.individualproject
+        if hasattr(instance, 'individual_project') and individual_project is not None:
+            instance = instance.individual_project
             for attr, value in individual_project.items():
                 setattr(instance, attr, value)
-        elif hasattr(instance, 'specialtopics') and special_topics is not None:
-            instance = instance.specialtopics
-            for attr, value in special_topics.items():
+        elif hasattr(instance, 'special_topic') and special_topic is not None:
+            instance = instance.special_topic
+            for attr, value in special_topic.items():
                 setattr(instance, attr, value)
         else:
             raise serializers.ValidationError('Illegal data for provided contract type.')
@@ -187,44 +274,3 @@ class ContractSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
-
-
-class SuperviseSerializer(serializers.ModelSerializer):
-    is_formal = serializers.ReadOnlyField()
-    supervisor_approval_date = serializers.ReadOnlyField()
-    is_supervisor_approved = DateTimeBooleanField(source='supervisor_approval_date',
-                                                  required=False)
-
-    class Meta:
-        model = models.Supervise
-        fields = ['id', 'contract', 'supervisor', 'is_formal',
-                  'is_supervisor_approved', 'supervisor_approval_date']
-
-
-class AssessmentTemplateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.AssessmentTemplate
-        fields = ['id', 'name', 'description', 'max_mark', 'min_mark', 'default_mark']
-
-
-class AssessmentMethodSerializer(serializers.ModelSerializer):
-    is_examiner_approved = DateTimeBooleanField(source='examiner_approval_date',
-                                                required=False)
-    examiner_approval_date = serializers.ReadOnlyField()
-
-    class Meta:
-        model = models.AssessmentMethod
-        fields = ['id', 'template', 'contract', 'additional_description', 'due', 'max_mark',
-                  'examiner', 'is_examiner_approved', 'examiner_approval_date']
-
-
-class UserContractSerializer(serializers.ModelSerializer):
-    own = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    convene = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    supervise = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    examine = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-
-    class Meta:
-        model = SrpmsUser
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'own', 'convene',
-                  'supervise', 'examine']

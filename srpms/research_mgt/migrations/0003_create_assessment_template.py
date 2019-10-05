@@ -18,30 +18,30 @@ def create_assessment_templates(apps: Apps, schema_editor: BaseDatabaseSchemaEdi
     TheAssessmentTemplate.objects.create(
             name='report',
             description='e.g. research report, software description, ...',
-            max_mark=90,
-            min_mark=45,
-            default_mark=60
+            max_weight=90,
+            min_weight=45,
+            default_weight=60
     )
     TheAssessmentTemplate.objects.create(
             name='artifact',
             description='e.g. software, user interface, robot, ...',
-            max_mark=45,
-            min_mark=0,
-            default_mark=30
+            max_weight=45,
+            min_weight=0,
+            default_weight=30
     )
     TheAssessmentTemplate.objects.create(
             name='presentation',
             description='',
-            max_mark=10,
-            min_mark=10,
-            default_mark=10
+            max_weight=10,
+            min_weight=10,
+            default_weight=10
     )
     TheAssessmentTemplate.objects.create(
             name='custom',
             description='',
-            max_mark=100,
-            min_mark=0,
-            default_mark=50
+            max_weight=100,
+            min_weight=0,
+            default_weight=50
     )
 
 
