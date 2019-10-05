@@ -9,6 +9,9 @@ import { BehaviorSubject } from 'rxjs';
     providedIn: 'root'
 })
 export class ContractMgtService {
+
+    private API_URL = '/api/';
+
     constructor(private http: HttpClient) { }
     public httpOptions = {
         headers: new HttpHeaders({
@@ -18,10 +21,6 @@ export class ContractMgtService {
 
     private static log(message: string) {
         console.log(`ContractMgt Service: ${message}`);
-    }
-
-    changeMessage(message: any) {
-        this.messageSource.next(message);
     }
 
     getSupervise(): Observable<any[]> {
