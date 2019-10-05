@@ -149,6 +149,28 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Email settings
+if DEBUG:
+    # Print any email send from django to STDOUT
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    # TODO: Configure the actual email account and server here. Read the docs here
+    #       https://docs.djangoproject.com/en/2.2/ref/settings/#email-host
+
+    # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    # EMAIL_HOST = 'localhost'
+    # EMAIL_PORT = 1025
+    # EMAIL_HOST_USER = ''  # Optional
+    # EMAIL_HOST_PASSWORD = ''  # Optional
+    # EMAIL_USE_TLS = False  # Optional
+    # EMAIL_USE_SSL = False  # Optional
+    # EMAIL_SSL_CERTFILE = ''  # Optional
+    # EMAIL_SSL_KEYFILE = ''  # Optional
+
+    EMAIL_SUBJECT_PREFIX = '[SRPMS] '  # Email title prefix
+    # EMAIL_TIMEOUT = None
+    pass
+
 # Customize user model
 AUTH_USER_MODEL = 'accounts.SrpmsUser'
 

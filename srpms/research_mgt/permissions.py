@@ -91,19 +91,13 @@ class IsContractFormalSupervisor(BasePermission):
         return False
 
     def has_permission(self, request, view) -> bool:
-        if type(view) in [views.ContractViewSet]:
-            return True
+        if isinstance(view, views.SuperviseViewSet):
+            return self.check(view.resolved_parents['contract'], request.user)
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.Contract):
-            if request.method == 'DELETE':
-                return False
-            elif self.check(obj, request.user):
-                return True
-        else:
-            return False
-
+        if isinstance(obj, models.Supervise):
+            return self.check(obj.contract, request.user)
         return False
 
 
@@ -251,4 +245,20 @@ class ContractNotApprovedBySupervisor(BasePermission):
             return self.check(obj.contract)
         if isinstance(obj, models.Supervise):
             return self.check(obj.contract)
+        return False
+
+
+class IsExaminerNominator(BasePermission):
+    @staticmethod
+    def check(assessment_examine: models.AssessmentExamine, user):
+        return assessment_examine.examine.nominator == user
+
+    def has_permission(self, request, view) -> bool:
+        if isinstance(view, views.AssessmentExamineViewSet):
+            return IsContractSupervisor.check(view.resolved_parents['contract'], request.user)
+        return False
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        if isinstance(obj, models.AssessmentExamine):
+            return self.check(obj, request.user)
         return False

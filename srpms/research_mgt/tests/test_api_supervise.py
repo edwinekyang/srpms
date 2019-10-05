@@ -11,6 +11,7 @@ def assert_supervise_response(test_case: TestCase, response, true_data) -> None:
 
     # Not check-able
     test_case.assertTrue(response.data.pop('supervisor_approval_date') is None)
+    test_case.assertTrue(response.data.pop('nominator'))
 
     # We'll test approval in other tests
     test_case.assertFalse(response.data.pop('is_supervisor_approved'))

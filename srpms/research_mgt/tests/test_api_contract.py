@@ -126,7 +126,7 @@ class TestContract(utils.SrpmsTest):
         ########################################
         # Non-owner requests
         response = self.user_02.put(utils.ApiUrls.contract + str(con_id) + '/', con_req)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         ########################################
         # Supervisor requests
@@ -143,13 +143,13 @@ class TestContract(utils.SrpmsTest):
 
         # Illegal request
         response = self.supervisor_formal.put(utils.ApiUrls.contract + str(con_id) + '/', con_req)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND,
                          'Supervisor not involve in a contract should not be allowed to edit')
 
         ########################################
         # Convener requests
         response = self.convener.put(utils.ApiUrls.contract + str(con_id) + '/', con_req)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         ########################################
         # Superuser requests
@@ -248,7 +248,7 @@ class TestContract(utils.SrpmsTest):
         ########################################
         # Non-owner requests
         response = self.user_02.patch(utils.ApiUrls.contract + str(con_id) + '/', con_req)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         ########################################
         # Supervisor requests
@@ -265,13 +265,13 @@ class TestContract(utils.SrpmsTest):
 
         # Illegal request
         response = self.supervisor_formal.patch(utils.ApiUrls.contract + str(con_id) + '/', con_req)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND,
                          'Supervisor not involve in a contract should not be allowed to edit')
 
         ########################################
         # Convener requests
         response = self.convener.patch(utils.ApiUrls.contract + str(con_id) + '/', con_req)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         ########################################
         # Superuser requests
@@ -302,9 +302,9 @@ class TestContract(utils.SrpmsTest):
         con_id = response.data.pop('id')
 
         ########################################
-        # Non-owner requests
+        # Non-owner requests, they aren't able to see this contract
         response = self.user_02.delete(utils.ApiUrls.contract + str(con_id) + '/')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         ########################################
         # Supervisor requests
@@ -320,12 +320,12 @@ class TestContract(utils.SrpmsTest):
 
         # Illegal
         response = self.supervisor_formal.delete(utils.ApiUrls.contract + str(con_id) + '/')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         ########################################
         # Convener requests
         response = self.convener.delete(utils.ApiUrls.contract + str(con_id) + '/')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         ########################################
         # Superuser requests

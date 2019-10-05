@@ -197,6 +197,9 @@ class Supervise(models.Model):
     contract = models.ForeignKey(Contract, related_name='supervise',
                                  on_delete=models.CASCADE, blank=False, null=False)
 
+    nominator = models.ForeignKey(SrpmsUser, related_name='supervisor_nominate',
+                                  on_delete=models.PROTECT)
+
     class Meta:
         unique_together = ('supervisor', 'contract')
 
@@ -320,6 +323,8 @@ class Assessment(models.Model):
 class Examine(models.Model):
     contract = models.ForeignKey(Contract, related_name='examine', on_delete=models.CASCADE)
     examiner = models.ForeignKey(SrpmsUser, related_name='examine', on_delete=models.PROTECT)
+    nominator = models.ForeignKey(SrpmsUser, related_name='examiner_nominate',
+                                  on_delete=models.PROTECT)
 
     class Meta:
         unique_together = ('contract', 'examiner')

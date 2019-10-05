@@ -78,32 +78,39 @@ class SuperviseSerializer(serializers.ModelSerializer):
     is_formal = serializers.ReadOnlyField()
     supervisor_approval_date = serializers.ReadOnlyField()
 
+    nominator = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = models.Supervise
-        fields = ['id', 'contract', 'supervisor', 'is_formal',
+        fields = ['id', 'contract', 'supervisor', 'is_formal', 'nominator',
                   'is_supervisor_approved', 'supervisor_approval_date']
 
 
 class AssessmentExamineSerializer(serializers.ModelSerializer):
     examiner = serializers.PrimaryKeyRelatedField(source='examine.examiner',
                                                   queryset=SrpmsUser.objects.all())
+    nominator = serializers.PrimaryKeyRelatedField(source='examine.nominator', read_only=True)
     examiner_approval_date = serializers.ReadOnlyField()
 
     class Meta:
         model = models.AssessmentExamine
-        fields = ['id', 'examiner', 'examiner_approval_date']
+        fields = ['id', 'examiner', 'nominator', 'examiner_approval_date']
 
     def create(self, validated_data):
         examiner = validated_data['examine']['examiner']
+        nominator = validated_data.pop('nominator')
         examine, _ = models.Examine.objects.get_or_create(contract=validated_data['contract'],
-                                                          examiner=examiner)
+                                                          examiner=examiner,
+                                                          defaults={'nominator': nominator})
         validated_data['examine'] = examine
         return super(AssessmentExamineSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
         examiner = validated_data['examine']['examiner']
+        nominator = validated_data.pop('nominator')
         examine, _ = models.Examine.objects.get_or_create(contract=validated_data['contract'],
-                                                          examiner=examiner)
+                                                          examiner=examiner,
+                                                          defaults={'nominator': nominator})
         validated_data['examine'] = examine
         return super(AssessmentExamineSerializer, self).update(instance, validated_data)
 

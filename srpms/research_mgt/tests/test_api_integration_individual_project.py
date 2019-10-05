@@ -155,7 +155,7 @@ class IndividualProject(utils.SrpmsTest):
         # Forbid other users
         response = self.user_02.put(utils.get_contract_url(self.contract_id, submit=True),
                                     data.get_submit_data(True))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.content)
 
         # Forbid supervisor
         response = self.supervisor_non_formal.put(
@@ -166,12 +166,12 @@ class IndividualProject(utils.SrpmsTest):
         # Forbid supervisor
         response = self.supervisor_formal.put(utils.get_contract_url(self.contract_id, submit=True),
                                               data.get_submit_data(True))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.content)
 
         # Forbid convener
         response = self.convener.put(utils.get_contract_url(self.contract_id, submit=True),
                                      data.get_submit_data(True))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.content)
 
         # Allow superuser
         response = self.superuser.put(utils.get_contract_url(self.contract_id, submit=True),
@@ -421,7 +421,9 @@ class IndividualProject(utils.SrpmsTest):
         # Allow superuser
         self.superuser.put(examine_url, data.get_approve_data(False))
         response = self.superuser.put(examine_url, data.get_approve_data(True))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
+        # Nominator disapprove would clear the supervisor (who nominate this examiner)'s approval,
+        # and examiner cannot approve before supervisor approve, thus bad request
 
     def test_other_users_disapprove_examiner(self):
         self.set_supervise()
@@ -509,7 +511,7 @@ class IndividualProject(utils.SrpmsTest):
 
         response = self.convener.put(utils.get_contract_url(self.contract_id, approve=True),
                                      data.get_approve_data(True))
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_convener_approve_non_supervisor_approve_contract(self):
         """

@@ -40,10 +40,12 @@ class TestModel(utils.SrpmsTest):
                                                   weight=50)
 
         examine_01 = Examine.objects.create(contract=contract_01,
-                                            examiner=self.user_02.obj)
+                                            examiner=self.user_02.obj,
+                                            nominator=self.supervisor_formal.obj)
 
         examine_02 = Examine.objects.create(contract=contract_02,
-                                            examiner=self.user_02.obj)
+                                            examiner=self.user_02.obj,
+                                            nominator=self.supervisor_formal.obj)
 
         # AssessmentExamine should be locked to the same contract
         with self.assertRaises(ValidationError):
