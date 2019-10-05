@@ -30,7 +30,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
     };
     message = {};
     courseValue: string;
-    changeLog: string[] = [];
+    @Input() contractFlag: string;
     @Input() courseSelected: string;
     @Output() formFlagEvent = new EventEmitter<any>();
 
@@ -118,9 +118,8 @@ export class ContractFormComponent implements OnInit, OnChanges {
             resources: '',
             course: this.form.value.course,
             owner: JSON.parse(localStorage.getItem('srpmsUser')).id,
-            test: ''
         };
-        if (this.formFlag === 'project') {
+        if (this.contractFlag === 'project') {
             this.individualProject = {
                 individual_project: {
                     title: this.form.value.title,
@@ -129,7 +128,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
                 },
             };
             Object.assign(this.payLoad, this.individualProject);
-        } else if (this.formFlag === 'special') {
+        } else if (this.contractFlag === 'special') {
             this.specialTopics = {
                 special_topics: {
                     title: this.form.value.title,
@@ -179,6 +178,8 @@ export class ContractFormComponent implements OnInit, OnChanges {
             max_mark: this.form.value.assessment2Mark,
             examiner: this.form.value.assessment2Examiner
         };
+
+        console.log(this.form.value.assessment2);
 
         this.contractService.addAssessmentMethod(JSON.stringify(this.assessment2))
             .subscribe(() => {

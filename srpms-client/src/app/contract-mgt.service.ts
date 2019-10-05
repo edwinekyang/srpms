@@ -10,11 +10,6 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class ContractMgtService {
     constructor(private http: HttpClient) { }
-
-    private API_URL = '/api/';
-    private messageSource = new BehaviorSubject('');
-    currentMessage = this.messageSource.asObservable();
-
     public httpOptions = {
         headers: new HttpHeaders({
             'Content-Type':  'application/json',
@@ -47,6 +42,27 @@ export class ContractMgtService {
         return this.http.get<any[]>(`${this.API_URL}research_mgt/assessment-methods/`, this.httpOptions)
             .pipe(
                 catchError(this.handleError<any[]>('getAssessmentMethods'))
+            );
+    }
+
+    getAssessmentTemplates(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API_URL}research_mgt/assessment-templates/`, this.httpOptions)
+            .pipe(
+                catchError(this.handleError<any[]>('getAssessmentTemplates'))
+            );
+    }
+
+    getAssessmentTemplate(id: any): Observable<any> {
+        return this.http.get<any[]>(`${this.API_URL}research_mgt/assessment-templates/${id}/`, this.httpOptions)
+            .pipe(
+                catchError(this.handleError<any[]>('getAssessmentTemplate'))
+            );
+    }
+
+    getAssessmentMethod(id: any): Observable<any> {
+        return this.http.get<any[]>(`${this.API_URL}research_mgt/assessment-methods/${id}/`, this.httpOptions)
+            .pipe(
+                catchError(this.handleError<any[]>('getAssessmentMethod'))
             );
     }
 

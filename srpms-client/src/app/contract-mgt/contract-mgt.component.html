@@ -1,8 +1,8 @@
 <p class="title mat-h1">INDEPENDENT STUDY CONTRACTS MANAGEMENT</p>
 <mat-card>
     <mat-list>
-        <h3 mat-subheader>{{(this.route === '/supervisor' || this.route === '/convenor')?
-            'Awaiting Contracts':'Awaiting Requests'}}</h3>
+        <h3 mat-subheader>{{(this.route === '/supervise' || this.route === '/convene')?
+            'Awaiting Contracts':(this.route === '/examine')? 'Awaiting Requests' : 'Saved Contracts'}}</h3>
 <!--        <mat-list-item *ngFor="let contract of awaitingContractList">-->
 <!--            <div class="contract-button">-->
 <!--                <a mat-line mat-button color="secondary" routerLink="/contract-viewer"-->
@@ -11,7 +11,7 @@
 <!--            </div>-->
 <!--        </mat-list-item>-->
         <mat-accordion>
-            <mat-expansion-panel *ngFor="let contract of awaitingContractList">
+            <mat-expansion-panel *ngFor="let contract of preContractList">
                 <mat-expansion-panel-header>
                     <mat-panel-title>
                         <p>{{contract.title}}</p>
@@ -37,7 +37,7 @@
                     <mat-grid-tile>
                         <h3 mat-subheader>Duration</h3>
                         <mat-list-item>
-                            <h4 mat-line>1 Semester</h4>
+                            <h4 mat-line>{{contract.contractObj['duration']}} Semester</h4>
                         </mat-list-item>
                     </mat-grid-tile>
 
@@ -64,75 +64,53 @@
                                     contract.contractObj['individual_project']['description']}}</h4>
                             </mat-list-item>
                         </mat-grid-tile>
+                        <div *ngFor="let assessment of contract.assessment">
                     <mat-grid-tile colspan="5">
-                        <h3 mat-subheader>Assessment 1: </h3>
+                        <h3 mat-subheader>Assessment: </h3>
                         <mat-list-item>
-
+                            <h4 mat-line>{{assessment["assessmentName"]}}<br></h4>
                         </mat-list-item>
                     </mat-grid-tile>
                     <mat-grid-tile>
                         <h3 mat-subheader>Style</h3>
                         <mat-list-item>
-                            <h4 mat-line></h4>
+                            <h4 mat-line>{{assessment["additionalDescription"]}}</h4>
                         </mat-list-item>
                     </mat-grid-tile>
                     <mat-grid-tile>
                         <h3 mat-subheader>Mark</h3>
-                    </mat-grid-tile>
-                        <mat-grid-tile>
-                            <h3 mat-subheader>Due date</h3>
-                        </mat-grid-tile>
-                        <mat-grid-tile colspan="2">
-                            <h3 mat-subheader>Evaluated by</h3>
-                        </mat-grid-tile>
-                    <mat-grid-tile colspan="5">
-                        <h3 mat-subheader>Assessment 2: </h3>
                         <mat-list-item>
-
+                            <h4 mat-line>{{assessment["maxMark"]}}</h4>
                         </mat-list-item>
                     </mat-grid-tile>
                         <mat-grid-tile>
-                            <h3 mat-subheader>Style</h3>
-                        </mat-grid-tile>
-                        <mat-grid-tile>
-                            <h3 mat-subheader>Mark</h3>
-                        </mat-grid-tile>
-                        <mat-grid-tile>
                             <h3 mat-subheader>Due date</h3>
+                            <mat-list-item>
+                                <h4 mat-line>{{assessment["due"]}}</h4>
+                            </mat-list-item>
                         </mat-grid-tile>
                         <mat-grid-tile colspan="2">
                             <h3 mat-subheader>Evaluated by</h3>
+                            <mat-list-item>
+                                <h4 mat-line>{{assessment["examiner"]}}</h4>
+                            </mat-list-item>
                         </mat-grid-tile>
-                    <mat-grid-tile colspan="5">
-                        <h3 mat-subheader>Assessment 3: </h3>
-                        <mat-list-item>
+                        </div>
 
-                        </mat-list-item>
-                    </mat-grid-tile>
-                        <mat-grid-tile>
-                            <h3 mat-subheader>Style</h3>
-                        </mat-grid-tile>
-                        <mat-grid-tile>
-                            <h3 mat-subheader>Mark</h3>
-                        </mat-grid-tile>
-                        <mat-grid-tile>
-                            <h3 mat-subheader>Due date</h3>
-                        </mat-grid-tile>
-                        <mat-grid-tile colspan="2">
-                            <h3 mat-subheader>Evaluated by</h3>
-                        </mat-grid-tile>
                     </mat-list>
                 </mat-grid-list>
                 <div class="control-button-row">
-                <a mat-raised-button color="primary" routerLink="/">EDIT</a>
-                <a mat-raised-button color="primary" routerLink="/">APPROVE</a>
+                <a mat-raised-button color="primary" routerLink="/contract-viewer" [state]="contract">EDIT</a>
+                <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/submit" (click)="submit(contract.contractId)">SUBMIT</a>
+                <a *ngIf="this.route === '/supervise'" mat-raised-button color="primary" routerLink="/approve">APPROVE</a>
+                <a *ngIf="this.route === '/examine'" mat-raised-button color="primary" routerLink="/confirm">CONFIRM</a>
                 </div>
             </mat-expansion-panel>
         </mat-accordion>
         <mat-divider></mat-divider>
-        <h3 mat-subheader>{{(this.route === '/supervisor' || this.route === '/convenor')?
-            'Approved Contracts':'Confirmed Requests'}}</h3>
-        <mat-list-item *ngFor="let contract of approvedContractList">
+        <h3 mat-subheader>{{(this.route === '/supervise' || this.route === '/convene')?
+            'Approved Contracts':(this.route === '/examine')? 'Confirmed Requests' : 'Submitted Contracts'}}</h3>
+        <mat-list-item *ngFor="let contract of postContractList">
         </mat-list-item>
     </mat-list>
 </mat-card>
