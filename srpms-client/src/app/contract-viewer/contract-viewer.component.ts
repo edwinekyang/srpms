@@ -56,7 +56,7 @@ export interface AssessmentMethods {
 export class ContractViewerComponent implements OnInit {
   private state$: Observable<object>;
   private message: any;
-  private contractViewer: any = {};
+  public contractViewer: any = {};
   elements: ElementBase<any>[] = [];
   form: FormGroup;
   sectionList = [];
