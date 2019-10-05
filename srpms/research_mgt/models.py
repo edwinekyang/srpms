@@ -50,6 +50,11 @@ class Contract(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     submit_date = models.DateTimeField(null=True, blank=True)
 
+    # This field controls whether the contract would be visible to related persons. Without this
+    # field, for example, the contract that once visiable after submit would be invisible to
+    # supervisors if they disapprove, however that would cause some confusion.
+    was_submitted = models.BooleanField(default=False, blank=True)
+
     def is_submitted(self) -> bool:
         """Check if the contract is submitted"""
         return bool(self.submit_date)
@@ -273,14 +278,6 @@ class Assessment(models.Model):
     additional_description = models.CharField(max_length=200, default='', blank=True)
     due = models.DateField(null=True, blank=True)
     weight = models.IntegerField(null=False, blank=True)
-
-    def is_convener_approved(self) -> bool:
-        """No one should be allowed to change after convener approved"""
-        return self.contract.is_convener_approved()
-
-    def is_all_supervisors_approved(self) -> bool:
-        """No one should be allowed to change after all supervisors approved"""
-        return self.contract.is_all_supervisors_approved()
 
     def is_all_examiners_approved(self) -> bool:
         """

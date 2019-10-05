@@ -166,6 +166,7 @@ class ContractSerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     create_date = serializers.ReadOnlyField()
     submit_date = serializers.ReadOnlyField()
+    was_submitted = serializers.ReadOnlyField()
 
     supervise = SuperviseSerializer(read_only=True, many=True)
     assessment = AssessmentSerializer(read_only=True, many=True)
@@ -174,7 +175,7 @@ class ContractSerializer(serializers.ModelSerializer):
         model = models.Contract
         fields = ['id', 'year', 'semester', 'duration', 'resources', 'course',
                   'convener', 'is_convener_approved', 'convener_approval_date',
-                  'owner', 'create_date', 'submit_date', 'is_submitted',
+                  'owner', 'create_date', 'submit_date', 'is_submitted', 'was_submitted',
                   'individual_project', 'special_topic',
                   'supervise', 'is_all_supervisors_approved',
                   'assessment', 'is_all_assessments_approved']

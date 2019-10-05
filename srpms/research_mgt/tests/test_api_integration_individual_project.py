@@ -161,7 +161,7 @@ class IndividualProject(utils.SrpmsTest):
         response = self.supervisor_non_formal.put(
                 utils.get_contract_url(self.contract_id, submit=True),
                 data.get_submit_data(True))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.content)
 
         # Forbid supervisor
         response = self.supervisor_formal.put(utils.get_contract_url(self.contract_id, submit=True),

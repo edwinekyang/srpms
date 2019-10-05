@@ -320,7 +320,7 @@ assessment_02_response = {
 assessment_custom_request = {
     'template': temp_custom.id,
     'additional_description': '',
-    'weight': 40,
+    'weight': 100,
 }
 
 assessment_custom_response = {
@@ -328,7 +328,7 @@ assessment_custom_response = {
     'contract': None,  # Supply data here
     'additional_description': '',
     'due': None,
-    'weight': 40,
+    'weight': 100,
     'is_all_examiners_approved': False
 }
 

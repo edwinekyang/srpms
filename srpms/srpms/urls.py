@@ -28,6 +28,7 @@ class APIRootView(APIView):
     """Provide links to apps' api view"""
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, ]
 
+    # noinspection PyMethodMayBeStatic
     def get(self, request, *args, **kwargs):
         return Response({
             'accounts': reverse('accounts:api-root', request=request, *args, **kwargs),

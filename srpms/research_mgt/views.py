@@ -80,7 +80,7 @@ class ContractViewSet(ModelViewSet):
             self.queryset = models.Contract.objects.all()
         elif app_perms.IsConvener.check(requester):
             # Convener sees all submitted contract
-            self.queryset = models.Contract.objects.filter(submit_date__isnull=False)
+            self.queryset = models.Contract.objects.filter(was_submitted=True)
         else:
             # For other users, only display contract that they own, supervise, or examine
             # NOTE: this include contracts that haven't been submitted yet
@@ -88,9 +88,9 @@ class ContractViewSet(ModelViewSet):
                     convener_approval_date__isnull=False)
             contract_own = requester.own.all()
             contract_supervise = models.Contract.objects.filter(
-                    supervise__in=requester.supervise.all())
+                    supervise__in=requester.supervise.all(), was_submitted=True)
             contract_examine = models.Contract.objects.filter(
-                    assessment_examine__examine__examiner=requester)
+                    assessment_examine__examine__examiner=requester, was_submitted=True)
             self.queryset = contract_finalized | contract_own | \
                             contract_supervise | contract_examine
 
@@ -113,10 +113,11 @@ class ContractViewSet(ModelViewSet):
         if serializer.is_valid():
             contract = self.get_object()
             contract.submit_date = serializer.validated_data['submit']
+            contract.was_submitted = True
             contract.save()
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError()
+            raise ValidationError('Please only supply boolean value')
 
     # noinspection PyUnusedLocal
     @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=ApproveSerializer,
@@ -153,7 +154,7 @@ class ContractViewSet(ModelViewSet):
 
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError()
+            raise ValidationError('Please only supply boolean value')
 
 
 class AssessmentExamineViewSet(CreateModelMixin,
@@ -245,7 +246,7 @@ class AssessmentExamineViewSet(CreateModelMixin,
 
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError()
+            raise ValidationError('Please only supply boolean value')
 
     def attach_attributes(self, serializer: serializers.AssessmentExamineSerializer) -> None:
         serializer.validated_data['assessment'] = self.resolved_parents['assessment']
@@ -376,7 +377,7 @@ class SuperviseViewSet(CreateModelMixin,
 
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError()
+            raise ValidationError('Please only supply boolean value')
 
     def attach_attributes(self, serializer: serializers.SuperviseSerializer) -> None:
         """Attach automatic attributes according to the request url and content"""
