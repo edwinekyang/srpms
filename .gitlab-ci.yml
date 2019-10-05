@@ -60,10 +60,10 @@ test-back-end:
     - cooper
   script:
     - export LDAP_ADDR="ldap://$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
-    - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate # Test migration
+    - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate  # Test migration
     - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate accounts zero
     - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate
-    - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py test  # Test code
+    - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' --omit='*/tests*,*/migrations/*,srpms/*' manage.py test  # NOTE: Coverage is inaccurate when run in parallel
     - $COMPOSE_TEST exec -T django-gunicorn coverage report
 
 clean:
