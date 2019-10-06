@@ -8,40 +8,6 @@ import {Observable} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {map} from 'rxjs/operators';
 
-export interface ContractViewer {
-  projectSupervisor: string;
-  semester: string;
-  duration: string;
-  year: string;
-  title: string;
-  objectives: string;
-  description: string;
-  assessment: any;
-  assessment1: string;
-  assessment1Style: string;
-  assessment1Mark: string;
-  assessment1Due: string;
-  assessment1Examiner: string;
-  assessment2: string;
-  assessment2Style: string;
-  assessment2Mark: string;
-  assessment2Due: string;
-  assessment2Examiner: string;
-  assessment3: string;
-  assessment3Style: string;
-  assessment3Mark: string;
-  assessment3Due: string;
-  assessment3Examiner: string;
-}
-
-export interface AssessmentMethods {
-  template: string;
-  contract: string;
-  due: string;
-  max_mark: string;
-  examiner: string;
-  is_examiner_approved: boolean;
-}
 
 @Component({
   selector: 'app-contract-viewer',
@@ -61,12 +27,11 @@ export class ContractViewerComponent implements OnInit {
   form: FormGroup;
   sectionList = [];
   filteredElements: ElementBase<any>[] = [];
-  private errorMessage: string;
   private readonly formFlag: any;
   public isContractChanged: boolean;
 
   constructor(
-      private supervisorService: ContractMgtService,
+      private contractMgtService: ContractMgtService,
       public elementService: ElementService,
       private cfcs: ContractFormControlService,
       public activatedRoute: ActivatedRoute,
@@ -84,7 +49,6 @@ export class ContractViewerComponent implements OnInit {
 
     this.formFlag = 'project';
 
-
     this.elements.forEach((element: any) => {
       if ((element.flag === 'common' || element.flag === this.formFlag || element.flag === '') && element.key !== 'course') {
         this.filteredElements.push(element);
@@ -92,29 +56,20 @@ export class ContractViewerComponent implements OnInit {
     });
 
     this.form = this.cfcs.toFormGroup(this.filteredElements, '');
-
-
   }
 
   ngOnInit() {
-    // this.contractViewer = this.showContract();
     this.state$ = this.activatedRoute.paramMap
         .pipe(
             map(() => window.history.state
                 , this.message = window.history.state
             ));
 
-    console.log(this.message);
-
-    this.supervisorService.getSupervise()
-        .subscribe((data: any) => {
-          data.forEach(supervise => {
-            if (supervise.contract === this.message.contractId) {
-              Object.assign(this.contractViewer, {projectSupervisor: supervise.id});
-              this.form.controls.projectSupervisor.setValue(this.contractViewer.projectSupervisor);
-              this.onFormChanges();
-            }
-          });
+    this.contractMgtService.getSupervise(this.message.contractId).toPromise()
+        .then(supervise => {
+          Object.assign(this.contractViewer, {projectSupervisor: supervise[0].supervisor});
+          this.form.controls.projectSupervisor.setValue(this.contractViewer.projectSupervisor);
+          this.onFormChanges();
         });
     Object.assign(this.contractViewer, {
       semester: this.message.contractObj.semester,
@@ -127,24 +82,50 @@ export class ContractViewerComponent implements OnInit {
       description: this.message.contractObj.special_topics ? this.message.contractObj.special_topics.description :
           this.message.contractObj.individual_project.description,
       assessment: this.message.assessment,
-      assessment1: this.message.assessment[0].assessmentName,
-      assessment1Description: this.message.assessment[0].additionalDescription,
-      assessment1Mark: this.message.assessment[0].maxMark,
-      assessment1Due: this.message.assessment[0].due,
-      assessment1Examiner: this.message.assessment[0].examiner,
-      assessment2: this.message.assessment[1].assessmentName,
-      assessment2Description: this.message.assessment[1].additionalDescription,
-      assessment2Mark: this.message.assessment[1].maxMark,
-      assessment2Due: this.message.assessment[1].due,
-      assessment2Examiner: this.message.assessment[1].examiner,
-      assessment3: this.message.assessment[2].assessmentName,
-      assessment3Description: this.message.assessment[2].additionalDescription,
-      assessment3Mark: this.message.assessment[2].maxMark,
-      assessment3Due: this.message.assessment[2].due,
-      assessment3Examiner: this.message.assessment[2].examiner,
     });
-    console.log(this.contractViewer);
 
+    this.message.assessment.forEach(assessment => {
+      if (this.form.controls.assessment1.value === assessment.template) {
+        Object.assign(this.contractViewer, {
+          assessment1: assessment.assessmentName,
+          assessment1Description: assessment.additionalDescription,
+          assessment1Mark: assessment.weight,
+          assessment1Due: assessment.due,
+          assessment1Examiner: assessment.examiner,
+        });
+        this.form.controls.assessment1.setValue(assessment.template);
+        this.form.controls.assessment1Description.setValue(this.contractViewer.assessment1Description);
+        this.form.controls.assessment1Mark.setValue(this.contractViewer.assessment1Mark);
+        this.form.controls.assessment1Due.setValue(this.contractViewer.assessment1Due);
+        this.form.controls.assessment1Examiner.setValue(this.contractViewer.assessment1Examiner);
+      } else if (this.form.controls.assessment2.value === assessment.template) {
+        Object.assign(this.contractViewer, {
+          assessment2: assessment.assessmentName,
+          assessment2Description: assessment.additionalDescription,
+          assessment2Mark: assessment.weight,
+          assessment2Due: assessment.due,
+          assessment2Examiner: assessment.examiner,
+        });
+        this.form.controls.assessment2.setValue(assessment.template);
+        this.form.controls.assessment2Description.setValue(this.contractViewer.assessment2Description);
+        this.form.controls.assessment2Mark.setValue(this.contractViewer.assessment2Mark);
+        this.form.controls.assessment2Due.setValue(this.contractViewer.assessment2Due);
+        this.form.controls.assessment2Examiner.setValue(this.contractViewer.assessment2Examiner);
+      } else if (this.form.controls.assessment3.value === assessment.template) {
+        Object.assign(this.contractViewer, {
+          assessment3: assessment.assessmentName,
+          assessment3Description: assessment.additionalDescription,
+          assessment3Mark: assessment.weight,
+          assessment3Due: assessment.due,
+          assessment3Examiner: assessment.examiner,
+        });
+        this.form.controls.assessment3.setValue(assessment.template);
+        this.form.controls.assessment3Description.setValue(this.contractViewer.assessment3Description);
+        this.form.controls.assessment3Mark.setValue(this.contractViewer.assessment3Mark);
+        this.form.controls.assessment3Due.setValue(this.contractViewer.assessment3Due);
+        this.form.controls.assessment3Examiner.setValue(this.contractViewer.assessment3Examiner);
+      }
+    });
 
     this.form.controls.semester.setValue(this.contractViewer.semester);
     this.form.controls.year.setValue(this.contractViewer.year);
@@ -154,25 +135,6 @@ export class ContractViewerComponent implements OnInit {
     this.form.controls.objectives.setValue(this.contractViewer.objectives);
     this.form.controls.description.setValue(this.contractViewer.description);
 
-    this.form.controls.assessment1.setValue(this.contractViewer.assessment[0].template);
-    this.form.controls.assessment1Description.setValue(this.contractViewer.assessment1Description);
-    this.form.controls.assessment1Mark.setValue(this.contractViewer.assessment1Mark);
-    this.form.controls.assessment1Due.setValue(this.contractViewer.assessment1Due);
-    this.form.controls.assessment1Examiner.setValue(this.contractViewer.assessment1Examiner);
-
-    this.form.controls.assessment2.setValue(this.contractViewer.assessment[1].template);
-    this.form.controls.assessment2Description.setValue(this.contractViewer.assessment2Description);
-    this.form.controls.assessment2Mark.setValue(this.contractViewer.assessment2Mark);
-    this.form.controls.assessment2Due.setValue(this.contractViewer.assessment2Due);
-    this.form.controls.assessment2Examiner.setValue(this.contractViewer.assessment2Examiner);
-
-    this.form.controls.assessment3.setValue(this.contractViewer.assessment[2].template);
-    this.form.controls.assessment3Description.setValue(this.contractViewer.assessment3Description);
-    this.form.controls.assessment3Mark.setValue(this.contractViewer.assessment3Mark);
-    this.form.controls.assessment3Due.setValue(this.contractViewer.assessment3Due);
-    this.form.controls.assessment3Examiner.setValue(this.contractViewer.assessment3Examiner);
-
-
   }
 
   onFormChanges() {
@@ -181,27 +143,82 @@ export class ContractViewerComponent implements OnInit {
     });
   }
 
-  showAssessmentMethods() {
+  async onSubmit() {
+    let payLoad: any;
+    payLoad = {
+      year: this.form.value.year,
+      semester: this.form.value.semester,
+      duration: this.form.value.duration,
+    };
+    if (this.message.contractObj.special_topics) {
+      let specialTopics: any;
+      specialTopics = {
+        special_topics: {
+          title: this.form.value.title,
+          objectives: this.form.value.objectives,
+          description: this.form.value.description
+        },
+      };
+      Object.assign(payLoad, specialTopics);
+    } else {
+      let individualProject: any;
+      individualProject = {
+        individual_project: {
+          title: this.form.value.title,
+          objectives: this.form.value.objectives,
+          description: this.form.value.description
+        },
+      };
+      Object.assign(payLoad, individualProject);
+    }
+    await this.contractMgtService.updateContract(this.message.contractId, payLoad).toPromise();
 
-  }
-  //
-  // showContract() {
-  //   let contractViewer: ContractViewer;
-  //   this.contractService.getContract(this.contractId)
-  //       .subscribe((contract: any) => {
-  //         contractViewer = {
-  //
-  //         }
-  //       }, error => {
-  //         if (error instanceof HttpErrorResponse) {
-  //           this.errorMessage = error.error.detail;
-  //         }
-  //       });
-  //   return contractViewer;
-  //   }
+    await this.contractMgtService.updateSupervise(this.message.contractId, this.message.contractObj.supervise[0].id,
+        JSON.stringify({
+              supervisor: this.form.value.projectSupervisor,
+            }
+        )).toPromise();
 
-  onSubmit() {
-    // implement patch to the contract
+    const promiseAssessments = this.message.contractObj.assessment.map(assessment => {
+      if (assessment.template === this.form.controls.assessment1.value) {
+        this.contractMgtService.updateAssessment(this.message.contractId, assessment.id, JSON.stringify({
+          additional_description: this.form.value.assessment1Description,
+          due: this.form.value.assessment1Due,
+          weight: this.form.value.assessment1Mark,
+        })).toPromise();
+        if (assessment.assessment_examine[0]) {
+          this.contractMgtService.updateExamine(this.message.contractId, assessment.id, assessment.assessment_examine[0].id,
+              JSON.stringify({
+                examiner: this.form.value.assessment1Examiner,
+              })).toPromise();
+        }
+      } else if (assessment.template === this.form.controls.assessment2.value) {
+        this.contractMgtService.updateAssessment(this.message.contractId, assessment.id, JSON.stringify({
+          additional_description: this.form.value.assessment2Description,
+          due: this.form.value.assessment2Due,
+          weight: this.form.value.assessment2Mark,
+        })).toPromise();
+        if (assessment.assessment_examine[0]) {
+          this.contractMgtService.updateExamine(this.message.contractId, assessment.id, assessment.assessment_examine[0].id,
+              JSON.stringify({
+                examiner: this.form.value.assessment2Examiner,
+              })).toPromise();
+        }
+      } else if (assessment.template === this.form.controls.assessment3.value) {
+        this.contractMgtService.updateAssessment(this.message.contractId, assessment.id, JSON.stringify({
+          additional_description: this.form.value.assessment3Description,
+          due: this.form.value.assessment3Due,
+          weight: this.form.value.assessment3Mark,
+        })).toPromise();
+        if (assessment.assessment_examine[0]) {
+          this.contractMgtService.updateExamine(this.message.contractId, assessment.id, assessment.assessment_examine[0].id,
+              JSON.stringify({
+                examiner: this.form.value.assessment3Examiner,
+              })).toPromise();
+        }
+      }
+    });
+    await Promise.all(promiseAssessments);
   }
 
 

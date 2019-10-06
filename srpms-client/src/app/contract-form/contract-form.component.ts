@@ -4,6 +4,7 @@ import { ElementBase } from '../element-base';
 import { ContractFormControlService } from '../contract-form-control.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ContractService } from '../contract.service';
+import {ContractMgtService} from '../contract-mgt.service';
 
 @Component({
     selector: 'app-contract-form',
@@ -16,6 +17,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
     @Input() elements: ElementBase<any>[] = [];
     form: FormGroup;
     payLoad = {};
+    assessment = [];
     assessment1 = {};
     assessment2 = {};
     assessment3 = {};
@@ -36,7 +38,8 @@ export class ContractFormComponent implements OnInit, OnChanges {
 
     constructor(
         private cfcs: ContractFormControlService,
-        public contractService: ContractService
+        public contractService: ContractService,
+        public contractMgtService: ContractMgtService,
     ) {}
 
     ngOnInit() {
@@ -110,7 +113,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
         }
     }
 
-    onSubmit() {
+    async onSubmit() {
         this.payLoad = {
             year: this.form.value.year,
             semester: this.form.value.semester,
@@ -138,11 +141,11 @@ export class ContractFormComponent implements OnInit, OnChanges {
             };
             Object.assign(this.payLoad, this.specialTopics, {duration: 1});
         }
-        this.contractService.addContract(JSON.stringify(this.payLoad))
-            .subscribe((res) => {
+        await this.contractService.addContract(JSON.stringify(this.payLoad))
+            .toPromise().then(async (res) => {
                 this.contractId = res.id;
-                this.addAssessmentMethod();
-                this.addSupervise();
+                await this.addAssessmentMethod();
+                await this.addSupervise();
             }, error => {
                 if (error instanceof HttpErrorResponse) {
                     this.errorMessage = error.error.detail;
@@ -150,74 +153,92 @@ export class ContractFormComponent implements OnInit, OnChanges {
             });
     }
 
-    addAssessmentMethod() {
+    async addAssessmentMethod() {
 
         this.assessment1 = {
             template: this.form.value.assessment1,
             contract: this.contractId,
             additional_description: this.form.value.assessment1Description,
             due: this.form.value.assessment1Due,
-            max_mark: this.form.value.assessment1Mark,
+            weight: this.form.value.assessment1Mark,
             examiner: this.form.value.assessment1Examiner
         };
-
-        this.contractService.addAssessmentMethod(JSON.stringify(this.assessment1))
-            .subscribe(() => {
-
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
-                }
-            });
 
         this.assessment2 = {
             template: this.form.value.assessment2,
             contract: this.contractId,
             additional_description: this.form.value.assessment2Description,
             due: this.form.value.assessment2Due,
-            max_mark: this.form.value.assessment2Mark,
+            weight: this.form.value.assessment2Mark,
             examiner: this.form.value.assessment2Examiner
         };
-
-        console.log(this.form.value.assessment2);
-
-        this.contractService.addAssessmentMethod(JSON.stringify(this.assessment2))
-            .subscribe(() => {
-
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
-                }
-            });
 
         this.assessment3 = {
             template: this.form.value.assessment3,
             contract: this.contractId,
             additional_description: this.form.value.assessment3Description,
             due: this.form.value.assessment3Due,
-            max_mark: this.form.value.assessment3Mark,
+            weight: this.form.value.assessment3Mark,
             examiner: this.form.value.assessment3Examiner
         };
 
-        this.contractService.addAssessmentMethod(JSON.stringify(this.assessment3))
-            .subscribe(() => {
+        this.assessment.push(this.assessment1, this.assessment2, this.assessment3);
 
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
-                }
+        await this.contractMgtService.getAssessments(this.contractId)
+            .toPromise().then(async assessments => {
+                const promiseAssessment = assessments.map(async assessment => {
+                    // @ts-ignore
+                    if (assessment.template === this.assessment1.template) {
+                        await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment1))
+                            .toPromise();
+                        // @ts-ignore
+                        if (this.assessment1.examiner) {
+                            this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                // @ts-ignore
+                                examiner: this.assessment1.examiner,
+                            })).subscribe();
+                        }
+                        // @ts-ignore
+                    } else if (assessment.template === this.assessment2.template) {
+                        await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment2))
+                            .toPromise().then(() => {
+                            });
+                        // @ts-ignore
+                        if (this.assessment2.examiner) {
+                            this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                // @ts-ignore
+                                examiner: this.assessment2.examiner,
+                            })).subscribe();
+                        }
+                        // @ts-ignore
+                    } else if (assessment.template === this.assessment3.template) {
+                        await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment3))
+                            .toPromise().then(() => {
+                            });
+                        // @ts-ignore
+                        if (this.assessment3.examiner) {
+                            this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                // @ts-ignore
+                                examiner: this.assessment3.examiner,
+                            })).subscribe();
+                        }
+                    }
+                });
+
+                await Promise.all(promiseAssessment);
+
             });
     }
 
-    addSupervise() {
+    async addSupervise() {
         this.supervise = {
             supervisor: this.form.value.projectSupervisor,
             contract: this.contractId,
             is_formal: true
         };
 
-        this.contractService.addSupervise(JSON.stringify(this.supervise))
-            .subscribe(() => {
+        await this.contractService.addSupervise(this.contractId, JSON.stringify(this.supervise))
+            .toPromise().then(() => {
 
             }, error => {
                 if (error instanceof HttpErrorResponse) {

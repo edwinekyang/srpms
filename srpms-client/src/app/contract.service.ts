@@ -29,7 +29,7 @@ export class ContractService {
   }
 
   getCourses(): Observable<Course[]> {
-    return this.http.get<Course[]>(`${this.API_URL}research_mgt/course/`, this.httpOptions)
+    return this.http.get<Course[]>(`${this.API_URL}research_mgt/courses/`, this.httpOptions)
         .pipe(
             catchError(this.handleError<Course[]>('getCourses'))
         );
@@ -56,41 +56,18 @@ export class ContractService {
         );
   }
 
-  addAssessmentMethod(assessment: string): Observable<any> {
-    return this.http.post<any>(this.API_URL + 'research_mgt/assessment-methods/', assessment, this.httpOptions)
+  patchAssessment(contractId: any, assessmentId: any, assessment: string): Observable<any> {
+    return this.http.patch<any>(this.API_URL + `research_mgt/contracts/${contractId}/assessments/${assessmentId}/`,
+        assessment, this.httpOptions)
         .pipe(
-            catchError(this.handleError<any>('addAssessmentMethod'))
+            catchError(this.handleError<any>('patchAssessmentMethod'))
         );
   }
 
-  addSupervise(supervise: string): Observable<any> {
-    return this.http.post<any>(this.API_URL + 'research_mgt/supervise/', supervise, this.httpOptions)
+  addSupervise(contractId: any, supervise: string): Observable<any> {
+    return this.http.post<any>(this.API_URL + `research_mgt/contracts/${contractId}/supervise/`, supervise, this.httpOptions)
         .pipe(
             catchError(this.handleError<any>('addSupervise'))
         );
-  }
-
-  getContracts(): Observable<any> {
-    return this.http.get<any>(`${this.API_URL}research_mgt/contracts/`, this.httpOptions)
-        .pipe(
-            catchError(this.handleError<any>('getContracts'))
-        );
-  }
-
-  getContract(id: any): Observable<any> {
-    return this.http.get<any>(`${this.API_URL}research_mgt/contracts/${id}/`, this.httpOptions)
-        .pipe(
-            catchError(this.handleError<any>('getContract'))
-        );
-  }
-
-  updateSubmitted(id: any): Observable<any> {
-    return this.http.patch(`${this.API_URL}research_mgt/contracts/${id}/`, {
-      is_submitted: true,
-    }, this.httpOptions)
-        .pipe(
-            catchError(this.handleError<any>('updateSubmitted'))
-        );
-
   }
 }

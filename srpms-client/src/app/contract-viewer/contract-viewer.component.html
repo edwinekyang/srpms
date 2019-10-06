@@ -66,10 +66,12 @@
                 </div>
             </ng-template>
         </div>
+        <div class="errorMessage" *ngIf="!form.controls[element.key].valid">{{element.label}} is required</div>
     </div>
     <div class="new-line">
         <button class="form-submit-button" mat-raised-button color="primary" type="submit" [disabled]="!form.valid ||
         !isContractChanged">Update</button>
     </div>
+
 </form>
 </mat-card>

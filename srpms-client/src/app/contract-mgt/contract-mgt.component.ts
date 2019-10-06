@@ -16,32 +16,21 @@ export interface ContractList<T> {
     assessment: [];
 }
 
-export interface IdList<T> {
-    id: number;
-}
-
 export interface AssessmentList<T> {
     template: number;
+    assessmentName: string;
     contract: number;
     due: string;
-    maxMark: number;
+    weight: number;
     examiner: number;
-    isExaminerApproved: boolean;
+    isAllExaminersApproved: boolean;
     examinerApprovalDate: string;
     additionalDescription: string;
 }
 
-export interface AssessmentTemplate<T> {
-    id: number;
-    name: string;
-    description: string;
-    minMark: number;
-    maxMark: number;
-    defaultMark: number;
-}
 
 @Component({
-    selector: 'app-supervisor',
+    selector: 'app-contract-mgt',
     templateUrl: './contract-mgt.component.html',
     styleUrls: ['./contract-mgt.component.scss'],
 })
@@ -51,14 +40,12 @@ export class ContractMgtComponent implements OnInit {
     private errorMessage: string;
     public preContractList: ContractList<any>[] = [];
     public postContractList: ContractList<any>[] = [];
-    private preList: IdList<any>[] = [];
-    private postList: IdList<any>[] = [];
+    private preList: number[] = [];
+    private postList: number[] = [];
     public preAssessmentList: AssessmentList<any>[] = [];
+    public postAssessmentList: AssessmentList<any>[] = [];
     public route: string;
     public courses: Course[] = [];
-    private message: any;
-    public assessmentTemplates: AssessmentTemplate<any>[] = [];
-    // private supervisorID: string;
 
     constructor(
         public contractService: ContractService,
@@ -67,84 +54,58 @@ export class ContractMgtComponent implements OnInit {
         private router: Router,
     ) {
         this.route = this.router.url;
-        // Pre-list
-        /*this.showIds().then(
-            res1 => {
-                console.log(this.preList);
-                this.preAssessmentList = this.showAssessments(this.preList);
-                this.getAssessmentTemplates();
-            });*/
-        this.initView().then(res => {
-            this.contractService.getCourses()
-                .subscribe((courses: Course[]) => {
-                    this.courses = courses;
-                    this.preContractList = this.showContracts(this.preList, 'pre');
-                    this.postContractList = this.showContracts(this.postList, 'post');
-                }, error => {
-                    if (error instanceof HttpErrorResponse) {
-                        this.errorMessage = error.error.detail;
-                    }
-                });
-        });
-
-        /* // Post-list
-         this.postList = this.showApprove();
-         */
-        /*this.contractService.getCourses()
-            .subscribe((courses: Course[]) => {
-                this.courses = courses;
-                this.awaitingContractList = this.showContracts(this.preList);
-                this.approvedContractList = this.showContracts(this.postList);
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
-                }
-            });*/
-        // this.supervisorID = JSON.parse(localStorage.getItem('srpmsUser')).id;
     }
 
     ngOnInit() {
+        this.initView().then();
     }
 
     async initView() {
-        // Pre-contract ID list
-        await this.getPreContractIds().then(
-            res1 => {
-                this.preAssessmentList = this.showAssessments(this.preList);
-                this.getAssessmentTemplates();
+        // Pre-contract list
+        this.getPreContractIds().then(
+            async () => {
+                await this.showAssessments(this.preList, 'pre');
+                await this.contractService.getCourses().toPromise()
+                    .then(async (courses: Course[]) => {
+                        this.courses = courses;
+                        await this.showContracts(this.preList, 'pre');
+                    }, error => {
+                        if (error instanceof HttpErrorResponse) {
+                            this.errorMessage = error.error.detail;
+                        }
+                    });
             });
 
-        // Post-contract ID list
-        this.postList = this.getPostContractIds();
+        // Post-contract list
+        this.getPostContractIds().then(
+            async () => {
+                await this.showAssessments(this.postList, 'post');
+                await this.contractService.getCourses().toPromise()
+                    .then(async (courses: Course[]) => {
+                        this.courses = courses;
+                        await this.showContracts(this.postList, 'post');
+                    }, error => {
+                        if (error instanceof HttpErrorResponse) {
+                            this.errorMessage = error.error.detail;
+                        }
+                    });
+            });
     }
 
     async getPreContractIds() {
         if (this.route === '/supervise') {
-            await this.contractMgtService.getSupervise()
-                .subscribe((data: any) => {
-                    data.forEach(supervise => {
-                        if (supervise.supervisor === JSON.parse(localStorage.getItem('srpmsUser')).id &&
-                            !supervise.supervisor_approval_date) {
-                            this.contractService.getContracts()
-                                .subscribe((contracts: any) => {
-                                    contracts.forEach(contract => {
-                                        if (supervise.contract === contract.id && contract.is_submitted) {
-                                            this.preList.push({
-                                                id: supervise.contract,
-                                                // supervisor: supervise.supervisor,
-                                            });
-                                        }
-                                    });
-                                });
+            await this.contractMgtService.getContracts().toPromise()
+                .then(async contracts => {
+                    const promiseContracts = contracts.map(async contract => {
+                        if (contract.supervise[0].supervisor === JSON.parse(localStorage.getItem('srpmsUser')).id &&
+                            contract.is_submitted && !contract.supervise[0].is_supervisor_approved) {
+                            this.preList.push(contract.id);
                         }
                     });
-                }, error => {
-                    if (error instanceof HttpErrorResponse) {
-                        this.errorMessage = error.error.detail;
-                    }
+                    await Promise.all(promiseContracts);
                 });
         } else if (this.route === '/examine') {
-            await this.contractMgtService.getAssessmentMethods()
+            /*await this.contractMgtService.getAssessments()
                 .subscribe((data: any) => {
                     data.forEach(assessmentMethods => {
                         if (assessmentMethods.examiner === JSON.parse(localStorage.getItem('srpmsUser')).id &&
@@ -158,176 +119,178 @@ export class ContractMgtComponent implements OnInit {
                     if (error instanceof HttpErrorResponse) {
                         this.errorMessage = error.error.detail;
                     }
-                });
+                });*/
         } else if (this.route === '/submit') {
-            await this.contractService.getContracts()
-                .subscribe((contracts: any) => {
-                    contracts.forEach(contract => {
-                        if (contract.owner === JSON.parse(localStorage.getItem('srpmsUser')).id &&
-                            !contract.is_submitted) {
-                            this.preList.push({
-                                id: contract.id,
-                            });
-                        }
+            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+                .then(async data => {
+                    const promisesPreList = data.own.map(async id => {
+                        await this.contractMgtService.getContract(id).toPromise().then(contract => {
+                            if (!contract.is_submitted) {
+                                this.preList.push(id);
+                            }
+                        });
                     });
+                    await Promise.all(promisesPreList);
                 });
         }
-        return new Promise((resolve, reject) => {
-            resolve();
-        });
     }
 
-    getPostContractIds(): IdList<any>[] {
-        let postList: IdList<any>[];
-        postList = [];
+    async getPostContractIds() {
         if (this.route === '/supervise') {
-            this.contractMgtService.getSupervise()
-                .subscribe((data: any) => {
-                    data.forEach(supervise => {
-                        if (supervise.supervisor === JSON.parse(localStorage.getItem('srpmsUser')).id &&
-                            supervise.supervisor_approval_date) {
-                            postList.push({
-                                id: supervise.contract,
-                                // supervisor: supervise.supervisor,
-                            });
+            await this.contractMgtService.getContracts().toPromise()
+                .then(async contracts => {
+                    const promiseContracts = contracts.map(async contract => {
+                        if (contract.supervise[0].supervisor === JSON.parse(localStorage.getItem('srpmsUser')).id &&
+                            contract.is_submitted && contract.supervise[0].is_supervisor_approved) {
+                            this.postList.push(contract.id);
                         }
                     });
-                }, error => {
-                    if (error instanceof HttpErrorResponse) {
-                        this.errorMessage = error.error.detail;
-                    }
+                    await Promise.all(promiseContracts);
                 });
         } else if (this.route === '/submit') {
-            this.contractService.getContracts()
-                .subscribe((contracts: any) => {
-                    contracts.forEach(contract => {
-                        if (contract.owner === JSON.parse(localStorage.getItem('srpmsUser')).id &&
-                            contract.is_submitted) {
-                            postList.push({
-                                id: contract.id,
-                            });
-                        }
+            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+                .then(async data => {
+                    const promisesPostList = data.own.map(async id => {
+                        await this.contractMgtService.getContract(id).toPromise().then(contract => {
+                            if (contract.is_submitted) {
+                                this.postList.push(id);
+                            }
+                        });
                     });
+                    await Promise.all(promisesPostList);
                 });
         }
-
-        return postList;
     }
 
-    showContracts(contractIdList: IdList<any>[], type: string): ContractList<any>[] {
-        let contractList: ContractList<any>[];
-        contractList = [];
+    async showContracts(contractIdList: number[], type: string) {
         let assessmentList: any;
-        this.contractService.getContracts()
-            .subscribe((contracts: any) => {
-                contractIdList.forEach(contractId => {
-                    this.accountService.getUser(contracts[contractId.id - 1].owner)
-                        .subscribe((student: SrpmsUser) => {
+        const promiseContractIdList = contractIdList.map(async (contractId: number) => {
+            await this.contractMgtService.getContract(contractId).toPromise()
+                .then(async contract => {
+                    await this.accountService.getUser(contract.owner).toPromise()
+                        .then(async (student: SrpmsUser) => {
                             assessmentList = [];
                             if (type === 'pre') {
                                 this.preAssessmentList.forEach(assessment => {
-                                    if (assessment.contract === contractId.id) {
+                                    if (assessment.contract === contractId) {
                                         assessmentList.push(assessment);
                                     }
                                 });
                             } else if (type === 'post') {
-                                /*this.postAssessmentList.forEach(assessment => {
-                                    if (assessment.contract === contractId.id) {
+                                this.postAssessmentList.forEach(assessment => {
+                                    if (assessment.contract === contractId) {
                                         assessmentList.push(assessment);
                                     }
-                                });*/
+                                });
                             }
-                            this.courses.forEach(course => {
-                                if (course.id === contracts[contractId.id - 1].course) {
-                                    contractList.push({
-                                        courseNumber: course.course_number,
-                                        courseName: course.name,
-                                        contractId: contracts[contractId.id - 1].id,
-                                        studentId: student.uni_id,
-                                        studentName: student.first_name + ' ' + student.last_name,
-                                        title: contracts[contractId.id - 1].special_topics ?
-                                            contracts[contractId.id - 1].special_topics.title :
-                                            contracts[contractId.id - 1].individual_project.title,
-                                        contractObj: contracts[contractId.id - 1],
-                                        assessment: assessmentList,
-                                    });
+                            const promisesCourses = this.courses.map(async course => {
+                                if (course.id === contract.course) {
+                                    if (type === 'pre') {
+                                        this.preContractList.push({
+                                            courseNumber: course.course_number,
+                                            courseName: course.name,
+                                            contractId: contract.id,
+                                            studentId: student.uni_id,
+                                            studentName: student.first_name + ' ' + student.last_name,
+                                            title: contract.special_topics ?
+                                                contract.special_topics.title :
+                                                contract.individual_project.title,
+                                            contractObj: contract,
+                                            assessment: assessmentList,
+                                        });
+                                    } else if (type === 'post') {
+                                        this.postContractList.push({
+                                            courseNumber: course.course_number,
+                                            courseName: course.name,
+                                            contractId: contract.id,
+                                            studentId: student.uni_id,
+                                            studentName: student.first_name + ' ' + student.last_name,
+                                            title: contract.special_topics ?
+                                                contract.special_topics.title :
+                                                contract.individual_project.title,
+                                            contractObj: contract,
+                                            assessment: assessmentList,
+                                        });
+                                    }
                                 }
                             });
+
+                            await Promise.all(promisesCourses);
                         });
                 });
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
-                }
-            });
-        return contractList;
+        });
+
+        await Promise.all(promiseContractIdList);
     }
 
-    private showAssessments(contractIdList: IdList<any>[]) {
-        let assessmentList: AssessmentList<any>[];
-        assessmentList = [];
-        this.contractMgtService.getAssessmentMethods()
-            .subscribe((assessments: any) => {
-                assessments.forEach(assessment => {
-                    contractIdList.forEach(contractId => {
-                        if (assessment.contract === contractId.id) {
-                            assessmentList.push({
+    async showAssessments(contractIdList: number[], type: string) {
+        const promiseContractIdList = contractIdList.map(async id => {
+            await this.contractMgtService.getAssessments(id).toPromise()
+                .then(async assessments => {
+                    const promiseAssessments = assessments.map(async assessment => {
+                        if (type === 'pre') {
+                            this.preAssessmentList.push({
                                 template: assessment.template,
+                                assessmentName: assessment.template_info.name,
                                 contract: assessment.contract,
                                 due: assessment.due,
-                                maxMark: assessment.max_mark,
-                                examiner: assessment.examiner,
-                                isExaminerApproved: assessment.is_examiner_approved,
+                                weight: assessment.weight,
+                                examiner: assessment.assessment_examine[0] ?
+                                    assessment.assessment_examine[0].examiner : '',
+                                isAllExaminersApproved: assessment.is_all_examiners_approved,
+                                examinerApprovalDate: assessment.examiner_approval_date,
+                                additionalDescription: assessment.additional_description,
+                            });
+                        } else if (type === 'post') {
+                            this.postAssessmentList.push({
+                                template: assessment.template,
+                                assessmentName: assessment.template_info.name,
+                                contract: assessment.contract,
+                                due: assessment.due,
+                                weight: assessment.weight,
+                                examiner: assessment.assessment_examine[0] ?
+                                    assessment.assessment_examine[0].examiner : '',
+                                isAllExaminersApproved: assessment.is_all_examiners_approved,
                                 examinerApprovalDate: assessment.examiner_approval_date,
                                 additionalDescription: assessment.additional_description,
                             });
                         }
                     });
+                    await Promise.all(promiseAssessments);
+                }, error => {
+                    if (error instanceof HttpErrorResponse) {
+                        this.errorMessage = error.error.detail;
+                    }
                 });
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
-                }
-            });
-        return assessmentList;
-    }
-
-    private getAssessmentTemplates() {
-        this.contractMgtService.getAssessmentTemplates()
-            .subscribe((templates: any) => {
-                templates.forEach(template => {
-                    this.assessmentTemplates.push({
-                        id: template.id,
-                        name: template.name,
-                        description: template.description,
-                        minMark: template.min_mark,
-                        maxMark: template.max_mark,
-                        defaultMark: template.default_mark,
-                    });
-                });
-
-                // Push assessment names in the list
-                this.preAssessmentList = this.pushAssessmentName(this.preAssessmentList, this.assessmentTemplates);
-
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
-                }
-            });
-    }
-
-    private pushAssessmentName(assessmentList: AssessmentList<any>[], templateList: AssessmentTemplate<any>[]) {
-        assessmentList.forEach(assessment => {
-            templateList.forEach(template => {
-                if (assessment.template === template.id) {
-                    Object.assign(assessment, {assessmentName: template.name});
-                }
-            });
         });
-        return assessmentList;
+
+        await Promise.all(promiseContractIdList);
     }
 
     submit(id: any) {
-        this.contractService.updateSubmitted(id);
+        this.contractMgtService.updateSubmitted(id).subscribe(() => {
+        });
+    }
+
+    onApprove(value: any, contract: any) {
+        this.contractMgtService.approveContract(contract.contractId, contract.contractObj.supervise[0].id,
+            JSON.stringify({
+                approve: true,
+            }))
+            .subscribe();
+        contract.contractObj.assessment.forEach(assessment => {
+            if (assessment.template === 1) {
+                this.contractMgtService.addExamine(contract.contractId, assessment.id, JSON.stringify({
+                    examiner: value,
+                }))
+                    .subscribe();
+            } else if (assessment.template === 2) {
+                this.contractMgtService.approveExamine(contract.contractId, assessment.id,
+                    assessment.assessment_examine[0].id, JSON.stringify({
+                        approve: true,
+                    }))
+                    .subscribe();
+            }
+        });
     }
 }
