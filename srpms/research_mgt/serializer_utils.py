@@ -45,10 +45,10 @@ class SubmitSerializer(serializers.Serializer):
     submit = DateTimeBooleanField(write_only=True)
 
     def create(self, validated_data):
-        raise NotImplementedError('You should not reach here')
+        pass
 
     def update(self, instance, validated_data):
-        raise NotImplementedError('You should not reach here')
+        pass
 
 
 class ApproveSerializer(serializers.Serializer):
@@ -57,7 +57,7 @@ class ApproveSerializer(serializers.Serializer):
     approve = DateTimeBooleanField(write_only=True)
 
     def create(self, validated_data):
-        raise NotImplementedError('You should not reach here')
+        pass
 
     def update(self, instance, validated_data):
-        raise NotImplementedError('You should not reach here')
+        pass
