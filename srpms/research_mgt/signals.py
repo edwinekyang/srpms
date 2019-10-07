@@ -1,3 +1,16 @@
+"""
+Define signals. Mainly for the purpose of sending notifications, but not limited to this.
+
+Signal with @receiver decorator would be automatically registered on app initialization, which
+currently happen inside apps.py
+"""
+
+__author__ = "Dajie (Cooper) Yang"
+__credits__ = ["Dajie Yang"]
+
+__maintainer__ = "Dajie (Cooper) Yang"
+__email__ = "dajie.yang@anu.edu.au"
+
 from typing import List
 from accounts.models import SrpmsUser
 from django.dispatch import receiver, Signal
@@ -7,20 +20,20 @@ from django.db.models.signals import post_migrate
 from .models import (Contract, Supervise, AssessmentExamine, ActivityLog, ActivityAction)
 from srpms.settings import EMAIL_SENDER
 
-contract_submit = Signal(providing_args=['contract', 'activity_log'])
-contract_approve = Signal(providing_args=['contract', 'activity_log'])
-supervise_approve = Signal(providing_args=['supervise', 'activity_log'])
-examiner_approve = Signal(providing_args=['assessment_examine', 'activity_log'])
+CONTRACT_SUBMIT = Signal(providing_args=['contract', 'activity_log'])
+CONTRACT_APPROVE = Signal(providing_args=['contract', 'activity_log'])
+SUPERVISE_APPROVE = Signal(providing_args=['supervise', 'activity_log'])
+EXAMINER_APPROVE = Signal(providing_args=['assessment_examine', 'activity_log'])
 
 # List of actions
-action_contract_submit = None
-action_contract_un_submit = None
-action_contract_approve = None
-action_contract_disapprove = None
-action_supervise_approve = None
-action_supervise_disapprove = None
-action_examiner_approve = None
-action_examiner_disapprove = None
+ACTION_CONTRACT_SUBMIT = None
+ACTION_CONTRACT_UN_SUBMIT = None
+ACTION_CONTRACT_APPROVE = None
+ACTION_CONTRACT_DISAPPROVE = None
+ACTION_SUPERVISE_APPROVE = None
+ACTION_SUPERVISE_DISAPPROVE = None
+ACTION_EXAMINER_APPROVE = None
+ACTION_EXAMINER_DISAPPROVE = None
 
 
 # noinspection PyUnusedLocal
@@ -33,23 +46,23 @@ def init_actions(**kwargs):
     The 'get_or_create()' method is not recommend here as instance created here won't exist
     during test, and would cause errors during test.
     """
-    global action_contract_submit
-    global action_contract_un_submit
-    global action_contract_approve
-    global action_contract_disapprove
-    global action_supervise_approve
-    global action_supervise_disapprove
-    global action_examiner_approve
-    global action_examiner_disapprove
+    global ACTION_CONTRACT_SUBMIT
+    global ACTION_CONTRACT_UN_SUBMIT
+    global ACTION_CONTRACT_APPROVE
+    global ACTION_CONTRACT_DISAPPROVE
+    global ACTION_SUPERVISE_APPROVE
+    global ACTION_SUPERVISE_DISAPPROVE
+    global ACTION_EXAMINER_APPROVE
+    global ACTION_EXAMINER_DISAPPROVE
 
-    action_contract_submit = ActivityAction.objects.get(name='contract_submit')
-    action_contract_un_submit = ActivityAction.objects.get(name='contract_un_submit')
-    action_contract_approve = ActivityAction.objects.get(name='contract_approve')
-    action_contract_disapprove = ActivityAction.objects.get(name='contract_disapprove')
-    action_supervise_approve = ActivityAction.objects.get(name='supervise_approve')
-    action_supervise_disapprove = ActivityAction.objects.get(name='supervise_disapprove')
-    action_examiner_approve = ActivityAction.objects.get(name='examiner_approve')
-    action_examiner_disapprove = ActivityAction.objects.get(name='examiner_disapprove')
+    ACTION_CONTRACT_SUBMIT = ActivityAction.objects.get(name='contract_submit')
+    ACTION_CONTRACT_UN_SUBMIT = ActivityAction.objects.get(name='contract_un_submit')
+    ACTION_CONTRACT_APPROVE = ActivityAction.objects.get(name='contract_approve')
+    ACTION_CONTRACT_DISAPPROVE = ActivityAction.objects.get(name='contract_disapprove')
+    ACTION_SUPERVISE_APPROVE = ActivityAction.objects.get(name='supervise_approve')
+    ACTION_SUPERVISE_DISAPPROVE = ActivityAction.objects.get(name='supervise_disapprove')
+    ACTION_EXAMINER_APPROVE = ActivityAction.objects.get(name='examiner_approve')
+    ACTION_EXAMINER_DISAPPROVE = ActivityAction.objects.get(name='examiner_disapprove')
 
 
 # TODO: HTML message for email notifications
@@ -68,14 +81,14 @@ def get_email_addr(users: List[SrpmsUser]) -> set:
 
 
 # noinspection PyUnusedLocal
-@receiver(contract_submit, dispatch_uid='contract_submit')
+@receiver(CONTRACT_SUBMIT, dispatch_uid='contract_submit')
 def contract_submit_notifications(contract: Contract, activity_log: ActivityLog, **kwargs):
     """
     Send notifications when owner submit/un-submit contract.
     """
 
     # Submit
-    if activity_log.action == action_contract_submit:
+    if activity_log.action == ACTION_CONTRACT_SUBMIT:
         # Inform contract owner
         send_mail('We\'ve received your submitted contract',
                   'Your contract "{contract_title}" has been submitted '
@@ -92,7 +105,7 @@ def contract_submit_notifications(contract: Contract, activity_log: ActivityLog,
                   EMAIL_SENDER,
                   get_email_addr(contract.get_all_supervisors()))
     # Un-submit
-    elif activity_log.action == action_contract_un_submit:
+    elif activity_log.action == ACTION_CONTRACT_UN_SUBMIT:
         # Inform contract owner if the actor is not contract owner, note that contract
         # owner normally don't have the privilege to un-submit their own contract.
         if activity_log.actor != contract.owner:
@@ -105,14 +118,14 @@ def contract_submit_notifications(contract: Contract, activity_log: ActivityLog,
 
 
 # noinspection PyUnusedLocal
-@receiver(contract_approve, dispatch_uid='contract_approve')
+@receiver(CONTRACT_APPROVE, dispatch_uid='contract_approve')
 def contract_approve_notifications(contract: Contract, activity_log: ActivityLog, **kwargs):
     """
     Send notifications on convener approve/disapprove a contract.
     """
 
     # Approve
-    if activity_log.action == action_contract_approve:
+    if activity_log.action == ACTION_CONTRACT_APPROVE:
         # Inform contract owner and all its supervisors
         send_mail('Your contract has been approved by course convener',
                   'Your contract "{contract_title}" has been approved by '
@@ -122,7 +135,7 @@ def contract_approve_notifications(contract: Contract, activity_log: ActivityLog
                   EMAIL_SENDER,
                   get_email_addr(list(contract.get_all_supervisors()) + [contract.owner]))
     # Disapprove
-    elif activity_log.action == action_contract_disapprove:
+    elif activity_log.action == ACTION_CONTRACT_DISAPPROVE:
         # Inform supervisors. Contract owner is not being notified here, since the owner would
         # need to wait for supervisor's disapproval before editing the contract. Also, if it's
         # just a matter of changing examiner, the contract owner doesn't really need to be
@@ -140,14 +153,14 @@ def contract_approve_notifications(contract: Contract, activity_log: ActivityLog
 
 
 # noinspection PyUnusedLocal
-@receiver(supervise_approve, dispatch_uid='supervise_approve')
+@receiver(SUPERVISE_APPROVE, dispatch_uid='supervise_approve')
 def supervise_approve_notifications(supervise: Supervise, activity_log: ActivityLog, **kwargs):
     """
     Send notifications on supervisor approve/disapprove a contract
     """
 
     # Approve
-    if activity_log.action == action_supervise_approve:
+    if activity_log.action == ACTION_SUPERVISE_APPROVE:
         # Inform contract owner
         send_mail('Your contract has been approved by supervisor',
                   'Your contract "{contract_title}" has been approved by '
@@ -163,7 +176,7 @@ def supervise_approve_notifications(supervise: Supervise, activity_log: Activity
                   EMAIL_SENDER,
                   get_email_addr(supervise.contract.get_all_examiners()))
     # Disapprove
-    elif activity_log.action == action_supervise_disapprove:
+    elif activity_log.action == ACTION_SUPERVISE_DISAPPROVE:
         # Inform contract owner
         send_mail('Contract disapproved by supervisor',
                   'Contract "{contract_title}" has been disapproved by '
@@ -180,7 +193,7 @@ def supervise_approve_notifications(supervise: Supervise, activity_log: Activity
 
 
 # noinspection PyUnusedLocal
-@receiver(examiner_approve, dispatch_uid='examiner_approve')
+@receiver(EXAMINER_APPROVE, dispatch_uid='examiner_approve')
 def examiner_approve_notifications(assessment_examine: AssessmentExamine,
                                    activity_log: ActivityLog, **kwargs):
     """
@@ -188,7 +201,7 @@ def examiner_approve_notifications(assessment_examine: AssessmentExamine,
     """
 
     # Approve
-    if activity_log.action == action_examiner_approve:
+    if activity_log.action == ACTION_EXAMINER_APPROVE:
         # Inform contract owner and examiner nominator
         send_mail('Contract assessment approved',
                   'Contract "{contract_title}"\'s assessment "{assessment_name}" has '
@@ -200,7 +213,7 @@ def examiner_approve_notifications(assessment_examine: AssessmentExamine,
                   get_email_addr([assessment_examine.contract.owner,
                                   assessment_examine.examine.nominator]))
     # Disapprove
-    elif activity_log.action == action_examiner_disapprove:
+    elif activity_log.action == ACTION_EXAMINER_DISAPPROVE:
         send_mail('Contract assessment disapproved by examiner',
                   'Contract "{contract_title}"\'s assessment "{assessment_name}" '
                   'disapproved by examiner {examiner_name}'
@@ -216,7 +229,7 @@ def examiner_approve_notifications(assessment_examine: AssessmentExamine,
 
 
 # noinspection PyUnusedLocal
-@receiver(contract_approve, dispatch_uid='contract_approve_pdf')
+@receiver(CONTRACT_APPROVE, dispatch_uid='contract_approve_pdf')
 def contract_approve_generate_pdf(**kwargs):
     """
     TODO: Generate PDF version of agreement on contract final approval

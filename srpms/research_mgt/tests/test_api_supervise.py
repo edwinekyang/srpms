@@ -1,3 +1,13 @@
+"""
+Test supervise API, CRUD methods only, does not involve view set actions.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django.test import TestCase
 from rest_framework import status
 
@@ -52,7 +62,7 @@ class TestSupervise(utils.SrpmsTest):
         # Individual contract should not be allow to have more than one supervisor
         req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_formal.id, True)
         response = self.user_01.post(utils.get_supervise_url(contract_id), req)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_POST_individual_others(self):
         """Test POST method for individual project from other users"""

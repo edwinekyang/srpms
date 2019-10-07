@@ -1,9 +1,22 @@
+"""
+Some general tests for API. These are tests that not worth putting into a separate file, however
+be sure to separate if the number of tests in this file grows.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from rest_framework import status
 
 from . import utils
 
 
 class APITests(utils.SrpmsTest):
+    """Some general test cases"""
+
     def test_internal_exception_handling(self):
         """Test exception handling"""
         response = self.superuser.post(utils.ApiUrls.assess_temp,
@@ -35,6 +48,7 @@ class APITests(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_approved_supervisors(self):
+        """Test the is_approved_supervisor filter is working correctly"""
         response = self.user_01.get(
                 '{}?is_approved_supervisor=true'.format(utils.ApiUrls.mgt_user))
         self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -1,3 +1,15 @@
+"""
+Integration test for API interaction that's related to individual project. Mainly for testing
+view set actions, and the individual project contract approval work flow (from submit to final
+approval).
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from rest_framework import status
 
 from . import utils
@@ -5,14 +17,17 @@ from . import data
 
 
 class IndividualProject(utils.SrpmsTest):
-    def set_submit(self):
+    def set_submit(self) -> None:
+        """Set submit status for the contract"""
         response = self.user_01.put(utils.get_contract_url(self.contract_id, submit=True),
                                     data.get_submit_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
-    def set_supervise(self):
-        # Assign supervisor for the contract, note that here we deliberately assign a user
-        # with no 'can_supervise' permission.
+    def set_supervise(self) -> None:
+        """
+        Assign supervisor for the contract, note that here we deliberately assign a user
+        with no 'can_supervise' permission.
+        """
         req, resp = data.gen_supervise_req_resp(self.contract['id'],
                                                 self.supervisor_non_formal.id, True)
         response = self.superuser.post(utils.get_supervise_url(self.contract['id']), req)
@@ -22,7 +37,7 @@ class IndividualProject(utils.SrpmsTest):
         self.supervise_approve_url = utils.get_supervise_url(self.contract_id, self.supervise_id,
                                                              approve=True)
 
-    def set_examine(self):
+    def set_examine(self) -> None:
         """Assign examiner to every assessment of the contract, examiner is user_04"""
 
         # Retrieving assessment examine id in prepare for testing examiner approval
@@ -61,14 +76,14 @@ class IndividualProject(utils.SrpmsTest):
         self.assertTrue(self.examine_artifact_id)
         self.assertTrue(self.examine_present_id)
 
-    def set_supervise_approve(self):
-        # Supervisor approval
+    def set_supervise_approve(self) -> None:
+        """Set supervisor approval for the contract"""
         response = self.supervisor_non_formal.put(self.supervise_approve_url,
                                                   data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def set_examiner_approve(self):
-        # Before we can let examiner approve, we need to set examiners
+        """Set examiner approval for all assessments for the contract"""
         response = self.user_04.put(utils.get_examine_url(self.contract_id, self.assess_artifact_id,
                                                           self.examine_artifact_id, approve=True),
                                     data.get_approve_data(True))

@@ -1,3 +1,13 @@
+"""
+Test serializer utilities, mainly for testing the customize serializer field is behaving correctly.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from rest_framework.serializers import ModelSerializer
 
 from research_mgt.serializer_utils import DateTimeBooleanField

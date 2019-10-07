@@ -1,3 +1,13 @@
+"""
+Test assessment examine API, CRUD methods only, does not involve view set actions.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django.test import TestCase
 from rest_framework import status
 
@@ -71,7 +81,7 @@ class IndividualProject(utils.SrpmsTest):
         # Individual project should not allow more than one examiner
         req, _ = data.gen_examine_req_resp(examiner_id=self.user_03.id)
         response = self.supervisor_non_formal.post(self.examine_list_url, req)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_other_users_create_examiner(self):
         req, resp = data.gen_examine_req_resp(examiner_id=self.user_04.id)
@@ -96,7 +106,7 @@ class IndividualProject(utils.SrpmsTest):
         # Individual project should not allow more than one examiner
         req, _ = data.gen_examine_req_resp(examiner_id=self.user_03.id)
         response = self.convener.post(self.examine_list_url, req)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_superuser_create_examiner(self):
         # Superuser is allowed to create
@@ -106,12 +116,10 @@ class IndividualProject(utils.SrpmsTest):
         response.data.pop('id')
         assert_examine_response(self, response, resp)
 
-        # Superuser can assign more than one examiner to this contract
+        # Even Superuser cannot assign more than one examiner to contract
         req, resp = data.gen_examine_req_resp(examiner_id=self.user_03.id)
         response = self.superuser.post(self.examine_list_url, req)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response.data.pop('id')
-        assert_examine_response(self, response, resp)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_supervisor_PUT_examiner(self):
         req, resp = data.gen_examine_req_resp(examiner_id=self.user_03.id)
@@ -282,7 +290,7 @@ class SpecialTopic(IndividualProject):
         # Pick assessment for test edit and delete
         req, resp = data.gen_examine_req_resp(examiner_id=self.user_04.id)
         response = self.supervisor_non_formal.post(utils.get_examine_url(self.contract['id'],
-                                                             assessment_02_id), req)
+                                                                         assessment_02_id), req)
         examine_id = response.data['id']
         self.examine_detail_url = utils.get_examine_url(self.contract['id'], assessment_02_id,
                                                         examine_id)

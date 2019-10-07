@@ -1,3 +1,13 @@
+"""
+Test contract API, CRUD methods only.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django.test import TestCase
 from rest_framework import status
 
@@ -7,7 +17,7 @@ from . import data
 
 def assert_contract_response(test_case: TestCase, response, true_data) -> None:
     if response.data.get('id', False):
-        raise AttributeError("Please remove id before passing data into this function")
+        raise AttributeError('Please remove id before passing data into this function')
 
     # Not check-able
     test_case.assertTrue(response.data.pop('create_date'))

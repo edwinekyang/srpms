@@ -1,3 +1,17 @@
+"""
+Define database models through Django ORM (Object-relation Mapping).
+
+Note that any constraint specified here (i.e. override of clean() method) are model level only,
+do not specify any constraint that relates to model instance. Instance level constraints should
+reside in serializers.py
+"""
+
+__author__ = "Dajie (Cooper) Yang, and Euikyum (Edwin) Yang"
+__credits__ = ["Dajie Yang", "Euikyum Yang"]
+
+__maintainer__ = "Dajie (Cooper) Yang"
+__email__ = "dajie.yang@anu.edu.au"
+
 from datetime import datetime, MINYEAR, MAXYEAR
 from django.db import models
 from django.core import validators

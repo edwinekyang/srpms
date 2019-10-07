@@ -1,6 +1,17 @@
+"""
+Test for database model through Django ORM. Note that the tests on model is largely incomplete,
+as majority of them already been tested through API.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django.core.exceptions import ValidationError
 
-from research_mgt.models import (Contract, IndividualProject, SpecialTopic, Assessment, \
+from research_mgt.models import (Contract, IndividualProject, SpecialTopic, Assessment,
                                  Examine, AssessmentExamine)
 from . import utils
 from . import data

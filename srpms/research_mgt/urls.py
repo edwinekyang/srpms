@@ -1,3 +1,19 @@
+"""
+URL settings for research_mgt app. Currently related resources are being nested
+inside parent resources.
+
+TODO: After reading RESTful API design best practice, it appears that nested resources is
+      not a good idea, and would result complicate dependencies. Consider refactor the API
+      without nested resources, but use hyperlink for related item.
+      https://docs.microsoft.com/en-us/azure/architecture/best-practices/api-design
+"""
+
+__author__ = 'Dajie (Cooper) Yang, and Euikyum (Edwin) Yang'
+__credits__ = ['Dajie Yang', 'Euikyum Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django.urls import path, include
 from rest_framework import permissions
 from rest_framework_extensions.routers import ExtendedDefaultRouter
@@ -31,10 +47,6 @@ router.register(r'assessment-templates',
 # 'contracts/$' - 'contract-list'
 # 'contracts/{pk}/$ - 'contract-detail'
 contract_routes = router.register(r'contracts', views.ContractViewSet, basename='contract')
-
-# TODO: After reading RESTful API design best practice, it appears that nested resources is
-#       not a good idea, and would result complicate dependencies. Consider refactor the API
-#       without nested resources, but use hyperlink for related item.
 
 # Generate the following URL patterns
 # 'contracts/{parent_lookup_contract}/supervise/$' - 'contract-supervise-list'

@@ -1,3 +1,17 @@
+"""
+Re-write of the NestedViewSetMixin of drf-extension, the default one has some un-desire behavior
+for our purpose. Mainly some security concerns.
+
+Note: Please do not continue to develop this mixin, as documented in urls.py, nested resources
+      should be avoided according to best practices.
+"""
+
+__author__ = "Dajie (Cooper) Yang"
+__credits__ = ["Dajie Yang", "Place1"]
+
+__maintainer__ = "Dajie (Cooper) Yang"
+__email__ = "dajie.yang@anu.edu.au"
+
 from collections import OrderedDict
 
 from django.utils import six
@@ -46,11 +60,13 @@ class NestedGenericViewSet(GenericViewSet):
             raise exc
 
     def get_queryset(self):
+        """Copied from original NestedViewSetMixin"""
         return self.filter_queryset_by_parents_lookups(
                 super(NestedGenericViewSet, self).get_queryset()
         )
 
     def filter_queryset_by_parents_lookups(self, queryset):
+        """Copied from original NestedViewSetMixin"""
         parents_query_dict = self.get_parents_query_dict()
         if parents_query_dict:
             try:
@@ -61,6 +77,7 @@ class NestedGenericViewSet(GenericViewSet):
             return queryset
 
     def get_parents_query_dict(self) -> OrderedDict:
+        """Copied from original NestedViewSetMixin, however replace dict to OrderedDict"""
         result = OrderedDict()
         for kwarg_name, kwarg_value in six.iteritems(self.kwargs):
             if kwarg_name.startswith(

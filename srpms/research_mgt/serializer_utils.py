@@ -1,3 +1,13 @@
+"""
+Define custom serializer fields and model unrelated serializers.
+"""
+
+__author__ = "Dajie (Cooper) Yang"
+__credits__ = ["Dajie Yang"]
+
+__maintainer__ = "Dajie (Cooper) Yang"
+__email__ = "dajie.yang@anu.edu.au"
+
 from datetime import datetime
 from django.utils import timezone
 from rest_framework.serializers import BooleanField, ValidationError, Serializer, CharField
@@ -55,7 +65,8 @@ class ApproveSerializer(Serializer):
     """For converting boolean to current server time only, model unrelated"""
 
     approve = DateTimeBooleanField(write_only=True)
-    message = CharField(write_only=True, max_length=500, required=False, default='')
+    message = CharField(write_only=True, max_length=500, required=False,
+                        default='', allow_blank=True)
 
     def create(self, validated_data):
         pass

@@ -10,6 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
+__author__ = 'Dajie (Cooper) Yang, and Euikyum (Edwin) Yang'
+__credits__ = ['Dajie Yang', 'Euikyum Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 import os
 from datetime import timedelta
 import ldap
@@ -246,12 +252,12 @@ AUTHENTICATION_BACKENDS = [
 
 # LDAP related settings
 AUTH_LDAP_SERVER_URI = get_env('LDAP_ADDR')
-AUTH_LDAP_BIND_DN = ""
-AUTH_LDAP_BIND_PASSWORD = ""
-AUTH_ANU_LDAP_BASE_DN = "ou=People,o=anu.edu.au"
+AUTH_LDAP_BIND_DN = ''
+AUTH_LDAP_BIND_PASSWORD = ''
+AUTH_ANU_LDAP_BASE_DN = 'ou=People,o=anu.edu.au'
 
 # Use direct bind to reduce load of the LDAP server
-AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s," + AUTH_ANU_LDAP_BASE_DN
+AUTH_LDAP_USER_DN_TEMPLATE = 'uid=%(user)s,' + AUTH_ANU_LDAP_BASE_DN
 
 # Explicitly specify that SRPMS should update user information on every login
 AUTH_LDAP_ALWAYS_UPDATE_USER = True
@@ -261,10 +267,10 @@ AUTH_LDAP_CACHE_TIMEOUT = 3600
 
 # Retrieve attributes from LDAP information
 AUTH_LDAP_USER_ATTR_MAP = {
-    "first_name": "givenName",
-    "last_name": "sn",
-    "email": "mail",
-    "uni_id": "uid",
+    'first_name': 'givenName',
+    'last_name': 'sn',
+    'email': 'mail',
+    'uni_id': 'uid',
 }
 
 # Should be enable the whole time to ensure test behave normally.
@@ -297,16 +303,16 @@ if DEBUG:
 
     # Enable Django debug toolbar during debug
     DEBUG_TOOLBAR_CONFIG = {
-        "SHOW_TOOLBAR_CALLBACK": lambda x: False,  # Change this to false if you want to disable
-        "RENDER_PANELS": True
+        'SHOW_TOOLBAR_CALLBACK': lambda x: False,  # Change this to false if you want to disable
+        'RENDER_PANELS': True
     }
     INSTALLED_APPS = ['debug_toolbar', ] + INSTALLED_APPS
     MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware', ] + MIDDLEWARE
 
     # Log LDAP activities
     LOGGING = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "handlers": {"console": {"class": "logging.StreamHandler"}},
-        "loggers": {"django_auth_ldap": {"level": "DEBUG", "handlers": ["console"]}},
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {'console': {'class': 'logging.StreamHandler'}},
+        'loggers': {'django_auth_ldap': {'level': 'DEBUG', 'handlers': ['console']}},
     }

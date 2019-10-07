@@ -13,6 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+__author__ = 'Dajie (Cooper) Yang, and Euikyum (Edwin) Yang'
+__credits__ = ['Dajie Yang', 'Euikyum Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -43,12 +50,13 @@ urlpatterns = [
     path('api/accounts/', include('accounts.urls')),
 ]
 
-# On development, serve static and media files from gunicorn
 if settings.DEBUG:
+    # On development, enable debug toolbar, and serve static and media files from django
     import debug_toolbar
 
     urlpatterns += staticfiles_urlpatterns()
     urlpatterns += [path('api/__debug__/', include(debug_toolbar.urls)), ]
 else:
+    # On production, static and media files are being served from nginx.
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

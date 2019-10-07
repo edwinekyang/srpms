@@ -1,3 +1,17 @@
+"""
+Defines permissions for views for the backend. Permission might or might not be request
+issuer related, and is being checked before view enter any business logic.
+
+Note that while has_permission() is not object related, HTTP method being banned there
+would not pass the has_object_permission() check.
+"""
+
+__author__ = "Dajie (Cooper) Yang"
+__credits__ = ["Dajie Yang"]
+
+__maintainer__ = "Dajie (Cooper) Yang"
+__email__ = "dajie.yang@anu.edu.au"
+
 from rest_framework import viewsets
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.request import Request

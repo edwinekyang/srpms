@@ -1,5 +1,14 @@
+"""
+Initialize the research_mgt app, and is being configure to initialize signals after app is ready.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django.apps import AppConfig
-from django.db.models.signals import post_save
 
 
 class ResearchMgtConfig(AppConfig):

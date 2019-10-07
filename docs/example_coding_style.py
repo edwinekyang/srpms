@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"""Example Google style docstrings.
+"""Example coding style docstrings, adopt from Google.
 
 This module demonstrates documentation as specified by the `Google Python
 Style Guide`_. Docstrings may extend over multiple lines. Sections are created
@@ -16,13 +15,16 @@ Section breaks are created by resuming unindented text. Section breaks
 are also implicitly created anytime a new section starts.
 
 Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
+    MODULE_LEVEL_VARIABLE1: Module level variables may be documented in
         either the ``Attributes`` section of the module docstring, or in an
         inline docstring immediately following the variable.
 
         Either form is acceptable, but the two should not be mixed. Choose
         one convention to document module level variables and be consistent
         with it.
+
+        The ``Attributes`` section does not specify type, please use python's
+        typing support to annotate directly in code.
 
 Todo:
     * For module TODOs
@@ -33,34 +35,16 @@ Todo:
 
 """
 
-module_level_variable1 = 12345
+from typing import Generator, List, Any
 
-module_level_variable2 = 98765
-"""int: Module level variable documented inline.
+MODULE_LEVEL_VARIABLE1: int = 12345
+
+MODULE_LEVEL_VARIABLE2: int = 98765
+"""Module level variable documented inline.
 
 The docstring may span multiple lines. The type may optionally be specified
 on the first line, separated by a colon.
 """
-
-
-def function_with_types_in_docstring(param1, param2):
-    """Example function with types documented in the docstring.
-
-    `PEP 484`_ type annotations are supported. If attribute, parameter, and
-    return types are annotated according to `PEP 484`_, they do not need to be
-    included in the docstring:
-
-    Args:
-        param1 (int): The first parameter.
-        param2 (str): The second parameter.
-
-    Returns:
-        bool: The return value. True for success, False otherwise.
-
-    .. _PEP 484:
-        https://www.python.org/dev/peps/pep-0484/
-
-    """
 
 
 def function_with_pep484_type_annotations(param1: int, param2: str) -> bool:
@@ -76,7 +60,7 @@ def function_with_pep484_type_annotations(param1: int, param2: str) -> bool:
     """
 
 
-def module_level_function(param1, param2=None, *args, **kwargs):
+def module_level_function(param1: int, param2: str = None, *args, **kwargs) -> bool:
     """This is an example of a module level function.
 
     Function parameters should be documented in the ``Args`` section. The name
@@ -88,26 +72,21 @@ def module_level_function(param1, param2=None, *args, **kwargs):
 
     The format for a parameter is::
 
-        name (type): description
+        name: description
             The description may span multiple lines. Following
-            lines should be indented. The "(type)" is optional.
+            lines should be indented.
 
             Multiple paragraphs are supported in parameter
             descriptions.
 
     Args:
-        param1 (int): The first parameter.
-        param2 (:obj:`str`, optional): The second parameter. Defaults to None.
+        param1: The first parameter.
+        param2: The second parameter. Defaults to None.
             Second line of description should be indented.
         *args: Variable length argument list.
         **kwargs: Arbitrary keyword arguments.
 
     Returns:
-        bool: True if successful, False otherwise.
-
-        The return type is optional and may be specified at the beginning of
-        the ``Returns`` section followed by a colon.
-
         The ``Returns`` section may span multiple lines and paragraphs.
         Following lines should be indented to match the first line.
 
@@ -130,14 +109,11 @@ def module_level_function(param1, param2=None, *args, **kwargs):
     return True
 
 
-def example_generator(n):
+def example_generator(n: int) -> Generator[int]:
     """Generators have a ``Yields`` section instead of a ``Returns`` section.
 
     Args:
-        n (int): The upper limit of the range to generate, from 0 to `n` - 1.
-
-    Yields:
-        int: The next number in the range of 0 to `n` - 1.
+        n: The upper limit of the range to generate, from 0 to `n` - 1.
 
     Examples:
         Examples should be written in doctest format, and should illustrate how
@@ -164,16 +140,16 @@ class ExampleError(Exception):
         Do not include the `self` parameter in the ``Args`` section.
 
     Args:
-        msg (str): Human readable string describing the exception.
-        code (:obj:`int`, optional): Error code.
+        msg: Human readable string describing the exception.
+        code: Error code.
 
     Attributes:
-        msg (str): Human readable string describing the exception.
-        code (int): Exception error code.
+        msg: Human readable string describing the exception.
+        code: Exception error code.
 
     """
 
-    def __init__(self, msg, code):
+    def __init__(self, msg: str, code: int):
         self.msg = msg
         self.code = code
 
@@ -190,12 +166,12 @@ class ExampleClass(object):
     in the property's getter method.
 
     Attributes:
-        attr1 (str): Description of `attr1`.
-        attr2 (:obj:`int`, optional): Description of `attr2`.
+        attr1: Description of `attr1`.
+        attr2: Description of `attr2`.
 
     """
 
-    def __init__(self, param1, param2, param3):
+    def __init__(self, param1: str, param2: int, param3: list):
         """Example of docstring on the __init__ method.
 
         The __init__ method may be documented in either the class level
@@ -208,30 +184,30 @@ class ExampleClass(object):
             Do not include the `self` parameter in the ``Args`` section.
 
         Args:
-            param1 (str): Description of `param1`.
-            param2 (:obj:`int`, optional): Description of `param2`. Multiple
+            param1: Description of `param1`.
+            param2: Description of `param2`. Multiple
                 lines are supported.
-            param3 (:obj:`list` of :obj:`str`): Description of `param3`.
+            param3: Description of `param3`.
 
         """
-        self.attr1 = param1
-        self.attr2 = param2
-        self.attr3 = param3  #: Doc comment *inline* with attribute
+        self.attr1: str = param1
+        self.attr2: int = param2
+        self.attr3: List[int] = param3  # Doc comment *inline* with attribute
 
-        #: list of str: Doc comment *before* attribute, with type specified
-        self.attr4 = ['attr4']
+        # Doc comment *before* attribute, with type specified
+        self.attr4: List[str] = ['attr4']
 
-        self.attr5 = None
-        """str: Docstring *after* attribute, with type specified."""
+        self.attr5: str = None
+        """Docstring *after* attribute, with type specified."""
 
     @property
-    def readonly_property(self):
-        """str: Properties should be documented in their getter method."""
+    def readonly_property(self) -> str:
+        """Properties should be documented in their getter method."""
         return 'readonly_property'
 
     @property
-    def readwrite_property(self):
-        """:obj:`list` of :obj:`str`: Properties with both a getter and setter
+    def readwrite_property(self) -> List[str]:
+        """Properties with both a getter and setter
         should only be documented in their getter method.
 
         If the setter method contains notable behavior, it should be
@@ -240,10 +216,10 @@ class ExampleClass(object):
         return ['readwrite_property']
 
     @readwrite_property.setter
-    def readwrite_property(self, value):
-        value
+    def readwrite_property(self, value: Any) -> Any:
+        value: Any
 
-    def example_method(self, param1, param2):
+    def example_method(self, param1: Any, param2: Any) -> bool:
         """Class methods are similar to regular functions.
 
         Note:
