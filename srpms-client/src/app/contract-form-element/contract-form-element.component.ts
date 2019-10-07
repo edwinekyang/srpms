@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 import { ElementBase } from '../element-base';
@@ -12,15 +12,35 @@ export class ContractFormElementComponent implements OnInit {
 
   @Input() element: ElementBase<any> = new ElementBase<any>();
   @Input() form: FormGroup;
+  @Input() elementFlag: string;
   order: number;
-  get isValid() { return this.form.controls[this.element.key].valid; }
+  formFlag: string;
+  courseValue: number;
+  message = {};
+
+  @Output() formFlagEvent = new EventEmitter<any>();
+
   constructor() {
   }
   ngOnInit(): void {
     this.order = this.element.order;
   }
 
-  getErrorMessage(formContorl) {
-    return formContorl.hasError('required') ? 'You must enter a value' : '';
+  getErrorMessage(formControl) {
+    return formControl.hasError('required') ? 'You must enter a value' : '';
+  }
+
+  sendFormFlag() {
+    this.element.choices.forEach((item) => {
+      if (item.value === this.form.controls.course.value) {
+          this.formFlag = item.flag;
+          this.courseValue = item.value;
+          this.message = {
+            formFlag: this.formFlag,
+            courseValue: item.value,
+          };
+          this.formFlagEvent.emit(this.message);
+      }
+    });
   }
 }
