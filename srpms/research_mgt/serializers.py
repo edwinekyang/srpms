@@ -38,14 +38,15 @@ class UserContractSerializer(serializers.ModelSerializer):
     # noinspection PyMethodMayBeStatic
     def get_supervise(self, obj: SrpmsUser) -> Tuple[int]:
         return tuple(models.Contract.objects.filter(submit_date__isnull=False,
-                                                    supervise__supervisor=obj))
+                                                    supervise__supervisor=obj)
+                     .values_list('pk', flat=True))
 
     # noinspection PyMethodMayBeStatic
     def get_examine(self, obj: SrpmsUser) -> Tuple[int]:
         """Show contracts a user examine, the contract must has been approved by supervisor"""
         return tuple(models.Contract.objects.filter(
                 assessment_examine__examine__examiner=obj,
-                supervise__supervisor_approval_date__isnull=False))
+                supervise__supervisor_approval_date__isnull=False).values_list('pk', flat=True))
 
     # noinspection PyMethodMayBeStatic
     def get_convene(self, obj: SrpmsUser) -> Tuple[int]:
@@ -62,7 +63,8 @@ class UserContractSerializer(serializers.ModelSerializer):
             return tuple(models.Contract.objects.filter(
                     submit_date__isnull=False,
                     supervise__supervisor_approval_date__isnull=False,
-                    assessment_examine__examiner_approval_date__isnull=False))
+                    assessment_examine__examiner_approval_date__isnull=False)
+                         .values_list('pk', flat=True))
         else:
             return tuple()
 

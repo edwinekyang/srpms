@@ -606,3 +606,17 @@ class IndividualProject(utils.SrpmsTest):
                                                                          approve=True),
                                                   data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_user_contract_info(self):
+        """
+        Test if all relevant information can be displayed properly after user is related
+        to some contract.
+        """
+        self.set_supervise()
+        self.set_submit()
+        self.set_examine()
+        self.set_supervise_approve()
+        self.set_examiner_approve()
+
+        resposne = self.superuser.get(utils.ApiUrls.mgt_user)
+        self.assertEqual(resposne.status_code, status.HTTP_200_OK)

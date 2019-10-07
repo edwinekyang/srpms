@@ -36,7 +36,7 @@ class APITests(utils.SrpmsTest):
 
     def test_get_approved_supervisors(self):
         response = self.user_01.get(
-            '{}?is_approved_supervisor=true'.format(utils.ApiUrls.mgt_user))
+                '{}?is_approved_supervisor=true'.format(utils.ApiUrls.mgt_user))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response = self.user_01.get(
