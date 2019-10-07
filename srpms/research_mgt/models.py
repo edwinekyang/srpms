@@ -2,6 +2,9 @@ from datetime import datetime, MINYEAR, MAXYEAR
 from django.db import models
 from django.core import validators
 from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
 from accounts.models import SrpmsUser
 
 
@@ -170,7 +173,6 @@ class IndividualProject(Contract):
     description = models.CharField(max_length=1000, default='', blank=True)
 
     def save(self, *args, **kwargs):
-        # TODO: on submit, apply all constraints
         return super(IndividualProject, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -187,7 +189,6 @@ class SpecialTopic(Contract):
     description = models.CharField(max_length=1000, default='', blank=True)
 
     def save(self, *args, **kwargs):
-        # TODO: on submit, apply all constraints
         return super(SpecialTopic, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -398,6 +399,33 @@ class AssessmentExamine(models.Model):
         self.full_clean()
         self.contract = self.assessment.contract
         return super(AssessmentExamine, self).save(*args, **kwargs)
+
+
+class ActivityAction(models.Model):
+    """For specifying activity action in activity log"""
+    name = models.SlugField(unique=True)
+
+
+class ActivityLog(models.Model):
+    """
+    A model for storing approve/disapprove information.
+
+    The model make use of generic relations, so that any object can be logged. Refer
+    the below link for more details:
+    https://docs.djangoproject.com/en/2.2/ref/contrib/contenttypes/#generic-relations
+    """
+
+    # User who did the operation
+    actor = models.ForeignKey(SrpmsUser, on_delete=models.CASCADE)
+    # The operation user did
+    action = models.ForeignKey(ActivityAction, on_delete=models.PROTECT)
+    # Optional message
+    message = models.CharField(max_length=500, default='', blank=True)
+
+    # Define generic relations
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
 
 class AppPermission(models.Model):

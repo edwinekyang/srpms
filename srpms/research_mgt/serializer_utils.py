@@ -1,9 +1,9 @@
 from datetime import datetime
 from django.utils import timezone
-from rest_framework import serializers
+from rest_framework.serializers import BooleanField, ValidationError, Serializer, CharField
 
 
-class DateTimeBooleanField(serializers.BooleanField):
+class DateTimeBooleanField(BooleanField):
     """
     Special field for retrieving approval status.
 
@@ -24,7 +24,7 @@ class DateTimeBooleanField(serializers.BooleanField):
         """
         # Only allow boolean value
         if not isinstance(data, bool):
-            raise serializers.ValidationError('Should be a boolean value')
+            raise ValidationError('Should be a boolean value')
 
         return timezone.now() if data else None
 
@@ -39,7 +39,7 @@ class DateTimeBooleanField(serializers.BooleanField):
         return bool(attr)
 
 
-class SubmitSerializer(serializers.Serializer):
+class SubmitSerializer(Serializer):
     """For converting boolean to current server time only, model unrelated"""
 
     submit = DateTimeBooleanField(write_only=True)
@@ -51,10 +51,11 @@ class SubmitSerializer(serializers.Serializer):
         pass
 
 
-class ApproveSerializer(serializers.Serializer):
+class ApproveSerializer(Serializer):
     """For converting boolean to current server time only, model unrelated"""
 
     approve = DateTimeBooleanField(write_only=True)
+    message = CharField(write_only=True, max_length=500, required=False, default='')
 
     def create(self, validated_data):
         pass

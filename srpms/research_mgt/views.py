@@ -18,6 +18,11 @@ from . import permissions as app_perms
 from accounts.models import SrpmsUser
 from .serializer_utils import SubmitSerializer, ApproveSerializer
 from .filters import UserFilter
+from .signals import (contract_submit, contract_approve, supervise_approve, examiner_approve,
+                      action_contract_submit, action_contract_un_submit,
+                      action_contract_approve, action_contract_disapprove,
+                      action_supervise_approve, action_supervise_disapprove,
+                      action_examiner_approve, action_examiner_disapprove)
 
 # The default settings is set not list
 default_perms: list = api_settings.DEFAULT_PERMISSION_CLASSES
@@ -115,9 +120,21 @@ class ContractViewSet(ModelViewSet):
             contract.submit_date = serializer.validated_data['submit']
             contract.was_submitted = True
             contract.save()
+
+            # Log activity, and send signal to trigger notifications
+            activity_log = models.ActivityLog.objects.create(
+                    actor=self.request.user,
+                    action=action_contract_submit
+                    if serializer.validated_data['submit']
+                    else action_contract_un_submit,
+                    content_object=contract)
+            contract_submit.send(sender=self.__class__,
+                                 contract=contract,
+                                 activity_log=activity_log)
+
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError('Please only supply boolean value')
+            raise ValidationError(serializer.errors)
 
     # noinspection PyUnusedLocal
     @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=ApproveSerializer,
@@ -152,9 +169,21 @@ class ContractViewSet(ModelViewSet):
                         supervise.supervisor_approval_date = None
                         supervise.save()
 
+            # Log activity, and send signal to trigger notifications
+            activity_log = models.ActivityLog.objects.create(
+                    actor=self.request.user,
+                    action=action_contract_approve
+                    if serializer.validated_data['approve']
+                    else action_contract_disapprove,
+                    message=serializer.validated_data['message'],
+                    content_object=contract)
+            contract_approve.send(sender=self.__class__,
+                                  contract=contract,
+                                  activity_log=activity_log)
+
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError('Please only supply boolean value')
+            raise ValidationError(serializer.errors)
 
 
 class AssessmentExamineViewSet(CreateModelMixin,
@@ -244,9 +273,20 @@ class AssessmentExamineViewSet(CreateModelMixin,
                         supervise.supervisor_approval_date = None
                         supervise.save()
 
+            # Log activity, and send signal to trigger notifications
+            activity_log = models.ActivityLog.objects.create(
+                    actor=self.request.user,
+                    action=action_examiner_approve
+                    if serializer.validated_data['approve']
+                    else action_examiner_disapprove,
+                    content_object=assessment_examine)
+            examiner_approve.send(sender=self.__class__,
+                                  assessment_examine=assessment_examine,
+                                  activity_log=activity_log)
+
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError('Please only supply boolean value')
+            raise ValidationError(serializer.errors)
 
     def attach_attributes(self, serializer: serializers.AssessmentExamineSerializer) -> None:
         serializer.validated_data['assessment'] = self.resolved_parents['assessment']
@@ -343,7 +383,7 @@ class SuperviseViewSet(CreateModelMixin,
         """Allow supervisor to approve supervise relation"""
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            supervise = self.get_object()
+            supervise: models.Supervise = self.get_object()
 
             # Supervisor cannot undo their approval
             if not app_perms.IsSuperuser.check(request.user) and \
@@ -375,9 +415,20 @@ class SuperviseViewSet(CreateModelMixin,
                     supervise.contract.submit_date = None
                     supervise.contract.save()
 
+            # Log activity, and send signal to trigger notifications
+            activity_log = models.ActivityLog.objects.create(
+                    actor=self.request.user,
+                    action=action_supervise_approve
+                    if serializer.validated_data['approve']
+                    else action_supervise_disapprove,
+                    content_object=supervise)
+            supervise_approve.send(sender=self.__class__,
+                                   supervise=supervise,
+                                   activity_log=activity_log)
+
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError('Please only supply boolean value')
+            raise ValidationError(serializer.errors)
 
     def attach_attributes(self, serializer: serializers.SuperviseSerializer) -> None:
         """Attach automatic attributes according to the request url and content"""

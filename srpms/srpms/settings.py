@@ -166,10 +166,12 @@ else:
     # EMAIL_USE_SSL = False  # Optional
     # EMAIL_SSL_CERTFILE = ''  # Optional
     # EMAIL_SSL_KEYFILE = ''  # Optional
-
-    EMAIL_SUBJECT_PREFIX = '[SRPMS] '  # Email title prefix
     # EMAIL_TIMEOUT = None
     pass
+
+# TODO: configure a email address here that would be used for email notifications
+EMAIL_SENDER = 'srpms.no-reply@srpms.cecs.anu.edu.au'
+EMAIL_SUBJECT_PREFIX = '[SRPMS] '  # Email title prefix
 
 # Customize user model
 AUTH_USER_MODEL = 'accounts.SrpmsUser'
