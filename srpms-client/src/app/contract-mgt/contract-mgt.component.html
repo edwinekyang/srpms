@@ -127,6 +127,7 @@
                     </mat-panel-title>
                     <mat-panel-description>
                         {{contract.studentName}}({{contract.studentId}})
+                        {{this.route === '/submit' ? ' - ' + contract.status : ''}}
                     </mat-panel-description>
                 </mat-expansion-panel-header>
                 <mat-grid-list cols="5" rowHeight="6:1">

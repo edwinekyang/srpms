@@ -16,6 +16,7 @@ export interface ContractList<T> {
     courseNumber: string;
     courseName: string;
     assessment: [];
+    status: any;
 }
 
 export interface AssessmentList<T> {
@@ -359,6 +360,7 @@ export class ContractMgtComponent implements OnInit {
                                                 contract.individual_project.title,
                                             contractObj: contract,
                                             assessment: assessmentList,
+                                            status: '',
                                         });
                                     } else if (type === 'post') {
                                         this.postContractList.push({
@@ -372,6 +374,9 @@ export class ContractMgtComponent implements OnInit {
                                                 contract.individual_project.title,
                                             contractObj: contract,
                                             assessment: assessmentList,
+                                            status: contract.is_convener_approved ? 'Finalised' :
+                                                contract.is_all_supervisors_approved ? 'Approved' :
+                                                    contract.is_submitted ? 'Submitted' : '',
                                         });
                                     }
                                 }
