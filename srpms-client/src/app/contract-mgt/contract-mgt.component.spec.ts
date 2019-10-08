@@ -1,9 +1,10 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ContractMgtComponent } from './contract-mgt.component';
-import {MatCardModule, MatListModule} from '@angular/material';
+import {MatCardModule, MatExpansionModule, MatFormFieldModule, MatGridListModule, MatListModule} from '@angular/material';
 import {HttpClient} from '@angular/common/http';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {ReactiveFormsModule} from '@angular/forms';
 
 describe('ContractMgtComponent', () => {
   let component: ContractMgtComponent;
@@ -14,7 +15,18 @@ describe('ContractMgtComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ ContractMgtComponent ],
-      imports: [MatListModule, MatCardModule, HttpClientTestingModule],
+      imports: [
+          MatListModule,
+          MatCardModule,
+          HttpClientTestingModule,
+          ReactiveFormsModule,
+          MatExpansionModule,
+          MatGridListModule,
+          MatFormFieldModule,
+      ],
+      providers: [
+
+      ],
     })
     .compileComponents();
 
@@ -29,8 +41,8 @@ describe('ContractMgtComponent', () => {
     component.accountService.login({});
     fixture.detectChanges();
   });
-  //
-  // it('should create', () => {
-  //   expect(component).toBeTruthy();
-  // });
+/*
+  it('should create', () => {
+     expect(component).toBeTruthy();
+  });*/
 });

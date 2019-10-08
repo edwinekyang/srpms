@@ -5,6 +5,8 @@ import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {MatDialog} from '@angular/material';
+import {RouterTestingModule} from '@angular/router/testing';
 
 describe('ContractFormComponent', () => {
   let component: ContractFormComponent;
@@ -14,9 +16,17 @@ describe('ContractFormComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, FormsModule, ReactiveFormsModule],
+      imports: [
+          HttpClientTestingModule,
+          FormsModule,
+          ReactiveFormsModule,
+          RouterTestingModule,
+      ],
       declarations: [ ContractFormComponent ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      providers: [
+        { provide: MatDialog, useValue: {} }
+        ],
     })
     .compileComponents();
 

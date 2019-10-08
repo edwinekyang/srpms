@@ -1,6 +1,8 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ContractDialogComponent } from './contract-dialog.component';
+import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material';
+import {RouterTestingModule} from '@angular/router/testing';
 
 describe('ContractDialogComponent', () => {
   let component: ContractDialogComponent;
@@ -8,7 +10,12 @@ describe('ContractDialogComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ContractDialogComponent ]
+      imports: [MatDialogModule, RouterTestingModule],
+      declarations: [ ContractDialogComponent ],
+      providers: [
+          { provide: MatDialogRef, useValue: {} },
+          { provide: MAT_DIALOG_DATA, useValue: {} }
+      ],
     })
     .compileComponents();
   }));
