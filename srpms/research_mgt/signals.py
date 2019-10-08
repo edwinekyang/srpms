@@ -14,9 +14,12 @@ __credits__ = ["Dajie Yang"]
 __maintainer__ = "Dajie (Cooper) Yang"
 __email__ = "dajie.yang@anu.edu.au"
 
+import re
+from io import StringIO
 from typing import List
 from accounts.models import SrpmsUser
 from django.dispatch import receiver, Signal
+from django.core import management
 from django.core.mail import send_mail
 from django.db.models.signals import post_migrate
 
@@ -58,14 +61,26 @@ def init_actions(**kwargs):
     global ACTION_EXAMINER_APPROVE
     global ACTION_EXAMINER_DISAPPROVE
 
-    ACTION_CONTRACT_SUBMIT = ActivityAction.objects.get(name='contract_submit')
-    ACTION_CONTRACT_UN_SUBMIT = ActivityAction.objects.get(name='contract_un_submit')
-    ACTION_CONTRACT_APPROVE = ActivityAction.objects.get(name='contract_approve')
-    ACTION_CONTRACT_DISAPPROVE = ActivityAction.objects.get(name='contract_disapprove')
-    ACTION_SUPERVISE_APPROVE = ActivityAction.objects.get(name='supervise_approve')
-    ACTION_SUPERVISE_DISAPPROVE = ActivityAction.objects.get(name='supervise_disapprove')
-    ACTION_EXAMINER_APPROVE = ActivityAction.objects.get(name='examiner_approve')
-    ACTION_EXAMINER_DISAPPROVE = ActivityAction.objects.get(name='examiner_disapprove')
+    s_io = None
+    try:
+        s_io = StringIO()
+        management.call_command('showmigrations', stdout=s_io)
+
+        # Only initialize actions when corresponding migration is finished
+        if re.search(r'(?<=\[)X(?=\] 0005_actitivity_actions)', s_io.getvalue()):
+            ACTION_CONTRACT_SUBMIT = ActivityAction.objects.get(name='contract_submit')
+            ACTION_CONTRACT_UN_SUBMIT = ActivityAction.objects.get(name='contract_un_submit')
+            ACTION_CONTRACT_APPROVE = ActivityAction.objects.get(name='contract_approve')
+            ACTION_CONTRACT_DISAPPROVE = ActivityAction.objects.get(name='contract_disapprove')
+            ACTION_SUPERVISE_APPROVE = ActivityAction.objects.get(name='supervise_approve')
+            ACTION_SUPERVISE_DISAPPROVE = ActivityAction.objects.get(name='supervise_disapprove')
+            ACTION_EXAMINER_APPROVE = ActivityAction.objects.get(name='examiner_approve')
+            ACTION_EXAMINER_DISAPPROVE = ActivityAction.objects.get(name='examiner_disapprove')
+
+    except Exception as exc:
+        raise exc
+    finally:
+        s_io.close() if s_io else None
 
 
 # TODO: HTML message for email notifications
