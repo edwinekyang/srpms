@@ -2,7 +2,8 @@
     this.route === '/contract-viewer' ? 'Your contract has been updated!' :
     this.route === '/submit' ? 'Your contract has been submitted!' :
     this.route === '/supervise' ? 'This contract has been approved!' :
-    this.route === '/examine' ? 'This examiner request has been confirmed!' : ''}}</h1>
+    this.route === '/examine' ? 'This examiner request has been confirmed!' :
+    this.route === '/convene' ? 'This contract has been finalised!' : ''}}</h1>
 <div *ngIf="this.route === '/contract'" mat-dialog-content>
     <p>Contract is now saved.</p><br>
     <p>You can either EDIT your saved contract OR SUBMIT your saved contract on the contract management page.</p><br>
@@ -25,6 +26,10 @@
 <div *ngIf="this.route === '/examine'" mat-dialog-content>
     <p>The Examiner request sent by the contract supervisor has been confirmed.</p><br>
     <p>Once the course convener approves the contract, you will be approved as an examiner of this contract.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div *ngIf="this.route === '/convene'" mat-dialog-content>
+    <p>This contract has been finalised.</p><br>
     <p>You will be redirected to the contract management page.</p>
 </div>
 <div mat-dialog-actions>

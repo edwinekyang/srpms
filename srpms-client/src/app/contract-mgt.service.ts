@@ -22,6 +22,11 @@ export class ContractMgtService {
         console.log(`ContractMgt Service: ${message}`);
     }
 
+    /**
+     * Retrieves the supervise relation of the contract
+     *
+     * @param contractId - Contract ID
+     */
     getSupervise(contractId: number): Observable<any[]> {
         return this.http.get<any[]>(`${this.API_URL}research_mgt/contracts/${contractId}/supervise/`, this.httpOptions)
             .pipe(
@@ -29,6 +34,11 @@ export class ContractMgtService {
             );
     }
 
+    /**
+     * Retrieves the assessment relation list of the contract
+     *
+     * @param contractId - Contract ID
+     */
     getAssessments(contractId: any): Observable<any[]> {
         return this.http.get<any[]>(`${this.API_URL}research_mgt/contracts/${contractId}/assessments/`, this.httpOptions)
             .pipe(
@@ -36,13 +46,18 @@ export class ContractMgtService {
             );
     }
 
+    /**
+     * Handles the error caused by the service
+     *
+     * @param operation - Operation flag
+     * @param result - General result type
+     */
     private handleError<T>(operation = 'operation', result?: T) {
         return (error: any): Observable<T> => {
 
-            // TODO: send the error to remote logging infrastructure
-            console.error(error); // log to console instead
+            // log to console
+            console.error(error);
 
-            // TODO: better job of transforming error for user consumption
             ContractMgtService.log(`${operation} failed: ${error.message}`);
 
             // Let the app keep running by returning an empty result.
@@ -50,6 +65,14 @@ export class ContractMgtService {
         };
     }
 
+    /**
+     * Confirms the examine relations of the assessment
+     *
+     * @param contractId - Contract ID
+     * @param assessmentId - Assessment relation ID
+     * @param examineId - Examine relation ID
+     * @param s - JSON string object that confirms the examine relation of the corresponding assessment relation
+     */
     confirmExamine(contractId: any, assessmentId: any, examineId: any, s: string) {
         // tslint:disable-next-line:max-line-length
         return this.http.put(`${this.API_URL}research_mgt/contracts/${contractId}/assessments/${assessmentId}/examine/${examineId}/approve/`,
@@ -59,6 +82,13 @@ export class ContractMgtService {
             );
     }
 
+    /**
+     * Approves the contract used by the contract supervisor
+     *
+     * @param contractId - Contract ID
+     * @param superviseId - Supervise relation ID
+     * @param s - JSON string object that approves the contract
+     */
     approveContract(contractId: any, superviseId: any, s: string) {
         return this.http.put(`${this.API_URL}research_mgt/contracts/${contractId}/supervise/${superviseId}/approve/`,
             s, this.httpOptions)
@@ -67,6 +97,11 @@ export class ContractMgtService {
             );
     }
 
+    /**
+     * Submits the contract used by the contract owner
+     *
+     * @param contractId - Contract ID
+     */
     updateSubmitted(contractId: any): Observable<any> {
         return this.http.put(`${this.API_URL}research_mgt/contracts/${contractId}/submit/`, JSON.stringify({
             submit: true,
@@ -77,6 +112,13 @@ export class ContractMgtService {
 
     }
 
+    /**
+     * Creates the examine relation of the assessment
+     *
+     * @param contractId - Contract ID
+     * @param assessmentId - Assessment relation ID
+     * @param s - JSON string object that creates the examine relation of the corresponding assessment relation
+     */
     addExamine(contractId: number, assessmentId: any, s: string) {
         return this.http.post(this.API_URL + `research_mgt/contracts/${contractId}/assessments/${assessmentId}/examine/`,
             s, this.httpOptions)
@@ -85,21 +127,37 @@ export class ContractMgtService {
             );
     }
 
-    updateContract(contractId: number, payload: any): Observable<any> {
-        return this.http.patch<any>(this.API_URL + `research_mgt/contracts/${contractId}/`, payload, this.httpOptions)
+    /**
+     * Updates the general contract information used by the contract owner
+     *
+     * @param contractId - Contract ID
+     * @param s - JSON string object that contains the information to update
+     */
+    updateContract(contractId: number, s: any): Observable<any> {
+        return this.http.patch<any>(this.API_URL + `research_mgt/contracts/${contractId}/`, s, this.httpOptions)
             .pipe(
                 catchError(this.handleError<any>('updateContract'))
             );
     }
 
-    updateSupervise(contractId: any, superviseId: any, supervise: string): Observable<any> {
+    /**
+     * Updates the supervise relation of the contract used by the contract owner
+     *
+     * @param contractId - Contract ID
+     * @param superviseId - Supervise relation ID
+     * @param s - JSON string object that contains the information to update
+     */
+    updateSupervise(contractId: any, superviseId: any, s: string): Observable<any> {
         return this.http.patch<any>(this.API_URL + `research_mgt/contracts/${contractId}/supervise/${superviseId}/`,
-            supervise, this.httpOptions)
+            s, this.httpOptions)
             .pipe(
                 catchError(this.handleError<any>('addSupervise'))
             );
     }
 
+    /**
+     * Retrieves the whole contract list
+     */
     getContracts(): Observable<any> {
         return this.http.get<any>(`${this.API_URL}research_mgt/contracts/`, this.httpOptions)
             .pipe(
@@ -107,13 +165,24 @@ export class ContractMgtService {
             );
     }
 
-    getContract(id: any): Observable<any> {
-        return this.http.get<any>(`${this.API_URL}research_mgt/contracts/${id}/`, this.httpOptions)
+    /**
+     * Retrieves the contract
+     *
+     * @param contractId - Contract ID
+     */
+    getContract(contractId: any): Observable<any> {
+        return this.http.get<any>(`${this.API_URL}research_mgt/contracts/${contractId}/`, this.httpOptions)
             .pipe(
                 catchError(this.handleError<any>('getContract'))
             );
     }
 
+    /**
+     * Retrieves the relevant contracts to the user that includes
+     * own, convene, supervise and examine
+     *
+     * @param userId - User ID
+     */
     getOwnContracts(userId: any) {
         return this.http.get(this.API_URL + `research_mgt/users/${userId}/`, this.httpOptions)
             .pipe(
@@ -121,6 +190,13 @@ export class ContractMgtService {
             );
     }
 
+    /**
+     * Updates the contract's assessment
+     *
+     * @param contractId - Contract ID
+     * @param assessmentId - Assessment relation ID
+     * @param s - JSON string object that updates the corresponding assessment relation
+     */
     updateAssessment(contractId: number, assessmentId: number, s: string) {
         return this.http.patch(this.API_URL + `research_mgt/contracts/${contractId}/assessments/${assessmentId}/`,
             s, this.httpOptions)
@@ -129,11 +205,33 @@ export class ContractMgtService {
             );
     }
 
+    /**
+     * Updates the contract's examiner
+     *
+     * @param contractId - Contract ID
+     * @param assessmentId - Assessment relation ID
+     * @param examineId - Examine relation ID
+     * @param s - JSON string object that approves the examine relation of the corresponding assessment
+     */
     updateExamine(contractId: number, assessmentId: number, examineId: number, s: string) {
         return this.http.patch(this.API_URL + `research_mgt/contracts/${contractId}/assessments/${assessmentId}/examine/${examineId}/`,
             s, this.httpOptions)
             .pipe(
                 catchError(this.handleError<any>('updateExamine'))
+            );
+    }
+
+    /**
+     * Finalises the contract used by the course convener
+     *
+     * @param contractId - Contract ID
+     * @param s - JSON string object that finalises the corresponding contract
+     */
+    approveConvene(contractId: string, s: string) {
+        return this.http.patch(this.API_URL + `research_mgt/contracts/${contractId}/approve/`,
+            s, this.httpOptions)
+            .pipe(
+                catchError(this.handleError<any>('approveConvene'))
             );
     }
 }

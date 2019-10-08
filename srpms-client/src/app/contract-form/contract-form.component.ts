@@ -48,6 +48,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
     ) {}
 
     ngOnInit() {
+        // Attach the form control to the form elements
         if (this.elements.length === 1) {
             this.form = this.cfcs.toFormGroup(this.elements, 'course');
         } else {
@@ -61,6 +62,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
             'Assessment',
             'Assessment',
         ];
+        // Sets the value of course dropdown
         if (this.courseSelected) {
             this.form.controls.course.setValue(this.courseSelected);
         }
@@ -73,6 +75,11 @@ export class ContractFormComponent implements OnInit, OnChanges {
         }
     }
 
+    /**
+     * Receives the flag from ContractFormElementComponent and sends the flag to ContractComponent
+     *
+     * @param $event - Object that contains the flag and course value
+     */
     receiveFormFlag($event) {
         this.formFlag = $event.formFlag;
         this.elementFlag = $event.formFlag;
@@ -84,10 +91,18 @@ export class ContractFormComponent implements OnInit, OnChanges {
         this.sendFormFlag();
     }
 
+    /**
+     * Sends the flag to ContractComponent
+     */
     sendFormFlag() {
         this.formFlagEvent.emit(this.message);
     }
 
+    /**
+     * Decides whether the form element has reached to the next section and returns boolean value
+     *
+     * @param order - Order value of the from element
+     */
     isAnotherSection(order): boolean {
         if (order > 1) {
             return (order % 10 === 0);
@@ -96,10 +111,21 @@ export class ContractFormComponent implements OnInit, OnChanges {
         }
     }
 
+    /**
+     * Decides whether the input of the form is 'textarea' html tag and returns boolean value
+     *
+     * @param type - Type value from the form element
+     */
     isTextArea(type): boolean {
         return (type === 'textarea');
     }
 
+    /**
+     * Decides whether the form element is the last element of the section and returns boolean value
+     *
+     * @param val - Element object
+     * @param elements - List of elements
+     */
     isLastElement(val, elements): boolean {
         if (elements.indexOf(val) + 1 < elements.length) {
             if (val.order > 10) {
@@ -110,6 +136,11 @@ export class ContractFormComponent implements OnInit, OnChanges {
         }
     }
 
+    /**
+     * Decides the number of the section and returns number value
+     *
+     * @param order - Order value of the element
+     */
     sectionDivider(order): number {
         if (order === 1) {
             return order;
@@ -118,6 +149,13 @@ export class ContractFormComponent implements OnInit, OnChanges {
         }
     }
 
+    /**
+     * Saves the contract and this function includes:
+     * 1. Deciding whether the contract is the type of project or special topic,
+     * 2. Creates the saved contract
+     * 3. Creates the assessment relation of the contract
+     * 4. Creates the supervise relation of the contract
+     */
     async onSubmit() {
         this.payLoad = {
             year: this.form.value.year,
@@ -159,6 +197,15 @@ export class ContractFormComponent implements OnInit, OnChanges {
             });
     }
 
+    /**
+     * Creates the assessment relation of the contract
+     * This function goes as following:
+     * 1. Assign the corresponding assessment section values to the assessment object
+     * 2. Retrieves the assessment relations of the contract
+     *    (Assessment relations are created automatically by default when the contract is created in back-end)
+     * 3. Updates the assessment information to the assessment relation that has the matching template id
+     * 4. Inside above assessment relation, creates the examine relation with the corresponding examiner ID
+     */
     async addAssessmentMethod() {
 
         this.assessment1 = {
@@ -236,6 +283,12 @@ export class ContractFormComponent implements OnInit, OnChanges {
             });
     }
 
+    /**
+     * Creates the supervise relation of the contract
+     * This is the last step of saving the contract.
+     * If this function successes, a dialog will pop-up and
+     * the user will be redirected to the contract management page.
+     */
     async addSupervise() {
         this.supervise = {
             supervisor: this.form.value.projectSupervisor,
@@ -253,6 +306,9 @@ export class ContractFormComponent implements OnInit, OnChanges {
             });
     }
 
+    /**
+     * Opens the dialog and redirects the user to the contract management page
+     */
     private openSuccessDialog() {
         const dialogRef = this.dialog.open(ContractDialogComponent, {
             width: '400px',

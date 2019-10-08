@@ -98,7 +98,7 @@
                 <div class="control-button-row">
                 <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/contract-viewer" [state]="contract">EDIT</a>
                 <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/submit" (click)="submit(contract.contractId)">SUBMIT</a>
-                <form *ngIf="this.route === '/supervise'" (ngSubmit)="approve(examiner.value, contract)">
+                <form *ngIf="this.route === '/supervise'" (ngSubmit)="approveSupervise(examiner.value, contract)">
                     <div class="nomination-form">
                     <mat-form-field appearance="standard">
                         <mat-label>Examiner's Name</mat-label>
@@ -111,6 +111,8 @@
                 <!--<a *ngIf="this.route === '/supervise'" mat-raised-button color="primary" routerLink="/approve">APPROVE</a>-->
                 <a *ngIf="this.route === '/examine'" mat-raised-button color="primary" routerLink="/examine"
                    (click)="confirm(contract.contractId, contract.assessment)">CONFIRM</a>
+                <a *ngIf="this.route === '/convene'" mat-raised-button color="primary"
+                   (click)="approveConvene(contract.contractId)">APPROVE</a>
                 </div>
             </mat-expansion-panel>
         </mat-accordion>

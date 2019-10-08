@@ -13,6 +13,7 @@ const routes: Routes = [
   { path: 'contract-viewer', component: ContractViewerComponent },
   { path: 'examine', component: ContractMgtComponent },
   { path: 'submit', component: ContractMgtComponent },
+  { path: 'convene', component: ContractMgtComponent },
 ];
 
 @NgModule({

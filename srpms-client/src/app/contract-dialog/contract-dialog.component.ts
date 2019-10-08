@@ -18,9 +18,11 @@ export class ContractDialogComponent implements OnInit {
     this.route = this.router.url;
   }
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
+  /**
+   * Closes the dialog on click
+   */
   onClick() {
     this.dialogRef.close();
   }

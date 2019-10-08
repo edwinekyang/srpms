@@ -65,8 +65,20 @@ export class ContractMgtComponent implements OnInit {
         this.initView().then();
     }
 
+    /**
+     * Initialises the view used by all types of user (Student, Supervisor, Examiner, Course Convener)
+     * Pre-list here refers to contracts that hasn't been processed to the next stage for each corresponding user.
+     * Post-list here refers to contracts that has been processed to the next stage for each corresponding user.
+     * This function goes as following:
+     * 1. Retrieves the pre-list
+     * 2. Retrieves the assessments of the pre-list
+     * 3. Re-arranges the pre-list information for the view
+     * 4. Retrives the post-list
+     * 5. Retrieves the assessments of the post-list
+     * 6. Re-arranges the post-list information for the view
+     */
     async initView() {
-        // Pre-contract list
+        // Pre-list
         this.getPreContractIds().then(
             async () => {
                 await this.showAssessments(this.preList, 'pre');
@@ -81,7 +93,7 @@ export class ContractMgtComponent implements OnInit {
                     });
             });
 
-        // Post-contract list
+        // Post-list
         this.getPostContractIds().then(
             async () => {
                 await this.showAssessments(this.postList, 'post');
@@ -97,6 +109,39 @@ export class ContractMgtComponent implements OnInit {
             });
     }
 
+    /**
+     * Retrieves the pre-list
+     * Based on the route, action is differentiated.
+     * - '/submit'
+     *   1. Retrieves the contract IDs that they own
+     *   2. Retrieves the contract and select it if the contract has not been submitted
+     *   3. Adds the contract ID to 'preList'
+     *
+     * - '/supervise'
+     *   1. Retrieves the contract IDs that they supervise
+     *   2. Retrieves the contract and select it which has following conditions:
+     *      Contract has been submitted.
+     *      Contract has not been approved by the contract supervisor.
+     *   3. Adds the contract ID to 'preList'
+     *
+     * - '/examine'
+     *   1. Retrieves the contract IDs that they examine
+     *   2. Retrieves the assessments of the contract and select from them which have following conditions:
+     *      Assessment has the same examiner ID with the user currently logged in,
+     *      Corresponding assessment's 'examiner_appoval_date' is null.
+     *   3. Adds the contract ID to 'preList'
+     *
+     * - '/convene'
+     *   1. Retrieves the contracts IDs that they convene
+     *   2. Retrieves the contract that has been approved by the contract supervisor
+     *      and has not been finalised by the course convener
+     *   3. Select the contract that all examiners' have been confirmed the request
+     *      except the case the course convener is one of the examiners of the contract
+     *      In this case, this contract ID is also added to 'preList'
+     *      Confirmations of this examine relation will automatically be triggered
+     *      by the system prior to they finalise the contract
+     *   4. Adds the contract ID to 'preList'
+     */
     async getPreContractIds() {
         if (this.route === '/supervise') {
             await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
@@ -139,9 +184,68 @@ export class ContractMgtComponent implements OnInit {
                     });
                     await Promise.all(promisesPreList);
                 });
+        } else if (this.route === '/convene') {
+            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+                .then(async data => {
+                    const promisePreList = data.convene.map(async id => {
+                        await this.contractMgtService.getContract(id).toPromise().then(async contract => {
+                            if (contract.is_all_supervisors_approved && !contract.is_convener_approved) {
+                                await this.contractMgtService.getAssessments(id).toPromise().then(async assessments => {
+                                    let preFlag: boolean;
+                                    preFlag = true;
+                                    const promiseAssessments = assessments.map(assessment => {
+                                        // Course convenor is one of the assessment examiner
+                                        if (assessment.assessment_examine[0].examiner ===
+                                            JSON.parse(localStorage.getItem('srpmsUser')).id &&
+                                            !assessment.is_all_examiners_approved) {
+                                            preFlag = preFlag ? preFlag || !assessment.is_all_examiners_approved : preFlag;
+                                        // Other assessments that course convener is not the examiner
+                                        } else {
+                                            preFlag = preFlag ? assessment.is_all_examiners_approved : preFlag;
+                                        }
+                                    });
+                                    await Promise.all(promiseAssessments).then(() => {
+                                        if (preFlag) {
+                                            this.preList.push(id);
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                    });
+                    await Promise.all(promisePreList);
+                });
         }
     }
 
+    /**
+     * Retrieves the post-list
+     * Based on the route, action is differentiated.
+     * - '/submit'
+     *   1. Retrieves the contract IDs that they own
+     *   2. Retrieves the contract and select it if the contract has been submitted
+     *   3. Adds the contract ID to 'postList'
+     *
+     * - '/supervise'
+     *   1. Retrieves the contract IDs that they supervise
+     *   2. Retrieves the contract and select it which has following conditions:
+     *      Contract has been submitted.
+     *      Contract has been approved by the contract supervisor.
+     *   3. Adds the contract ID to 'postList'
+     *
+     * - '/examine'
+     *   1. Retrieves the contract IDs that they examine
+     *   2. Retrieves the assessments of the contract and select from them which have following conditions:
+     *      Assessment has the same examiner ID with the user currently logged in,
+     *      Corresponding assessment's 'examiner_appoval_date' has value.
+     *   3. Adds the contract ID to 'postList'
+     *
+     * - '/convene'
+     *   1. Retrieves the contracts IDs that they convene
+     *   2. Retrieves the contract that has been approved by the contract supervisor
+     *      and has been finalised by the course convener
+     *   3. Adds the contract ID to 'preList'
+     */
     async getPostContractIds() {
         if (this.route === '/supervise') {
             await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
@@ -184,9 +288,42 @@ export class ContractMgtComponent implements OnInit {
                     });
                     await Promise.all(promisesPostList);
                 });
+        } else if (this.route === '/convene') {
+            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+                .then(async data => {
+                    const promisePostList = data.convene.map(async id => {
+                        await this.contractMgtService.getContract(id).toPromise().then(async contract => {
+                            if (contract.is_all_supervisors_approved && contract.is_all_assessments_approved) {
+                                this.postList.push(id);
+                            }
+                        });
+                    });
+                    await Promise.all(promisePostList);
+                });
         }
     }
 
+    /**
+     * Re-arrange the contract information for the view
+     * Whether the type is 'pre' or 'post', this function behaves differently.
+     * 1. Retrieves the contract using contractIdList
+     * 2. Retrieves the owner of the contract
+     * 3. 'pre'
+     *   - Select the assessment that has the same contract ID
+     *   - Adds to 'preAssessmentList'
+     *   - Select course that has the matching course ID with the contract
+     *   - Re-arrange the contract information to 'preContractList'
+     *
+     * 3. 'post'
+     *   - Select the assessment that has the same contract ID
+     *   - Adds to 'postAssessmentList'
+     *   - Select course that has the matching course ID with the contract
+     *   - Re-arrange the contract information to 'postContractList'
+     *
+     *
+     * @param contractIdList - Contract ID List
+     * @param type - Type flag (either 'pre' or 'post')
+     */
     async showContracts(contractIdList: number[], type: string) {
         let assessmentList: any;
         const promiseContractIdList = contractIdList.map(async (contractId: number) => {
@@ -248,6 +385,20 @@ export class ContractMgtComponent implements OnInit {
         await Promise.all(promiseContractIdList);
     }
 
+    /**
+     * Re-arrange the assessment information for the view
+     * Whether the type is 'pre' or 'post', this function behaves differently.
+     * 1. Retrieves the assessment relation of the contract
+     * 2. 'pre'
+     *   - Adds the assessment information to 'preAssessmentList'
+     *
+     * 3. 'post'
+     *   - Adds the assessment information to 'postAssessmentList'
+     *
+     *
+     * @param contractIdList - Contract ID List
+     * @param type - Type flag (either 'pre' or 'post')
+     */
     async showAssessments(contractIdList: number[], type: string) {
         const promiseContractIdList = contractIdList.map(async id => {
             await this.contractMgtService.getAssessments(id).toPromise()
@@ -298,18 +449,34 @@ export class ContractMgtComponent implements OnInit {
         await Promise.all(promiseContractIdList);
     }
 
+    /**
+     * Submits the contract used by the contract owner
+     *
+     * @param contractId - Contract ID
+     */
     submit(contractId: any) {
         this.contractMgtService.updateSubmitted(contractId).subscribe(() => {
             this.openSuccessDialog();
         });
     }
 
-    async approve(value: any, contract: any) {
+    /**
+     * Approves the supervise relation of the contract used by the contract supervisor
+     * This function goes as following:
+     * 1. Creates the examiner relation for the corresponding assessment of the contract
+     * 2. Approves the contract
+     * 3. Confirms supervisor's examiner role of the corresponding assessment
+     * 4. Opens the dialog
+     *
+     * @param examinerId - Examiner's ID
+     * @param contract - Contract object
+     */
+    async approveSupervise(examinerId: any, contract: any) {
         // Nominate the examiner
         const promiseNomination = contract.contractObj.assessment.map(async assessment => {
             if (assessment.template === 1) {
                 await this.contractMgtService.addExamine(contract.contractId, assessment.id, JSON.stringify({
-                    examiner: value,
+                    examiner: examinerId,
                 }))
                     .toPromise().then(() => {
 
@@ -318,7 +485,6 @@ export class ContractMgtComponent implements OnInit {
         });
 
         await Promise.all(promiseNomination);
-
 
         // Approve the contract
         await this.contractMgtService.approveContract(contract.contractId, contract.contractObj.supervise[0].id,
@@ -348,6 +514,10 @@ export class ContractMgtComponent implements OnInit {
 
     }
 
+    /**
+     * Opens the dialog that contains corresponding information for the user's action
+     * and reloads the page
+     */
     private openSuccessDialog() {
         const dialogRef = this.dialog.open(ContractDialogComponent, {
             width: '400px',
@@ -360,6 +530,15 @@ export class ContractMgtComponent implements OnInit {
         });
     }
 
+    /**
+     * Confirms the examiner request used by the examiner
+     * 1. Select the assessment object that has the same examiner ID with the user ID currently logged in
+     * 2. Confirms the examine relation of the assessment
+     * 3. Opens the dialog
+     *
+     * @param contractId - Contract ID
+     * @param assessments - Assessment list
+     */
     async confirm(contractId: any, assessments: any) {
         let assessmentId: number;
         let examineId: number;
@@ -378,6 +557,39 @@ export class ContractMgtComponent implements OnInit {
                 })).subscribe(() => {
                 this.openSuccessDialog();
             });
+        });
+    }
+
+    /**
+     * Finalises the contract
+     * 1. Confirms the course convener's examiner role of the corresponding assessment
+     * 2. Finalises the contract
+     * 3. Opens the dialog
+     *
+     * @param contractId - Contract ID
+     */
+    async approveConvene(contractId: string) {
+        // Confirm course convener's examiner's role first if any
+        await this.contractMgtService.getAssessments(contractId).toPromise()
+            .then(async assessments => {
+                const promiseAssessments = assessments.map(async assessment => {
+                    if (assessment.assessment_examine[0].examiner === JSON.parse(localStorage.getItem('srpmsUser')).id) {
+                        await this.contractMgtService.confirmExamine(contractId, assessment.id, assessment.assessment_examine[0].id,
+                            JSON.stringify({
+                                approve: true,
+                            })).toPromise().then(() => {
+
+                        });
+                    }
+                });
+
+                await Promise.all(promiseAssessments);
+            });
+        // Finalise the contract
+        await this.contractMgtService.approveConvene(contractId, JSON.stringify({
+            approve: true,
+        })).toPromise().then(() => {
+            this.openSuccessDialog();
         });
     }
 }

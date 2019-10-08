@@ -50,7 +50,7 @@ export class ContractViewerComponent implements OnInit {
       'Assessment',
       'Assessment',
     ];
-
+    // Needs to be changed in the future if the contract type is other than 'project'
     this.formFlag = 'project';
 
     this.elements.forEach((element: any) => {
@@ -58,17 +58,23 @@ export class ContractViewerComponent implements OnInit {
         this.filteredElements.push(element);
       }
     });
-
+    // Attaches the form control to form elements
     this.form = this.cfcs.toFormGroup(this.filteredElements, '');
   }
 
   ngOnInit() {
+    // Retrieves the contract object passed from ContractMgtComponent
     this.state$ = this.activatedRoute.paramMap
         .pipe(
             map(() => window.history.state
                 , this.message = window.history.state
             ));
 
+    // Sets the value of the contract supervisor in the form control
+    // (e.g. this.form.controls.element-key.setValue(...)
+    // and value attribute in input html tag in 'contractViewer'
+    // 'contractViewer' will be used to assign the value attribute inside input html tag
+    // (e.g. [value]="contractViewer[element.key]")
     this.contractMgtService.getSupervise(this.message.contractId).toPromise()
         .then(supervise => {
           Object.assign(this.contractViewer, {projectSupervisor: supervise[0].supervisor});
@@ -141,12 +147,24 @@ export class ContractViewerComponent implements OnInit {
 
   }
 
+  /**
+   * Changes 'isContractChanged' to true if the value inside the form element is changed
+   */
   onFormChanges() {
     this.form.valueChanges.subscribe(() => {
       this.isContractChanged = true;
     });
   }
 
+  /**
+   * Saves the contract
+   * 1. Decides whether the contract is the type of project or special topics
+   * 2. Adds the general contract information to payload
+   * 3. Updates the general contract information using payload
+   * 4. Updates the supervise relation of the contract
+   * 5. Updates the assessment relations and the examine relations
+   * 6. Opens the dialog
+   */
   async onSubmit() {
     let payLoad: any;
     payLoad = {
@@ -227,7 +245,11 @@ export class ContractViewerComponent implements OnInit {
     });
   }
 
-
+  /**
+   * Decides whether the form element has reached to the next section and returns boolean value
+   *
+   * @param order - Order value of the from element
+   */
   isAnotherSection(order): boolean {
     if (order > 1) {
       return (order % 10 === 0);
@@ -236,10 +258,21 @@ export class ContractViewerComponent implements OnInit {
     }
   }
 
+  /**
+   * Decides whether the input of the form is 'textarea' html tag and returns boolean value
+   *
+   * @param type - Type value from the form element
+   */
   isTextArea(type): boolean {
     return (type === 'textarea');
   }
 
+  /**
+   * Decides whether the form element is the last element of the section and returns boolean value
+   *
+   * @param val - Element object
+   * @param elements - List of elements
+   */
   isLastElement(val, elements): boolean {
     if (elements.indexOf(val) + 1 < elements.length) {
       if (val.order > 10) {
@@ -250,6 +283,11 @@ export class ContractViewerComponent implements OnInit {
     }
   }
 
+  /**
+   * Decides the number of the section and returns number value
+   *
+   * @param order - Order value of the element
+   */
   sectionDivider(order): number {
     if (order === 1) {
       return order;
@@ -258,10 +296,20 @@ export class ContractViewerComponent implements OnInit {
     }
   }
 
+  /**
+   * Retrieves the error message for the form element
+   * Currently only required validation exists.
+   *
+   * @param formControl - Form Control object
+   */
   getErrorMessage(formControl) {
     return formControl.hasError('required') ? 'You must enter a value' : '';
   }
 
+  /**
+   * Opens the dialog that contains corresponding information for the user's action
+   * and redirect the user to '/submit'
+   */
   private openSuccessDialog() {
     const dialogRef = this.dialog.open(ContractDialogComponent, {
       width: '400px',
