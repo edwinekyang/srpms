@@ -119,8 +119,9 @@ class ContractViewSet(ModelViewSet):
                     supervise__in=requester.supervise.all(), was_submitted=True)
             contract_examine = models.Contract.objects.filter(
                     assessment_examine__examine__examiner=requester, was_submitted=True)
-            self.queryset = contract_finalized | contract_own | \
-                            contract_supervise | contract_examine
+
+            queryset = contract_finalized | contract_own | contract_supervise | contract_examine
+            self.queryset = queryset.distinct()
 
         return super(ContractViewSet, self).get_queryset()
 

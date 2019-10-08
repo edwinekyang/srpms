@@ -3,6 +3,9 @@ Define signals. Mainly for the purpose of sending notifications, but not limited
 
 Signal with @receiver decorator would be automatically registered on app initialization, which
 currently happen inside apps.py
+
+Please be careful when using send_mail() function, as recipient in the recipient_list would be
+able to see each other's address.
 """
 
 __author__ = "Dajie (Cooper) Yang"
@@ -67,7 +70,7 @@ def init_actions(**kwargs):
 
 # TODO: HTML message for email notifications
 
-def get_email_addr(users: List[SrpmsUser]) -> set:
+def get_email_addr(users: List[SrpmsUser]) -> list:
     """
     Filter all available email addresses given a list of users.
 
@@ -77,7 +80,7 @@ def get_email_addr(users: List[SrpmsUser]) -> set:
     for user in users:
         if hasattr(user, 'email'):
             result.add(user.email)
-    return result
+    return list(result)
 
 
 # noinspection PyUnusedLocal
@@ -97,13 +100,14 @@ def contract_submit_notifications(contract: Contract, activity_log: ActivityLog,
                   EMAIL_SENDER,
                   get_email_addr([contract.owner]))
         # Inform contract supervisor
-        send_mail('New contract submission',
-                  'Contract "{contract_title}" (created by {contract_owner}) invited you '
-                  'as the contract\'s supervisor.'
-                  .format(contract_title=str(contract),
-                          contract_owner=contract.owner.get_display_name()),
-                  EMAIL_SENDER,
-                  get_email_addr(contract.get_all_supervisors()))
+        for address in get_email_addr(contract.get_all_supervisors()):
+            send_mail('New contract submission',
+                      'Contract "{contract_title}" (created by {contract_owner}) invited you '
+                      'as the contract\'s supervisor.'
+                      .format(contract_title=str(contract),
+                              contract_owner=contract.owner.get_display_name()),
+                      EMAIL_SENDER,
+                      [address])
     # Un-submit
     elif activity_log.action == ACTION_CONTRACT_UN_SUBMIT:
         # Inform contract owner if the actor is not contract owner, note that contract
@@ -127,29 +131,31 @@ def contract_approve_notifications(contract: Contract, activity_log: ActivityLog
     # Approve
     if activity_log.action == ACTION_CONTRACT_APPROVE:
         # Inform contract owner and all its supervisors
-        send_mail('Your contract has been approved by course convener',
-                  'Your contract "{contract_title}" has been approved by '
-                  'course convener {convener_name}.'
-                  .format(contract_title=str(contract),
-                          convener_name=contract.convener.get_display_name()),
-                  EMAIL_SENDER,
-                  get_email_addr(list(contract.get_all_supervisors()) + [contract.owner]))
+        for address in get_email_addr(list(contract.get_all_supervisors()) + [contract.owner]):
+            send_mail('Contract approved by course convener',
+                      'Contract "{contract_title}" has been approved by '
+                      'course convener {convener_name}.'
+                      .format(contract_title=str(contract),
+                              convener_name=contract.convener.get_display_name()),
+                      EMAIL_SENDER,
+                      [address])
     # Disapprove
     elif activity_log.action == ACTION_CONTRACT_DISAPPROVE:
         # Inform supervisors. Contract owner is not being notified here, since the owner would
         # need to wait for supervisor's disapproval before editing the contract. Also, if it's
         # just a matter of changing examiner, the contract owner doesn't really need to be
         # involve.
-        send_mail('Contract disapproved by convener',
-                  'Contract "{contract_title}" has been disapproved by convener {convener_name}'
-                  '{disapprove_reason}'
-                  .format(contract_title=str(contract),
-                          convener_name=activity_log.actor.get_display_name(),
-                          disapprove_reason='' if not activity_log.message else
-                          ', with the following message "{message}"'
-                          .format(message=activity_log.message)),
-                  EMAIL_SENDER,
-                  get_email_addr(contract.get_all_supervisors()))
+        for address in get_email_addr(contract.get_all_supervisors()):
+            send_mail('Contract disapproved by convener',
+                      'Contract "{contract_title}" has been disapproved by convener {convener_name}'
+                      '{disapprove_reason}'
+                      .format(contract_title=str(contract),
+                              convener_name=activity_log.actor.get_display_name(),
+                              disapprove_reason='' if not activity_log.message else
+                              ', with the following message "{message}"'
+                              .format(message=activity_log.message)),
+                      EMAIL_SENDER,
+                      [address])
 
 
 # noinspection PyUnusedLocal
@@ -162,7 +168,7 @@ def supervise_approve_notifications(supervise: Supervise, activity_log: Activity
     # Approve
     if activity_log.action == ACTION_SUPERVISE_APPROVE:
         # Inform contract owner
-        send_mail('Your contract has been approved by supervisor',
+        send_mail('Contract approved by supervisor',
                   'Your contract "{contract_title}" has been approved by '
                   'contract supervisor {supervisor_name}.'
                   .format(contract_title=str(supervise.contract),
@@ -170,11 +176,17 @@ def supervise_approve_notifications(supervise: Supervise, activity_log: Activity
                   EMAIL_SENDER,
                   get_email_addr([supervise.contract.owner]))
         # Inform examiners
-        send_mail('New contract assessment',
-                  'Contract "{contract_title}" invites you as the examiner for its assessment.'
-                  .format(contract_title=str(supervise.contract)),
-                  EMAIL_SENDER,
-                  get_email_addr(supervise.contract.get_all_examiners()))
+        for address in get_email_addr(SrpmsUser.objects.filter(
+                examine__nominator=supervise.supervisor,
+                examine__contract=supervise.contract,
+                examine__assessment_examine__examiner_approval_date__isnull=True)):
+            send_mail('New contract assessment',
+                      'Contract "{contract_title}"\'s supervisor {supervisor_name} invites you '
+                      'as the examiner for its assessment.'
+                      .format(contract_title=str(supervise.contract),
+                              supervisor_name=supervise.supervisor.get_display_name()),
+                      EMAIL_SENDER,
+                      [address])
     # Disapprove
     elif activity_log.action == ACTION_SUPERVISE_DISAPPROVE:
         # Inform contract owner
@@ -203,15 +215,16 @@ def examiner_approve_notifications(assessment_examine: AssessmentExamine,
     # Approve
     if activity_log.action == ACTION_EXAMINER_APPROVE:
         # Inform contract owner and examiner nominator
-        send_mail('Contract assessment approved',
-                  'Contract "{contract_title}"\'s assessment "{assessment_name}" has '
-                  'been approved by examiner {examiner_name}.'
-                  .format(contract_title=str(assessment_examine.contract),
-                          assessment_name=assessment_examine.assessment.template.name,
-                          examiner_name=assessment_examine.examine.examiner.get_display_name()),
-                  EMAIL_SENDER,
-                  get_email_addr([assessment_examine.contract.owner,
-                                  assessment_examine.examine.nominator]))
+        for address in get_email_addr([assessment_examine.contract.owner,
+                                       assessment_examine.examine.nominator]):
+            send_mail('Contract assessment approved',
+                      'Contract "{contract_title}"\'s assessment "{assessment_name}" has '
+                      'been approved by examiner {examiner_name}.'
+                      .format(contract_title=str(assessment_examine.contract),
+                              assessment_name=assessment_examine.assessment.template.name,
+                              examiner_name=assessment_examine.examine.examiner.get_display_name()),
+                      EMAIL_SENDER,
+                      [address])
     # Disapprove
     elif activity_log.action == ACTION_EXAMINER_DISAPPROVE:
         send_mail('Contract assessment disapproved by examiner',

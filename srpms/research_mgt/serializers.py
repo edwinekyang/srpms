@@ -102,10 +102,10 @@ class SuperviseSerializer(serializers.ModelSerializer):
                   'is_supervisor_approved', 'supervisor_approval_date']
 
     def create(self, validated_data):
-        """Override to forbid more than 1 supervisor for individual project"""
+        """Override to forbid more than 1 formal supervisor for individual project"""
         contract: models.Contract = validated_data['contract']
         if hasattr(contract, 'individual_project') and \
-                len(models.Supervise.objects.filter(contract=contract)) >= 1:
+                len(models.Supervise.objects.filter(contract=contract, is_formal=True)) >= 1:
             raise serializers.ValidationError(
                     'Individual project does not allowed more than 1 supervisor.')
 
