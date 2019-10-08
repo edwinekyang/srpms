@@ -80,13 +80,13 @@
                         </mat-list-item>
                     </mat-grid-tile>
                         <mat-grid-tile>
-                            <h3 mat-subheader>Due date</h3>
+                            <h3 mat-subheader>Due</h3>
                             <mat-list-item>
                                 <h4 mat-line>{{assessment["due"]}}</h4>
                             </mat-list-item>
                         </mat-grid-tile>
                         <mat-grid-tile colspan="2">
-                            <h3 mat-subheader>Evaluated by</h3>
+                            <h3 mat-subheader>Examiner</h3>
                             <mat-list-item>
                                 <h4 mat-line>{{assessment["examiner"]}}</h4>
                             </mat-list-item>
@@ -98,18 +98,19 @@
                 <div class="control-button-row">
                 <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/contract-viewer" [state]="contract">EDIT</a>
                 <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/submit" (click)="submit(contract.contractId)">SUBMIT</a>
-                <form *ngIf="this.route === '/supervise'" (ngSubmit)="onApprove(examiner.value, contract)">
+                <form *ngIf="this.route === '/supervise'" (ngSubmit)="approve(examiner.value, contract)">
                     <div class="nomination-form">
                     <mat-form-field appearance="standard">
                         <mat-label>Examiner's Name</mat-label>
                         <input #examiner matInput required id="examiner">
                     </mat-form-field>
                     <button class="" mat-raised-button color="primary" type="submit" [disabled]="!examiner.checkValidity()">
-                        NOMINATE EXAMINER AND APPROVE</button>
+                        APPROVE AND NOMINATE EXAMINER</button>
                     </div>
                 </form>
                 <!--<a *ngIf="this.route === '/supervise'" mat-raised-button color="primary" routerLink="/approve">APPROVE</a>-->
-                <a *ngIf="this.route === '/examine'" mat-raised-button color="primary" routerLink="/confirm">CONFIRM</a>
+                <a *ngIf="this.route === '/examine'" mat-raised-button color="primary" routerLink="/examine"
+                   (click)="confirm(contract.contractId, contract.assessment)">CONFIRM</a>
                 </div>
             </mat-expansion-panel>
         </mat-accordion>
@@ -190,13 +191,13 @@
                                 </mat-list-item>
                             </mat-grid-tile>
                             <mat-grid-tile>
-                                <h3 mat-subheader>Due date</h3>
+                                <h3 mat-subheader>Due</h3>
                                 <mat-list-item>
                                     <h4 mat-line>{{assessment["due"]}}</h4>
                                 </mat-list-item>
                             </mat-grid-tile>
                             <mat-grid-tile colspan="2">
-                                <h3 mat-subheader>Evaluated by</h3>
+                                <h3 mat-subheader>Examiner</h3>
                                 <mat-list-item>
                                     <h4 mat-line>{{assessment["examiner"]}}</h4>
                                 </mat-list-item>

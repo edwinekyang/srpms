@@ -29,38 +29,10 @@ export class ContractMgtService {
             );
     }
 
-    getExamine(): Observable<any[]> {
-        return this.http.get<any[]>(`${this.API_URL}research_mgt/supervise/`, this.httpOptions)
-            .pipe(
-                catchError(this.handleError<any[]>('getExamine'))
-            );
-    }
-
-    getAssessments(id: any): Observable<any[]> {
-        return this.http.get<any[]>(`${this.API_URL}research_mgt/contracts/${id}/assessments/`, this.httpOptions)
+    getAssessments(contractId: any): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API_URL}research_mgt/contracts/${contractId}/assessments/`, this.httpOptions)
             .pipe(
                 catchError(this.handleError<any[]>('getAssessmentMethods'))
-            );
-    }
-
-    getAssessmentTemplates(): Observable<any[]> {
-        return this.http.get<any[]>(`${this.API_URL}research_mgt/assessment-templates/`, this.httpOptions)
-            .pipe(
-                catchError(this.handleError<any[]>('getAssessmentTemplates'))
-            );
-    }
-
-    getAssessmentTemplate(id: any): Observable<any> {
-        return this.http.get<any[]>(`${this.API_URL}research_mgt/assessment-templates/${id}/`, this.httpOptions)
-            .pipe(
-                catchError(this.handleError<any[]>('getAssessmentTemplate'))
-            );
-    }
-
-    getAssessmentMethod(id: any): Observable<any> {
-        return this.http.get<any[]>(`${this.API_URL}research_mgt/assessment-methods/${id}/`, this.httpOptions)
-            .pipe(
-                catchError(this.handleError<any[]>('getAssessmentMethod'))
             );
     }
 
@@ -78,11 +50,12 @@ export class ContractMgtService {
         };
     }
 
-    approveExamine(contractId: any, assessmentId: any, examineId: any, s: string) {
-        return this.http.put(`${this.API_URL}research_mgt/contracts/${contractId}/assessments/${assessmentId}
-        /examine/${examineId}/approve/`, s, this.httpOptions)
+    confirmExamine(contractId: any, assessmentId: any, examineId: any, s: string) {
+        // tslint:disable-next-line:max-line-length
+        return this.http.put(`${this.API_URL}research_mgt/contracts/${contractId}/assessments/${assessmentId}/examine/${examineId}/approve/`,
+            s, this.httpOptions)
             .pipe(
-                catchError(this.handleError<any[]>('getAssessmentMethod'))
+                catchError(this.handleError<any[]>('confirmExamine'))
             );
     }
 
@@ -90,7 +63,7 @@ export class ContractMgtService {
         return this.http.put(`${this.API_URL}research_mgt/contracts/${contractId}/supervise/${superviseId}/approve/`,
             s, this.httpOptions)
             .pipe(
-                catchError(this.handleError<any[]>('getAssessmentMethod'))
+                catchError(this.handleError<any[]>('approveContract'))
             );
     }
 
@@ -126,7 +99,6 @@ export class ContractMgtService {
                 catchError(this.handleError<any>('addSupervise'))
             );
     }
-
 
     getContracts(): Observable<any> {
         return this.http.get<any>(`${this.API_URL}research_mgt/contracts/`, this.httpOptions)

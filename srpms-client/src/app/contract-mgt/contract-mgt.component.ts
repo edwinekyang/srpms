@@ -4,6 +4,8 @@ import {ContractService, Course} from '../contract.service';
 import {ContractMgtService} from '../contract-mgt.service';
 import {AccountsService, SrpmsUser} from '../accounts.service';
 import {Router} from '@angular/router';
+import {ContractDialogComponent} from '../contract-dialog/contract-dialog.component';
+import {MatDialog} from '@angular/material';
 
 export interface ContractList<T> {
     contractId: string;
@@ -17,6 +19,8 @@ export interface ContractList<T> {
 }
 
 export interface AssessmentList<T> {
+    id: any;
+    examineId: any;
     template: number;
     assessmentName: string;
     contract: number;
@@ -52,6 +56,7 @@ export class ContractMgtComponent implements OnInit {
         private contractMgtService: ContractMgtService,
         public accountService: AccountsService,
         private router: Router,
+        public dialog: MatDialog,
     ) {
         this.route = this.router.url;
     }
@@ -94,32 +99,34 @@ export class ContractMgtComponent implements OnInit {
 
     async getPreContractIds() {
         if (this.route === '/supervise') {
-            await this.contractMgtService.getContracts().toPromise()
-                .then(async contracts => {
-                    const promiseContracts = contracts.map(async contract => {
-                        if (contract.supervise[0].supervisor === JSON.parse(localStorage.getItem('srpmsUser')).id &&
-                            contract.is_submitted && !contract.supervise[0].is_supervisor_approved) {
-                            this.preList.push(contract.id);
-                        }
+            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+                .then(async data => {
+                    const promisesPreList = data.supervise.map(async id => {
+                        await this.contractMgtService.getContract(id).toPromise().then(contract => {
+                            if (contract.is_submitted && !contract.supervise[0].is_supervisor_approved) {
+                                this.preList.push(id);
+                            }
+                        });
                     });
-                    await Promise.all(promiseContracts);
+                    await Promise.all(promisesPreList);
                 });
         } else if (this.route === '/examine') {
-            /*await this.contractMgtService.getAssessments()
-                .subscribe((data: any) => {
-                    data.forEach(assessmentMethods => {
-                        if (assessmentMethods.examiner === JSON.parse(localStorage.getItem('srpmsUser')).id &&
-                            !assessmentMethods.is_examiner_approved) {
-                            this.preList.push({
-                                id: assessmentMethods.contract,
+            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+                .then(async data => {
+                    const promisesPreList = data.examine.map(async id => {
+                        await this.contractMgtService.getAssessments(id).toPromise().then(async assessments => {
+                            const promiseAssessments = assessments.map(assessment => {
+                                if (assessment.assessment_examine[0].examiner ===
+                                    JSON.parse(localStorage.getItem('srpmsUser')).id &&
+                                    !assessment.assessment_examine[0].examiner_approval_date) {
+                                    this.preList.push(id);
+                                }
                             });
-                        }
+                            await Promise.all(promiseAssessments);
+                        });
                     });
-                }, error => {
-                    if (error instanceof HttpErrorResponse) {
-                        this.errorMessage = error.error.detail;
-                    }
-                });*/
+                    await Promise.all(promisesPreList);
+                });
         } else if (this.route === '/submit') {
             await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
                 .then(async data => {
@@ -137,15 +144,16 @@ export class ContractMgtComponent implements OnInit {
 
     async getPostContractIds() {
         if (this.route === '/supervise') {
-            await this.contractMgtService.getContracts().toPromise()
-                .then(async contracts => {
-                    const promiseContracts = contracts.map(async contract => {
-                        if (contract.supervise[0].supervisor === JSON.parse(localStorage.getItem('srpmsUser')).id &&
-                            contract.is_submitted && contract.supervise[0].is_supervisor_approved) {
-                            this.postList.push(contract.id);
-                        }
+            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+                .then(async data => {
+                    const promisesPostList = data.supervise.map(async id => {
+                        await this.contractMgtService.getContract(id).toPromise().then(contract => {
+                            if (contract.is_submitted && contract.supervise[0].is_supervisor_approved) {
+                                this.postList.push(id);
+                            }
+                        });
                     });
-                    await Promise.all(promiseContracts);
+                    await Promise.all(promisesPostList);
                 });
         } else if (this.route === '/submit') {
             await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
@@ -155,6 +163,23 @@ export class ContractMgtComponent implements OnInit {
                             if (contract.is_submitted) {
                                 this.postList.push(id);
                             }
+                        });
+                    });
+                    await Promise.all(promisesPostList);
+                });
+        } else if (this.route === '/examine') {
+            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+                .then(async data => {
+                    const promisesPostList = data.examine.map(async id => {
+                        await this.contractMgtService.getAssessments(id).toPromise().then(async assessments => {
+                            const promiseAssessments = assessments.map(assessment => {
+                                if (assessment.assessment_examine[0].examiner ===
+                                    JSON.parse(localStorage.getItem('srpmsUser')).id &&
+                                    assessment.assessment_examine[0].examiner_approval_date) {
+                                    this.postList.push(id);
+                                }
+                            });
+                            await Promise.all(promiseAssessments);
                         });
                     });
                     await Promise.all(promisesPostList);
@@ -230,6 +255,9 @@ export class ContractMgtComponent implements OnInit {
                     const promiseAssessments = assessments.map(async assessment => {
                         if (type === 'pre') {
                             this.preAssessmentList.push({
+                                id: assessment.id,
+                                examineId: assessment.assessment_examine[0] ?
+                                    assessment.assessment_examine[0].id : '',
                                 template: assessment.template,
                                 assessmentName: assessment.template_info.name,
                                 contract: assessment.contract,
@@ -243,6 +271,9 @@ export class ContractMgtComponent implements OnInit {
                             });
                         } else if (type === 'post') {
                             this.postAssessmentList.push({
+                                id: assessment.id,
+                                examineId: assessment.assessment_examine[0] ?
+                                    assessment.assessment_examine[0].id : '',
                                 template: assessment.template,
                                 assessmentName: assessment.template_info.name,
                                 contract: assessment.contract,
@@ -267,30 +298,86 @@ export class ContractMgtComponent implements OnInit {
         await Promise.all(promiseContractIdList);
     }
 
-    submit(id: any) {
-        this.contractMgtService.updateSubmitted(id).subscribe(() => {
+    submit(contractId: any) {
+        this.contractMgtService.updateSubmitted(contractId).subscribe(() => {
+            this.openSuccessDialog();
         });
     }
 
-    onApprove(value: any, contract: any) {
-        this.contractMgtService.approveContract(contract.contractId, contract.contractObj.supervise[0].id,
+    async approve(value: any, contract: any) {
+        // Nominate the examiner
+        const promiseNomination = contract.contractObj.assessment.map(async assessment => {
+            if (assessment.template === 1) {
+                await this.contractMgtService.addExamine(contract.contractId, assessment.id, JSON.stringify({
+                    examiner: value,
+                }))
+                    .toPromise().then(() => {
+
+                    });
+            }
+        });
+
+        await Promise.all(promiseNomination);
+
+
+        // Approve the contract
+        await this.contractMgtService.approveContract(contract.contractId, contract.contractObj.supervise[0].id,
             JSON.stringify({
                 approve: true,
             }))
-            .subscribe();
-        contract.contractObj.assessment.forEach(assessment => {
-            if (assessment.template === 1) {
-                this.contractMgtService.addExamine(contract.contractId, assessment.id, JSON.stringify({
-                    examiner: value,
-                }))
-                    .subscribe();
-            } else if (assessment.template === 2) {
-                this.contractMgtService.approveExamine(contract.contractId, assessment.id,
+            .toPromise().then(() => {
+
+            });
+
+        // Confirm supervisor's examiner role of the one of the assessments
+        const promiseConfirmExamine = contract.contractObj.assessment.map(async assessment => {
+            if (assessment.template === 2) {
+                await this.contractMgtService.confirmExamine(contract.contractId, assessment.id,
                     assessment.assessment_examine[0].id, JSON.stringify({
                         approve: true,
                     }))
-                    .subscribe();
+                    .toPromise().then(() => {
+
+                    });
             }
+        });
+
+        await Promise.all(promiseConfirmExamine).then(() => {
+            this.openSuccessDialog();
+        });
+
+    }
+
+    private openSuccessDialog() {
+        const dialogRef = this.dialog.open(ContractDialogComponent, {
+            width: '400px',
+        });
+
+        dialogRef.afterClosed().subscribe(() => {
+            this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+                this.router.navigate([this.route]).then(() => {});
+            });
+        });
+    }
+
+    async confirm(contractId: any, assessments: any) {
+        let assessmentId: number;
+        let examineId: number;
+        assessmentId = 0;
+        examineId = 0;
+        const promiseAssessments = assessments.map(assessment => {
+            if (assessment.examiner === JSON.parse(localStorage.getItem('srpmsUser')).id) {
+                assessmentId = assessment.id;
+                examineId = assessment.examineId;
+            }
+        });
+        await Promise.all(promiseAssessments).then(() => {
+            this.contractMgtService.confirmExamine(contractId, assessmentId, examineId,
+                JSON.stringify({
+                    approve: true,
+                })).subscribe(() => {
+                this.openSuccessDialog();
+            });
         });
     }
 }

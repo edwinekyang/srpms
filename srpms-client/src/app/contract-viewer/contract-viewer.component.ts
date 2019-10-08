@@ -5,8 +5,10 @@ import {ElementBase} from '../element-base';
 import {FormGroup} from '@angular/forms';
 import {ContractFormControlService} from '../contract-form-control.service';
 import {Observable} from 'rxjs';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {map} from 'rxjs/operators';
+import {ContractDialogComponent} from '../contract-dialog/contract-dialog.component';
+import {MatDialog} from '@angular/material';
 
 
 @Component({
@@ -35,6 +37,8 @@ export class ContractViewerComponent implements OnInit {
       public elementService: ElementService,
       private cfcs: ContractFormControlService,
       public activatedRoute: ActivatedRoute,
+      public dialog: MatDialog,
+      private router: Router,
   ) {
     this.isContractChanged = false;
     this.elements = this.elementService.getElements();
@@ -218,7 +222,9 @@ export class ContractViewerComponent implements OnInit {
         }
       }
     });
-    await Promise.all(promiseAssessments);
+    await Promise.all(promiseAssessments).then(() => {
+      this.openSuccessDialog();
+    });
   }
 
 
@@ -254,6 +260,16 @@ export class ContractViewerComponent implements OnInit {
 
   getErrorMessage(formControl) {
     return formControl.hasError('required') ? 'You must enter a value' : '';
+  }
+
+  private openSuccessDialog() {
+    const dialogRef = this.dialog.open(ContractDialogComponent, {
+      width: '400px',
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.router.navigate(['/submit']).then(() => {});
+    });
   }
 
 }

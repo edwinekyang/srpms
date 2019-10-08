@@ -2,9 +2,12 @@ import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges
 import { FormGroup } from '@angular/forms';
 import { ElementBase } from '../element-base';
 import { ContractFormControlService } from '../contract-form-control.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import {HttpErrorResponse} from '@angular/common/http';
 import { ContractService } from '../contract.service';
 import {ContractMgtService} from '../contract-mgt.service';
+import {Router} from '@angular/router';
+import {MatDialog} from '@angular/material';
+import {ContractDialogComponent} from '../contract-dialog/contract-dialog.component';
 
 @Component({
     selector: 'app-contract-form',
@@ -40,6 +43,8 @@ export class ContractFormComponent implements OnInit, OnChanges {
         private cfcs: ContractFormControlService,
         public contractService: ContractService,
         public contractMgtService: ContractMgtService,
+        public dialog: MatDialog,
+        private router: Router,
     ) {}
 
     ngOnInit() {
@@ -144,8 +149,9 @@ export class ContractFormComponent implements OnInit, OnChanges {
         await this.contractService.addContract(JSON.stringify(this.payLoad))
             .toPromise().then(async (res) => {
                 this.contractId = res.id;
-                await this.addAssessmentMethod();
-                await this.addSupervise();
+                await this.addAssessmentMethod().then(async () => {
+                    await this.addSupervise();
+                });
             }, error => {
                 if (error instanceof HttpErrorResponse) {
                     this.errorMessage = error.error.detail;
@@ -239,11 +245,21 @@ export class ContractFormComponent implements OnInit, OnChanges {
 
         await this.contractService.addSupervise(this.contractId, JSON.stringify(this.supervise))
             .toPromise().then(() => {
-
+                this.openSuccessDialog();
             }, error => {
                 if (error instanceof HttpErrorResponse) {
                     this.errorMessage = error.error.detail;
                 }
             });
+    }
+
+    private openSuccessDialog() {
+        const dialogRef = this.dialog.open(ContractDialogComponent, {
+            width: '400px',
+        });
+
+        dialogRef.afterClosed().subscribe(() => {
+            this.router.navigate(['/submit']).then(() => {});
+        });
     }
 }
