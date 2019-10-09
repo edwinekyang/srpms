@@ -97,21 +97,26 @@
                 <div class="control-button-row">
                 <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/contract-viewer" [state]="contract">EDIT</a>
                 <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/submit" (click)="submit(contract.contractId)">SUBMIT</a>
-                <form *ngIf="this.route === '/supervise'" (ngSubmit)="approveSupervise(examiner.value, contract)">
+                <form *ngIf="this.route === '/supervise' || (this.route === '/convene' && contract.status === 'Submitted')"
+                      (ngSubmit)="this.route === '/supervise' ? approveSupervise(contract, examiner.value) :
+                      nominateExaminer(examiner.value, contract)">
                     <div class="nomination-form">
                     <mat-form-field appearance="standard">
                         <mat-label>Examiner's Name</mat-label>
                         <input #examiner matInput required id="examiner">
                     </mat-form-field>
                     <button class="" mat-raised-button color="primary" type="submit" [disabled]="!examiner.checkValidity()">
-                        APPROVE AND NOMINATE EXAMINER</button>
+                        {{(this.route === '/supervise') ? 'NOMINATE EXAMINER AND APPROVE' :
+                        'NOMINATE EXAMINER'}}</button>
                     </div>
                 </form>
                 <!--<a *ngIf="this.route === '/supervise'" mat-raised-button color="primary" routerLink="/approve">APPROVE</a>-->
-                <a *ngIf="this.route === '/examine'" mat-raised-button color="primary" routerLink="/examine"
-                   (click)="confirm(contract.contractId, contract.assessment)">CONFIRM</a>
-                <a *ngIf="this.route === '/convene'" mat-raised-button color="primary"
-                   (click)="approveConvene(contract.contractId)">APPROVE</a>
+                <a *ngIf="this.route === '/examine' || (this.route === '/convene' && contract.status === 'Approved')" mat-raised-button color="primary"
+                   (click)="confirmExamine(contract, contract.assessment)">CONFIRM</a>
+                <a *ngIf="this.route === '/convene' && contract.status === 'Confirmed'" mat-raised-button color="primary"
+                   (click)="approveConvene(contract)">FINALISE</a>
+                <a *ngIf="this.route === '/convene' && contract.status === 'Nominated'" mat-raised-button color="primary"
+                   (click)="approveSupervise(contract)">APPROVE</a>
                 </div>
             </mat-expansion-panel>
         </mat-accordion>

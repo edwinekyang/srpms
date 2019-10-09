@@ -243,38 +243,39 @@ export class ContractFormComponent implements OnInit, OnChanges {
                     // @ts-ignore
                     if (assessment.template === this.assessment1.template) {
                         await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment1))
-                            .toPromise();
-                        // @ts-ignore
-                        if (this.assessment1.examiner) {
-                            this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                            .toPromise().then(async () => {
                                 // @ts-ignore
-                                examiner: this.assessment1.examiner,
-                            })).subscribe();
-                        }
-                        // @ts-ignore
+                                if (this.assessment1.examiner) {
+                                    await this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                        // @ts-ignore
+                                        examiner: this.assessment1.examiner,
+                                    })).toPromise();
+                                }
+                            });
+                    // @ts-ignore
                     } else if (assessment.template === this.assessment2.template) {
                         await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment2))
-                            .toPromise().then(() => {
-                            });
-                        // @ts-ignore
-                        if (this.assessment2.examiner) {
-                            this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                            .toPromise().then(async () => {
                                 // @ts-ignore
-                                examiner: this.assessment2.examiner,
-                            })).subscribe();
-                        }
-                        // @ts-ignore
+                                if (this.assessment2.examiner) {
+                                    await this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                        // @ts-ignore
+                                        examiner: this.assessment2.examiner,
+                                    })).toPromise();
+                                }
+                            });
+                    // @ts-ignore
                     } else if (assessment.template === this.assessment3.template) {
                         await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment3))
-                            .toPromise().then(() => {
-                            });
-                        // @ts-ignore
-                        if (this.assessment3.examiner) {
-                            this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                            .toPromise().then(async () => {
                                 // @ts-ignore
-                                examiner: this.assessment3.examiner,
-                            })).subscribe();
-                        }
+                                if (this.assessment3.examiner) {
+                                    await this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                        // @ts-ignore
+                                        examiner: this.assessment3.examiner,
+                                    })).toPromise();
+                                }
+                            });
                     }
                 });
 
