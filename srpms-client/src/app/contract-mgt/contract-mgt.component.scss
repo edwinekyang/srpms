@@ -6,6 +6,10 @@
   }
 }
 
+.project-header {
+  color: darkred;
+}
+
 .title {
   text-align: center;
   margin-top: 2em;
@@ -17,7 +21,7 @@
 }
 
 .mat-list-base .mat-subheader:first-child, .mat-subheader {
-  width: 13em;
+  width: auto;
   color: darkred;
   font-size: 16px;
   margin-top: 0;

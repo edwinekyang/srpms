@@ -360,7 +360,9 @@ export class ContractMgtComponent implements OnInit {
                                                 contract.individual_project.title,
                                             contractObj: contract,
                                             assessment: assessmentList,
-                                            status: '',
+                                            status: contract.is_convener_approved ? 'Finalised' :
+                                                contract.is_all_supervisors_approved ? 'Approved' :
+                                                    contract.is_submitted ? 'Submitted' : '',
                                         });
                                     } else if (type === 'post') {
                                         this.postContractList.push({
