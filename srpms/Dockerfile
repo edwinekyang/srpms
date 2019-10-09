@@ -9,7 +9,7 @@ WORKDIR /djangoproj/srpms
 
 # install dependencies
 RUN apk add --no-cache libldap libsasl postgresql-libs postgresql-client bash \
-                       zlib libffi cairo pango gdk-pixbuf
+                       cairo-dev pango-dev gdk-pixbuf
 RUN apk add --no-cache --virtual .build-deps \
                        postgresql-dev \
                        gcc \
@@ -18,9 +18,6 @@ RUN apk add --no-cache --virtual .build-deps \
                        jpeg-dev \
                        zlib-dev \
                        libffi-dev \
-                       cairo-dev \
-                       pango-dev \
-                       gdk-pixbuf-dev \
     && pip install psycopg2==2.7.* \
                    gunicorn==19.9.* \
                    django==2.2.* \
