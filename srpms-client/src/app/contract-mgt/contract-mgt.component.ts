@@ -312,6 +312,20 @@ export class ContractMgtComponent implements OnInit {
 
     /**
      * Re-arrange the contract information for the view
+     * Contract has 5 stages in the perspective of the course convener
+     * 1. Submitted - Submitted contract from the contract owner
+     * 2. Nominated - Examiner for the report is nominated
+     * 3. Approved - Contract is approved by the contract supervisor
+     * 4. Confirmed - Examiner request for the report is confirmed by the examiner
+     * 5. Finalised - Contract is finalised by the convener
+     * These statuses are showed in the pre-list for the convener ('/convene')
+     *
+     * And has 3 stages in the perspective of the contract owner
+     * 1. Submitted - Submitted contract from the owner
+     * 2. Approved - Contract is approved by the supervisor
+     * 3. Finalised - Contract is finalised by the convener
+     * These statuses are showed in the post-list for the owner ('/submit')
+     *
      * Whether the type is 'pre' or 'post', this function behaves differently.
      * 1. Retrieves the contract using contractIdList
      * 2. Retrieves the owner of the contract
@@ -326,7 +340,6 @@ export class ContractMgtComponent implements OnInit {
      *   - Adds to 'postAssessmentList'
      *   - Select course that has the matching course ID with the contract
      *   - Re-arrange the contract information to 'postContractList'
-     *
      *
      * @param contractIdList - Contract ID List
      * @param type - Type flag (either 'pre' or 'post')
@@ -381,10 +394,10 @@ export class ContractMgtComponent implements OnInit {
                                             assessment: assessmentList,
                                             status: examineStatus ?
                                                 examineStatus === 'Nominated' ?
-                                                contract.is_all_supervisors_approved ?
-                                                'Approved' : 'Nominated' :
-                                                examineStatus === 'Confirmed' && contract.is_convener_approved ? 'Finalised' :
-                                                'Confirmed' : 'Submitted',
+                                                    contract.is_all_supervisors_approved ?
+                                                        'Approved' : 'Nominated' :
+                                                    examineStatus === 'Confirmed' && contract.is_convener_approved ? 'Finalised' :
+                                                        'Confirmed' : 'Submitted',
                                         });
                                     } else if (type === 'post') {
                                         this.postContractList.push({
@@ -423,7 +436,6 @@ export class ContractMgtComponent implements OnInit {
      *
      * 3. 'post'
      *   - Adds the assessment information to 'postAssessmentList'
-     *
      *
      * @param contractIdList - Contract ID List
      * @param type - Type flag (either 'pre' or 'post')
@@ -600,7 +612,7 @@ export class ContractMgtComponent implements OnInit {
     }
 
     /**
-     * Finalises the contract
+     * Finalises the contract used by the course convener
      * 1. Confirms the course convener's examiner role of the corresponding assessment
      * 2. Finalises the contract
      * 3. Opens the dialog
@@ -633,6 +645,12 @@ export class ContractMgtComponent implements OnInit {
         });
     }
 
+    /**
+     * Nominates the examiner used by course convener
+     *
+     * @param examinerId - Examiner ID
+     * @param contract - Contract object
+     */
     async nominateExaminer(examinerId: any, contract: any) {
         // Nominate the examiner
         const promiseNomination = contract.contractObj.assessment.map(async assessment => {
