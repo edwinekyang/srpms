@@ -10,11 +10,13 @@ __credits__ = ['Dajie Yang', 'Euikyum Yang']
 __maintainer__ = 'Dajie (Cooper) Yang'
 __email__ = "dajie.yang@anu.edu.au"
 
+from io import BytesIO
+from django.http import HttpResponse
 from django.db import transaction
 from django.db.models import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
-from rest_framework.status import HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.mixins import (CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
                                    DestroyModelMixin, ListModelMixin)
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
@@ -28,7 +30,9 @@ from .mixins import NestedGenericViewSet
 from . import serializers
 from . import models
 from . import permissions as app_perms
+from .print import print_individual_project_contract
 from accounts.models import SrpmsUser
+from srpms.settings import MEDIA_URL
 from .serializer_utils import SubmitSerializer, ApproveSerializer
 from .filters import UserFilter
 from .signals import (CONTRACT_SUBMIT, CONTRACT_APPROVE, SUPERVISE_APPROVE, EXAMINER_APPROVE,
@@ -214,6 +218,35 @@ class ContractViewSet(ModelViewSet):
             return Response(status=HTTP_200_OK)
         else:
             raise ValidationError(serializer.errors)
+
+    # noinspection PyUnusedLocal
+    @action(methods=['GET'], detail=True, permission_classes=default_perms +
+                                                             [app_perms.ContractFinalApproved, ])
+    def print(self, request, pk=None):
+        """
+        Return PDF version of given contract, generate one if does not exist.
+
+        TODO: Ideally the file should be upload to somewhere else after generation, rather than
+              save to the server's file system. Though be sure to consider concurrent problem in
+              that case.
+        """
+        contract = self.get_object()
+        if hasattr(contract, 'individual_project'):
+            file_object = None
+            try:
+                file_object = BytesIO()
+                print_individual_project_contract(contract, file_object)
+                response = HttpResponse(file_object.getvalue(),
+                                        content_type='application/pdf')
+                response['Content-Disposition'] = 'inline; filename=test.pdf'
+                return response
+            except Exception as exc:
+                raise exc
+            finally:
+                file_object.close() if file_object else None
+        else:
+            return Response('This contract type does not support printing service',
+                            status=HTTP_400_BAD_REQUEST)
 
 
 class AssessmentExamineViewSet(CreateModelMixin,

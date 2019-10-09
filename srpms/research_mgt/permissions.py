@@ -276,3 +276,15 @@ class IsExaminerNominator(BasePermission):
         if isinstance(obj, models.AssessmentExamine):
             return self.check(obj, request.user)
         return False
+
+
+class ContractFinalApproved(BasePermission):
+    def has_permission(self, request, view) -> bool:
+        if isinstance(view, views.ContractViewSet):
+            return True
+        return False
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        if isinstance(obj, models.Contract):
+            return bool(obj.convener_approval_date)
+        return False

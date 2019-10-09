@@ -8,12 +8,19 @@ RUN mkdir -p /djangoproj/srpms
 WORKDIR /djangoproj/srpms
 
 # install dependencies
-RUN apk add --no-cache libldap libsasl postgresql-libs postgresql-client bash
+RUN apk add --no-cache libldap libsasl postgresql-libs postgresql-client bash \
+                       zlib libffi cairo pango gdk-pixbuf
 RUN apk add --no-cache --virtual .build-deps \
                        postgresql-dev \
                        gcc \
                        musl-dev \
                        openldap-dev \
+                       jpeg-dev \
+                       zlib-dev \
+                       libffi-dev \
+                       cairo-dev \
+                       pango-dev \
+                       gdk-pixbuf-dev \
     && pip install psycopg2==2.7.* \
                    gunicorn==19.9.* \
                    django==2.2.* \
@@ -27,7 +34,7 @@ RUN apk add --no-cache --virtual .build-deps \
                    ipython==7.7.* \
                    pylint_django==2.0.* \
                    coverage==4.5.* \
-                   tblib==1.4.* \
+                   WeasyPrint==50.* \
     && find /usr/local \
         \( -type d -a -name test -o -name tests \) \
         -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \

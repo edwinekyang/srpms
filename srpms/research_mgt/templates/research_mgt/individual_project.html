@@ -1,0 +1,34 @@
+{% extends "research_mgt/base_contract.html" %}
+
+{% block style %}
+  <style>
+    @page {
+      /*A4 size*/
+      size: 7in 9.25in;
+      margin: 2cm 2cm 2cm 2cm;
+
+      /*Pagination*/
+      @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+      }
+    }
+
+    @font-face {
+    {#TODO: User system font, contract printing should not have font fall back#}
+      font-family: "Serif", Helvetica, Arial, sans-serif;
+      font-size: 0.8em;
+    }
+  </style>
+{% endblock %}
+
+{% block title %}Independent Study Contract{% endblock %}
+
+{% block body %}
+  <h1>Independent Study Contract</h1>
+
+  <p>Section A</p>
+
+  <p>Section B</p>
+
+  <p>Section C</p>
+{% endblock %}
