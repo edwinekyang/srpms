@@ -25,7 +25,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Course
-        fields = ['id', 'course_number', 'name', 'contract']
+        fields = ['id', 'course_number', 'name', 'units', 'contract']
 
 
 class AssessmentTemplateSerializer(serializers.ModelSerializer):

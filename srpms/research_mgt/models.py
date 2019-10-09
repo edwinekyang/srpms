@@ -34,6 +34,10 @@ def get_semester() -> int:
 class Course(models.Model):
     course_number = models.CharField(max_length=20, null=False, blank=False, unique=True)
     name = models.CharField(max_length=50, null=False, blank=False)
+    units = models.IntegerField(validators=[
+        validators.MinValueValidator(0, 'Course unit should larger than zero'),
+        validators.MaxValueValidator(24, 'Course unit larger than 24 is not current supported')
+    ])
 
     def __str__(self):
         return self.name

@@ -52,9 +52,11 @@ comp8755 = models.Course.objects.get(course_number='COMP8755')
 # For course, response and requests are basically the same, 'id' and 'contract' field are read-only
 course_list_valid = [
     {'course_number': 'test',
-     'name': 'dafklj92498234iusdfqiwoer', },
+     'name': 'dafklj92498234iusdfqiwoer',
+     'units': 12},
     {'course_number': 'test0123',
-     'name': 'dafklj92498234iusdfqiwoer', }
+     'name': 'dafklj92498234iusdfqiwoer',
+     'units': 6}
 ]
 
 
