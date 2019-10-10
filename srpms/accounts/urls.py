@@ -1,3 +1,13 @@
+"""
+URL settings for accounts app.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -16,5 +26,6 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
+    # In production, only token based authentication is needed
     urlpatterns += [path('login/', views.LoginView.as_view(), name='login'),
                     path('logout/', views.LogoutView.as_view(), name='logout'), ]

@@ -1,3 +1,14 @@
+"""
+Custom exception handling, so that we can convert exceptions like ValidationError to 4xx response.
+By default they would be come 5xx server error if not handled correctly.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from typing import Dict
 from django.core.exceptions import ValidationError
 from rest_framework import status

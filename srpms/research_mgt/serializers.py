@@ -1,3 +1,17 @@
+"""
+Define serializer and de-serializer behavior for model instance. Also include custom create()
+and update() method for a given instance, for the purpose of applying business logic.
+
+Note that business logic related to requester (i.e. user who send the HTTP request), should be
+put in side views.py
+"""
+
+__author__ = "Dajie (Cooper) Yang, and Euikyum (Edwin) Yang"
+__credits__ = ["Dajie Yang", "Euikyum Yang"]
+
+__maintainer__ = "Dajie (Cooper) Yang"
+__email__ = "dajie.yang@anu.edu.au"
+
 from typing import Tuple
 from django.db import transaction
 from rest_framework import serializers
@@ -38,14 +52,15 @@ class UserContractSerializer(serializers.ModelSerializer):
     # noinspection PyMethodMayBeStatic
     def get_supervise(self, obj: SrpmsUser) -> Tuple[int]:
         return tuple(models.Contract.objects.filter(submit_date__isnull=False,
-                                                    supervise__supervisor=obj))
+                                                    supervise__supervisor=obj)
+                     .values_list('pk', flat=True))
 
     # noinspection PyMethodMayBeStatic
     def get_examine(self, obj: SrpmsUser) -> Tuple[int]:
         """Show contracts a user examine, the contract must has been approved by supervisor"""
         return tuple(models.Contract.objects.filter(
                 assessment_examine__examine__examiner=obj,
-                supervise__supervisor_approval_date__isnull=False))
+                supervise__supervisor_approval_date__isnull=False).values_list('pk', flat=True))
 
     # noinspection PyMethodMayBeStatic
     def get_convene(self, obj: SrpmsUser) -> Tuple[int]:
@@ -62,7 +77,8 @@ class UserContractSerializer(serializers.ModelSerializer):
             return tuple(models.Contract.objects.filter(
                     submit_date__isnull=False,
                     supervise__supervisor_approval_date__isnull=False,
-                    assessment_examine__examiner_approval_date__isnull=False))
+                    assessment_examine__examiner_approval_date__isnull=False)
+                         .values_list('pk', flat=True))
         else:
             return tuple()
 
@@ -78,33 +94,75 @@ class SuperviseSerializer(serializers.ModelSerializer):
     is_formal = serializers.ReadOnlyField()
     supervisor_approval_date = serializers.ReadOnlyField()
 
+    nominator = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = models.Supervise
-        fields = ['id', 'contract', 'supervisor', 'is_formal',
+        fields = ['id', 'contract', 'supervisor', 'is_formal', 'nominator',
                   'is_supervisor_approved', 'supervisor_approval_date']
+
+    def create(self, validated_data):
+        """Override to forbid more than 1 formal supervisor for individual project"""
+        contract: models.Contract = validated_data['contract']
+        if hasattr(contract, 'individual_project') and \
+                len(models.Supervise.objects.filter(contract=contract, is_formal=True)) >= 1:
+            raise serializers.ValidationError(
+                    'Individual project does not allowed more than 1 supervisor.')
+
+        return super(SuperviseSerializer, self).create(validated_data)
 
 
 class AssessmentExamineSerializer(serializers.ModelSerializer):
     examiner = serializers.PrimaryKeyRelatedField(source='examine.examiner',
                                                   queryset=SrpmsUser.objects.all())
+    nominator = serializers.PrimaryKeyRelatedField(source='examine.nominator', read_only=True)
     examiner_approval_date = serializers.ReadOnlyField()
 
     class Meta:
         model = models.AssessmentExamine
-        fields = ['id', 'examiner', 'examiner_approval_date']
+        fields = ['id', 'examiner', 'nominator', 'examiner_approval_date']
 
     def create(self, validated_data):
         examiner = validated_data['examine']['examiner']
+        nominator = validated_data.pop('nominator')
         examine, _ = models.Examine.objects.get_or_create(contract=validated_data['contract'],
-                                                          examiner=examiner)
+                                                          examiner=examiner,
+                                                          defaults={'nominator': nominator})
         validated_data['examine'] = examine
+
+        # Forbid individual project and special topic contract to have more than one
+        # examiner for each assessment
+        assessment: models.Assessment = validated_data['assessment']
+        if hasattr(assessment.contract, 'individual_project') and \
+                len(models.AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
+            raise serializers.ValidationError('Individual project cannot have more than one '
+                                              'examiner for each assessment.')
+        if hasattr(assessment.contract, 'special_topic') and \
+                len(models.AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
+            raise serializers.ValidationError('Special topic cannot have more than one examiner '
+                                              'for each assessment.')
+
         return super(AssessmentExamineSerializer, self).create(validated_data)
 
-    def update(self, instance, validated_data):
+    def update(self, instance: models.AssessmentExamine, validated_data):
         examiner = validated_data['examine']['examiner']
+        nominator = validated_data.pop('nominator')
         examine, _ = models.Examine.objects.get_or_create(contract=validated_data['contract'],
-                                                          examiner=examiner)
+                                                          examiner=examiner,
+                                                          defaults={'nominator': nominator})
         validated_data['examine'] = examine
+
+        # On examiner change, if the assessment has been approved, reset examiner's approval, and
+        # notify the previous examiner.
+        # This is for the case where convener disapprove examiner, in this case the existing
+        # examiner might already approved, but the supervisor's approval has been cleared because
+        # of convener's disapprove.
+        if examine and \
+                instance.examine.examiner != examine.examiner and \
+                instance.examiner_approval_date:
+            validated_data['examiner_approval_date'] = None
+            # TODO: Notify examiner that their approval has been cleared
+
         return super(AssessmentExamineSerializer, self).update(instance, validated_data)
 
 
@@ -159,6 +217,7 @@ class ContractSerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     create_date = serializers.ReadOnlyField()
     submit_date = serializers.ReadOnlyField()
+    was_submitted = serializers.ReadOnlyField()
 
     supervise = SuperviseSerializer(read_only=True, many=True)
     assessment = AssessmentSerializer(read_only=True, many=True)
@@ -167,7 +226,7 @@ class ContractSerializer(serializers.ModelSerializer):
         model = models.Contract
         fields = ['id', 'year', 'semester', 'duration', 'resources', 'course',
                   'convener', 'is_convener_approved', 'convener_approval_date',
-                  'owner', 'create_date', 'submit_date', 'is_submitted',
+                  'owner', 'create_date', 'submit_date', 'is_submitted', 'was_submitted',
                   'individual_project', 'special_topic',
                   'supervise', 'is_all_supervisors_approved',
                   'assessment', 'is_all_assessments_approved']

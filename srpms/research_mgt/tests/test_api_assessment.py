@@ -1,3 +1,13 @@
+"""
+Test assessment API, CRUD methods only, does not involve view set actions.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django.test import TestCase
 from rest_framework import status
 

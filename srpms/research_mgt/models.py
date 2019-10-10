@@ -1,7 +1,24 @@
+"""
+Define database models through Django ORM (Object-relation Mapping).
+
+Note that any constraint specified here (i.e. override of clean() method) are model level only,
+do not specify any constraint that relates to model instance. Instance level constraints should
+reside in serializers.py
+"""
+
+__author__ = "Dajie (Cooper) Yang, and Euikyum (Edwin) Yang"
+__credits__ = ["Dajie Yang", "Euikyum Yang"]
+
+__maintainer__ = "Dajie (Cooper) Yang"
+__email__ = "dajie.yang@anu.edu.au"
+
 from datetime import datetime, MINYEAR, MAXYEAR
 from django.db import models
 from django.core import validators
 from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
 from accounts.models import SrpmsUser
 
 
@@ -49,6 +66,11 @@ class Contract(models.Model):
                               blank=False, null=False)
     create_date = models.DateTimeField(auto_now_add=True)
     submit_date = models.DateTimeField(null=True, blank=True)
+
+    # This field controls whether the contract would be visible to related persons. Without this
+    # field, for example, the contract that once visiable after submit would be invisible to
+    # supervisors if they disapprove, however that would cause some confusion.
+    was_submitted = models.BooleanField(default=False, blank=True)
 
     def is_submitted(self) -> bool:
         """Check if the contract is submitted"""
@@ -165,7 +187,6 @@ class IndividualProject(Contract):
     description = models.CharField(max_length=1000, default='', blank=True)
 
     def save(self, *args, **kwargs):
-        # TODO: on submit, apply all constraints
         return super(IndividualProject, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -182,7 +203,6 @@ class SpecialTopic(Contract):
     description = models.CharField(max_length=1000, default='', blank=True)
 
     def save(self, *args, **kwargs):
-        # TODO: on submit, apply all constraints
         return super(SpecialTopic, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -196,6 +216,9 @@ class Supervise(models.Model):
     supervisor_approval_date = models.DateTimeField(null=True, blank=True)
     contract = models.ForeignKey(Contract, related_name='supervise',
                                  on_delete=models.CASCADE, blank=False, null=False)
+
+    nominator = models.ForeignKey(SrpmsUser, related_name='supervisor_nominate',
+                                  on_delete=models.PROTECT)
 
     class Meta:
         unique_together = ('supervisor', 'contract')
@@ -271,14 +294,6 @@ class Assessment(models.Model):
     due = models.DateField(null=True, blank=True)
     weight = models.IntegerField(null=False, blank=True)
 
-    def is_convener_approved(self) -> bool:
-        """No one should be allowed to change after convener approved"""
-        return self.contract.is_convener_approved()
-
-    def is_all_supervisors_approved(self) -> bool:
-        """No one should be allowed to change after all supervisors approved"""
-        return self.contract.is_all_supervisors_approved()
-
     def is_all_examiners_approved(self) -> bool:
         """
         Check if this assessment has been approved by all its examiners, one assessment
@@ -320,6 +335,8 @@ class Assessment(models.Model):
 class Examine(models.Model):
     contract = models.ForeignKey(Contract, related_name='examine', on_delete=models.CASCADE)
     examiner = models.ForeignKey(SrpmsUser, related_name='examine', on_delete=models.PROTECT)
+    nominator = models.ForeignKey(SrpmsUser, related_name='examiner_nominate',
+                                  on_delete=models.PROTECT)
 
     class Meta:
         unique_together = ('contract', 'examiner')
@@ -396,6 +413,33 @@ class AssessmentExamine(models.Model):
         self.full_clean()
         self.contract = self.assessment.contract
         return super(AssessmentExamine, self).save(*args, **kwargs)
+
+
+class ActivityAction(models.Model):
+    """For specifying activity action in activity log"""
+    name = models.SlugField(unique=True)
+
+
+class ActivityLog(models.Model):
+    """
+    A model for storing approve/disapprove information.
+
+    The model make use of generic relations, so that any object can be logged. Refer
+    the below link for more details:
+    https://docs.djangoproject.com/en/2.2/ref/contrib/contenttypes/#generic-relations
+    """
+
+    # User who did the operation
+    actor = models.ForeignKey(SrpmsUser, on_delete=models.CASCADE)
+    # The operation user did
+    action = models.ForeignKey(ActivityAction, on_delete=models.PROTECT)
+    # Optional message
+    message = models.CharField(max_length=500, default='', blank=True)
+
+    # Define generic relations
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
 
 class AppPermission(models.Model):

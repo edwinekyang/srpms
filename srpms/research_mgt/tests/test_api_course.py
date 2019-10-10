@@ -1,3 +1,13 @@
+"""
+Test course API, CRUD methods only.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from rest_framework import status
 
 from . import utils

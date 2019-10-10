@@ -1,3 +1,13 @@
+"""
+Define database models for user through Django ORM (Object-relation Mapping).
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser, Permission, Group
@@ -31,6 +41,13 @@ class SrpmsUser(AbstractUser):
 
     # ANU Account related field
     uni_id = models.CharField("Uni ID", max_length=8, default='', blank=True, null=False)
+
+    def get_display_name(self) -> str:
+        display_name = ' '.join([self.first_name, self.last_name])
+        if not display_name:
+            # First name and last name both empty would make display name empty
+            return self.username
+        return display_name
 
     def clean(self):
         """

@@ -1,3 +1,17 @@
+"""
+Defines permissions for views for the backend. Permission might or might not be request
+issuer related, and is being checked before view enter any business logic.
+
+Note that while has_permission() is not object related, HTTP method being banned there
+would not pass the has_object_permission() check.
+"""
+
+__author__ = "Dajie (Cooper) Yang"
+__credits__ = ["Dajie Yang"]
+
+__maintainer__ = "Dajie (Cooper) Yang"
+__email__ = "dajie.yang@anu.edu.au"
+
 from rest_framework import viewsets
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.request import Request
@@ -91,19 +105,13 @@ class IsContractFormalSupervisor(BasePermission):
         return False
 
     def has_permission(self, request, view) -> bool:
-        if type(view) in [views.ContractViewSet]:
-            return True
+        if isinstance(view, views.SuperviseViewSet):
+            return self.check(view.resolved_parents['contract'], request.user)
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.Contract):
-            if request.method == 'DELETE':
-                return False
-            elif self.check(obj, request.user):
-                return True
-        else:
-            return False
-
+        if isinstance(obj, models.Supervise):
+            return self.check(obj.contract, request.user)
         return False
 
 
@@ -251,4 +259,20 @@ class ContractNotApprovedBySupervisor(BasePermission):
             return self.check(obj.contract)
         if isinstance(obj, models.Supervise):
             return self.check(obj.contract)
+        return False
+
+
+class IsExaminerNominator(BasePermission):
+    @staticmethod
+    def check(assessment_examine: models.AssessmentExamine, user):
+        return assessment_examine.examine.nominator == user
+
+    def has_permission(self, request, view) -> bool:
+        if isinstance(view, views.AssessmentExamineViewSet):
+            return IsContractSupervisor.check(view.resolved_parents['contract'], request.user)
+        return False
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        if isinstance(obj, models.AssessmentExamine):
+            return self.check(obj, request.user)
         return False
