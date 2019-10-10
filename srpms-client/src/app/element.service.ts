@@ -60,7 +60,7 @@ export class ElementService {
             new TextboxElement({
                 key: 'projectSupervisor',
                 label: 'PROJECT SUPERVISOR',
-                value: 1,
+                value: '',
                 required: true,
                 order: 3,
                 flag: 'common'

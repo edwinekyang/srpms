@@ -2,8 +2,12 @@ import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges
 import { FormGroup } from '@angular/forms';
 import { ElementBase } from '../element-base';
 import { ContractFormControlService } from '../contract-form-control.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import {HttpErrorResponse} from '@angular/common/http';
 import { ContractService } from '../contract.service';
+import {ContractMgtService} from '../contract-mgt.service';
+import {Router} from '@angular/router';
+import {MatDialog} from '@angular/material';
+import {ContractDialogComponent} from '../contract-dialog/contract-dialog.component';
 
 @Component({
     selector: 'app-contract-form',
@@ -16,6 +20,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
     @Input() elements: ElementBase<any>[] = [];
     form: FormGroup;
     payLoad = {};
+    assessment = [];
     assessment1 = {};
     assessment2 = {};
     assessment3 = {};
@@ -30,16 +35,20 @@ export class ContractFormComponent implements OnInit, OnChanges {
     };
     message = {};
     courseValue: string;
-    changeLog: string[] = [];
+    @Input() contractFlag: string;
     @Input() courseSelected: string;
     @Output() formFlagEvent = new EventEmitter<any>();
 
     constructor(
         private cfcs: ContractFormControlService,
-        public contractService: ContractService
+        public contractService: ContractService,
+        public contractMgtService: ContractMgtService,
+        public dialog: MatDialog,
+        private router: Router,
     ) {}
 
     ngOnInit() {
+        // Attach the form control to the form elements
         if (this.elements.length === 1) {
             this.form = this.cfcs.toFormGroup(this.elements, 'course');
         } else {
@@ -53,6 +62,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
             'Assessment',
             'Assessment',
         ];
+        // Sets the value of course dropdown
         if (this.courseSelected) {
             this.form.controls.course.setValue(this.courseSelected);
         }
@@ -65,6 +75,11 @@ export class ContractFormComponent implements OnInit, OnChanges {
         }
     }
 
+    /**
+     * Receives the flag from ContractFormElementComponent and sends the flag to ContractComponent
+     *
+     * @param $event - Object that contains the flag and course value
+     */
     receiveFormFlag($event) {
         this.formFlag = $event.formFlag;
         this.elementFlag = $event.formFlag;
@@ -76,10 +91,18 @@ export class ContractFormComponent implements OnInit, OnChanges {
         this.sendFormFlag();
     }
 
+    /**
+     * Sends the flag to ContractComponent
+     */
     sendFormFlag() {
         this.formFlagEvent.emit(this.message);
     }
 
+    /**
+     * Decides whether the form element has reached to the next section and returns boolean value
+     *
+     * @param order - Order value of the from element
+     */
     isAnotherSection(order): boolean {
         if (order > 1) {
             return (order % 10 === 0);
@@ -88,10 +111,21 @@ export class ContractFormComponent implements OnInit, OnChanges {
         }
     }
 
+    /**
+     * Decides whether the input of the form is 'textarea' html tag and returns boolean value
+     *
+     * @param type - Type value from the form element
+     */
     isTextArea(type): boolean {
         return (type === 'textarea');
     }
 
+    /**
+     * Decides whether the form element is the last element of the section and returns boolean value
+     *
+     * @param val - Element object
+     * @param elements - List of elements
+     */
     isLastElement(val, elements): boolean {
         if (elements.indexOf(val) + 1 < elements.length) {
             if (val.order > 10) {
@@ -102,6 +136,11 @@ export class ContractFormComponent implements OnInit, OnChanges {
         }
     }
 
+    /**
+     * Decides the number of the section and returns number value
+     *
+     * @param order - Order value of the element
+     */
     sectionDivider(order): number {
         if (order === 1) {
             return order;
@@ -110,7 +149,14 @@ export class ContractFormComponent implements OnInit, OnChanges {
         }
     }
 
-    onSubmit() {
+    /**
+     * Saves the contract and this function includes:
+     * 1. Deciding whether the contract is the type of project or special topic,
+     * 2. Creates the saved contract
+     * 3. Creates the assessment relation of the contract
+     * 4. Creates the supervise relation of the contract
+     */
+    async onSubmit() {
         this.payLoad = {
             year: this.form.value.year,
             semester: this.form.value.semester,
@@ -118,9 +164,8 @@ export class ContractFormComponent implements OnInit, OnChanges {
             resources: '',
             course: this.form.value.course,
             owner: JSON.parse(localStorage.getItem('srpmsUser')).id,
-            test: ''
         };
-        if (this.formFlag === 'project') {
+        if (this.contractFlag === 'project') {
             this.individualProject = {
                 individual_project: {
                     title: this.form.value.title,
@@ -129,7 +174,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
                 },
             };
             Object.assign(this.payLoad, this.individualProject);
-        } else if (this.formFlag === 'special') {
+        } else if (this.contractFlag === 'special') {
             this.specialTopics = {
                 special_topics: {
                     title: this.form.value.title,
@@ -139,11 +184,12 @@ export class ContractFormComponent implements OnInit, OnChanges {
             };
             Object.assign(this.payLoad, this.specialTopics, {duration: 1});
         }
-        this.contractService.addContract(JSON.stringify(this.payLoad))
-            .subscribe((res) => {
+        await this.contractService.addContract(JSON.stringify(this.payLoad))
+            .toPromise().then(async (res) => {
                 this.contractId = res.id;
-                this.addAssessmentMethod();
-                this.addSupervise();
+                await this.addAssessmentMethod().then(async () => {
+                    await this.addSupervise();
+                });
             }, error => {
                 if (error instanceof HttpErrorResponse) {
                     this.errorMessage = error.error.detail;
@@ -151,56 +197,108 @@ export class ContractFormComponent implements OnInit, OnChanges {
             });
     }
 
-    addAssessmentMethod() {
+    /**
+     * Creates the assessment relation of the contract
+     * This function goes as following:
+     * 1. Assign the corresponding assessment section values to the assessment object
+     * 2. Retrieves the assessment relations of the contract
+     *    (Assessment relations are created automatically by default when the contract is created in back-end)
+     * 3. Updates the assessment information to the assessment relation that has the matching template id
+     * 4. Inside above assessment relation, creates the examine relation with the corresponding examiner ID
+     */
+    async addAssessmentMethod() {
 
         this.assessment1 = {
             template: this.form.value.assessment1,
             contract: this.contractId,
             additional_description: this.form.value.assessment1Description,
             due: this.form.value.assessment1Due,
-            max_mark: this.form.value.assessment1Mark,
+            weight: this.form.value.assessment1Mark,
             examiner: this.form.value.assessment1Examiner
         };
-
-        this.contractService.addAssessmentMethod(JSON.stringify(this.assessment1))
-            .subscribe(() => {
-
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
-                }
-            });
 
         this.assessment2 = {
             template: this.form.value.assessment2,
             contract: this.contractId,
             additional_description: this.form.value.assessment2Description,
             due: this.form.value.assessment2Due,
-            max_mark: this.form.value.assessment2Mark,
+            weight: this.form.value.assessment2Mark,
             examiner: this.form.value.assessment2Examiner
         };
-
-        this.contractService.addAssessmentMethod(JSON.stringify(this.assessment2))
-            .subscribe(() => {
-
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
-                }
-            });
 
         this.assessment3 = {
             template: this.form.value.assessment3,
             contract: this.contractId,
             additional_description: this.form.value.assessment3Description,
             due: this.form.value.assessment3Due,
-            max_mark: this.form.value.assessment3Mark,
+            weight: this.form.value.assessment3Mark,
             examiner: this.form.value.assessment3Examiner
         };
 
-        this.contractService.addAssessmentMethod(JSON.stringify(this.assessment3))
-            .subscribe(() => {
+        this.assessment.push(this.assessment1, this.assessment2, this.assessment3);
 
+        await this.contractMgtService.getAssessments(this.contractId)
+            .toPromise().then(async assessments => {
+                const promiseAssessment = assessments.map(async assessment => {
+                    // @ts-ignore
+                    if (assessment.template === this.assessment1.template) {
+                        await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment1))
+                            .toPromise();
+                        // @ts-ignore
+                        if (this.assessment1.examiner) {
+                            this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                // @ts-ignore
+                                examiner: this.assessment1.examiner,
+                            })).subscribe();
+                        }
+                        // @ts-ignore
+                    } else if (assessment.template === this.assessment2.template) {
+                        await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment2))
+                            .toPromise().then(() => {
+                            });
+                        // @ts-ignore
+                        if (this.assessment2.examiner) {
+                            this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                // @ts-ignore
+                                examiner: this.assessment2.examiner,
+                            })).subscribe();
+                        }
+                        // @ts-ignore
+                    } else if (assessment.template === this.assessment3.template) {
+                        await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment3))
+                            .toPromise().then(() => {
+                            });
+                        // @ts-ignore
+                        if (this.assessment3.examiner) {
+                            this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                // @ts-ignore
+                                examiner: this.assessment3.examiner,
+                            })).subscribe();
+                        }
+                    }
+                });
+
+                await Promise.all(promiseAssessment);
+
+            });
+    }
+
+    /**
+     * Creates the supervise relation of the contract
+     * This is the last step of saving the contract.
+     * If this function successes, a dialog will pop-up and
+     * the user will be redirected to the contract management page.
+     */
+    async addSupervise() {
+        this.supervise = {
+            supervisor: this.form.value.projectSupervisor,
+            contract: this.contractId,
+            is_formal: true
+        };
+
+        await this.contractService.addSupervise(this.contractId, JSON.stringify(this.supervise))
+            .toPromise().then(() => {
+                this.openSuccessDialog();
             }, error => {
                 if (error instanceof HttpErrorResponse) {
                     this.errorMessage = error.error.detail;
@@ -208,20 +306,16 @@ export class ContractFormComponent implements OnInit, OnChanges {
             });
     }
 
-    addSupervise() {
-        this.supervise = {
-            supervisor: this.form.value.projectSupervisor,
-            contract: this.contractId,
-            is_formal: true
-        };
+    /**
+     * Opens the dialog and redirects the user to the contract management page
+     */
+    private openSuccessDialog() {
+        const dialogRef = this.dialog.open(ContractDialogComponent, {
+            width: '400px',
+        });
 
-        this.contractService.addSupervise(JSON.stringify(this.supervise))
-            .subscribe(() => {
-
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
-                }
-            });
+        dialogRef.afterClosed().subscribe(() => {
+            this.router.navigate(['/submit']).then(() => {});
+        });
     }
 }

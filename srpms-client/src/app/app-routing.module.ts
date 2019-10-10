@@ -9,9 +9,11 @@ import {ContractViewerComponent} from './contract-viewer/contract-viewer.compone
 const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'contract', component: ContractComponent },
-  { path: 'supervisor', component: ContractMgtComponent },
+  { path: 'supervise', component: ContractMgtComponent },
   { path: 'contract-viewer', component: ContractViewerComponent },
-  { path: 'examiner', component: ContractMgtComponent },
+  { path: 'examine', component: ContractMgtComponent },
+  { path: 'submit', component: ContractMgtComponent },
+  { path: 'convene', component: ContractMgtComponent },
 ];
 
 @NgModule({

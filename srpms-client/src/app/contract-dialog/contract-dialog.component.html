@@ -1,0 +1,37 @@
+<h1 mat-dialog-title>{{this.route === '/contract' ? 'Your contract has been saved!' :
+    this.route === '/contract-viewer' ? 'Your contract has been updated!' :
+    this.route === '/submit' ? 'Your contract has been submitted!' :
+    this.route === '/supervise' ? 'This contract has been approved!' :
+    this.route === '/examine' ? 'This examiner request has been confirmed!' :
+    this.route === '/convene' ? 'This contract has been finalised!' : ''}}</h1>
+<div *ngIf="this.route === '/contract'" mat-dialog-content>
+    <p>Contract is now saved.</p><br>
+    <p>You can either EDIT your saved contract OR SUBMIT your saved contract on the contract management page.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div *ngIf="this.route === '/contract-viewer'" mat-dialog-content>
+    <p>Contract has been updated.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div *ngIf="this.route === '/submit'" mat-dialog-content>
+    <p>Contract has been submitted.</p><br>
+    <p>Your contract will be reviewed by the supervisor.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div *ngIf="this.route === '/supervise'" mat-dialog-content>
+    <p>Contract has been approved and a request has been sent to the nominated examiner.</p><br>
+    <p>Once the nominated examiner confirms the request, this contract will be sent to be reviewed by the course convener.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div *ngIf="this.route === '/examine'" mat-dialog-content>
+    <p>The Examiner request sent by the contract supervisor has been confirmed.</p><br>
+    <p>Once the course convener approves the contract, you will be approved as an examiner of this contract.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div *ngIf="this.route === '/convene'" mat-dialog-content>
+    <p>This contract has been finalised.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="onClick()">OK</button>
+</div>
