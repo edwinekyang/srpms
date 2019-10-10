@@ -146,7 +146,7 @@ export class ContractMgtComponent implements OnInit {
      */
     async getPreContractIds() {
         if (this.route === '/supervise') {
-            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+            await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
                 .then(async data => {
                     const promisesPreList = data.supervise.map(async id => {
                         await this.contractMgtService.getContract(id).toPromise().then(contract => {
@@ -158,7 +158,7 @@ export class ContractMgtComponent implements OnInit {
                     await Promise.all(promisesPreList);
                 });
         } else if (this.route === '/examine') {
-            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+            await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
                 .then(async data => {
                     const promisesPreList = data.examine.map(async id => {
                         await this.contractMgtService.getAssessments(id).toPromise().then(async assessments => {
@@ -175,7 +175,7 @@ export class ContractMgtComponent implements OnInit {
                     await Promise.all(promisesPreList);
                 });
         } else if (this.route === '/submit') {
-            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+            await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
                 .then(async data => {
                     const promisesPreList = data.own.map(async id => {
                         await this.contractMgtService.getContract(id).toPromise().then(contract => {
@@ -187,7 +187,7 @@ export class ContractMgtComponent implements OnInit {
                     await Promise.all(promisesPreList);
                 });
         } else if (this.route === '/convene') {
-            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+            await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
                 .then(async data => {
                     const promisePreList = data.convene.map(async id => {
                         await this.contractMgtService.getContract(id).toPromise().then(async contract => {
@@ -256,7 +256,7 @@ export class ContractMgtComponent implements OnInit {
      */
     async getPostContractIds() {
         if (this.route === '/supervise') {
-            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+            await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
                 .then(async data => {
                     const promisesPostList = data.supervise.map(async id => {
                         await this.contractMgtService.getContract(id).toPromise().then(contract => {
@@ -268,7 +268,7 @@ export class ContractMgtComponent implements OnInit {
                     await Promise.all(promisesPostList);
                 });
         } else if (this.route === '/submit') {
-            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+            await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
                 .then(async data => {
                     const promisesPostList = data.own.map(async id => {
                         await this.contractMgtService.getContract(id).toPromise().then(contract => {
@@ -280,7 +280,7 @@ export class ContractMgtComponent implements OnInit {
                     await Promise.all(promisesPostList);
                 });
         } else if (this.route === '/examine') {
-            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+            await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
                 .then(async data => {
                     const promisesPostList = data.examine.map(async id => {
                         await this.contractMgtService.getAssessments(id).toPromise().then(async assessments => {
@@ -297,7 +297,7 @@ export class ContractMgtComponent implements OnInit {
                     await Promise.all(promisesPostList);
                 });
         } else if (this.route === '/convene') {
-            await this.contractMgtService.getOwnContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+            await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
                 .then(async data => {
                     const promisePostList = data.convene.map(async id => {
                         await this.contractMgtService.getContract(id).toPromise().then(async contract => {

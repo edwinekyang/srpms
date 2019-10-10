@@ -178,15 +178,15 @@ export class ContractMgtService {
     }
 
     /**
-     * Retrieves the relevant contracts to the user that includes
+     * Retrieves the related contracts to the user that includes
      * own, convene, supervise and examine
      *
      * @param userId - User ID
      */
-    getOwnContracts(userId: any) {
+    getRelatedContracts(userId: any) {
         return this.http.get(this.API_URL + `research_mgt/users/${userId}/`, this.httpOptions)
             .pipe(
-                catchError(this.handleError<any>('getOwnContracts'))
+                catchError(this.handleError<any>('getRelatedContracts'))
             );
     }
 
