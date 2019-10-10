@@ -1,6 +1,17 @@
+"""
+Test for database model through Django ORM. Note that the tests on model is largely incomplete,
+as majority of them already been tested through API.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django.core.exceptions import ValidationError
 
-from research_mgt.models import (Contract, IndividualProject, SpecialTopic, Assessment, \
+from research_mgt.models import (Contract, IndividualProject, SpecialTopic, Assessment,
                                  Examine, AssessmentExamine)
 from . import utils
 from . import data
@@ -40,10 +51,12 @@ class TestModel(utils.SrpmsTest):
                                                   weight=50)
 
         examine_01 = Examine.objects.create(contract=contract_01,
-                                            examiner=self.user_02.obj)
+                                            examiner=self.user_02.obj,
+                                            nominator=self.supervisor_formal.obj)
 
         examine_02 = Examine.objects.create(contract=contract_02,
-                                            examiner=self.user_02.obj)
+                                            examiner=self.user_02.obj,
+                                            nominator=self.supervisor_formal.obj)
 
         # AssessmentExamine should be locked to the same contract
         with self.assertRaises(ValidationError):

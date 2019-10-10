@@ -1,8 +1,12 @@
 """
-Create sample assessment templates.
+Create assessment templates according to existing contract templates available on
+https://cs.anu.edu.au/courses/CSPROJECTS/
 """
 
-__author__ = 'Dajie Yang'
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
 __email__ = 'dajie.yang@anu.edu.au'
 
 from django.db import migrations
@@ -11,6 +15,7 @@ from research_mgt.models import AssessmentTemplate
 from django.apps.registry import Apps
 
 
+# noinspection PyPep8Naming
 def create_assessment_templates(apps: Apps, schema_editor: BaseDatabaseSchemaEditor):
     """Create some sample assessment template"""
     TheAssessmentTemplate: AssessmentTemplate = apps.get_model('research_mgt', 'AssessmentTemplate')
@@ -45,6 +50,7 @@ def create_assessment_templates(apps: Apps, schema_editor: BaseDatabaseSchemaEdi
     )
 
 
+# noinspection PyPep8Naming
 def revert_create_assessment_templates(apps: Apps, schema_editor: BaseDatabaseSchemaEditor):
     TheAssessmentTemplate: AssessmentTemplate = apps.get_model('research_mgt', 'AssessmentTemplate')
 

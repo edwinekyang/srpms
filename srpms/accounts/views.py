@@ -1,3 +1,13 @@
+"""
+Define database models for user through Django ORM (Object-relation Mapping).
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from rest_framework import status
 from rest_framework import generics
 from rest_framework import serializers

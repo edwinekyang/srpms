@@ -1,3 +1,13 @@
+"""
+A wrapper for the LDAPBackend, in case we need to override it in the future.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 from django_auth_ldap.backend import LDAPBackend
 
 

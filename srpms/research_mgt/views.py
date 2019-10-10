@@ -1,4 +1,17 @@
+"""
+views.py defines API views for the backend, it contain business logic that are request user
+related. Unless otherwise specified, or related to view's @action, request user irrelevant
+login should resides in serializers.py
+"""
+
+__author__ = 'Dajie (Cooper) Yang, and Euikyum (Edwin) Yang'
+__credits__ = ['Dajie Yang', 'Euikyum Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = "dajie.yang@anu.edu.au"
+
 from django.db import transaction
+from django.db.models import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from rest_framework.status import HTTP_200_OK
@@ -18,6 +31,11 @@ from . import permissions as app_perms
 from accounts.models import SrpmsUser
 from .serializer_utils import SubmitSerializer, ApproveSerializer
 from .filters import UserFilter
+from .signals import (CONTRACT_SUBMIT, CONTRACT_APPROVE, SUPERVISE_APPROVE, EXAMINER_APPROVE,
+                      ACTION_CONTRACT_SUBMIT, ACTION_CONTRACT_UN_SUBMIT,
+                      ACTION_CONTRACT_APPROVE, ACTION_CONTRACT_DISAPPROVE,
+                      ACTION_SUPERVISE_APPROVE, ACTION_SUPERVISE_DISAPPROVE,
+                      ACTION_EXAMINER_APPROVE, ACTION_EXAMINER_DISAPPROVE)
 
 # The default settings is set not list
 default_perms: list = api_settings.DEFAULT_PERMISSION_CLASSES
@@ -26,13 +44,13 @@ default_perms: list = api_settings.DEFAULT_PERMISSION_CLASSES
 class UserViewSet(ReadOnlyModelViewSet):
     """
     Provides read-only user information, as well as the contract they
-    involves (own, supervise, convene).
-
-    TODO: let un-privileged users only sees their own contract
+    involves (own, supervise, examine, convene).
     """
+
     queryset = SrpmsUser.objects.all()
     serializer_class = serializers.UserContractSerializer
 
+    # Support user search and filter 'can_supervise' users
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['username', 'first_name', 'last_name', 'uni_id']
     filterset_class = UserFilter
@@ -40,8 +58,9 @@ class UserViewSet(ReadOnlyModelViewSet):
 
 class CourseViewSet(ModelViewSet):
     """
-    A view the allow users to Create, Read, Update, Delete courses.
+    A view the allow users to Create, Retrieve, Update, Delete courses.
     """
+
     queryset = models.Course.objects.all()
     serializer_class = serializers.CourseSerializer
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
@@ -51,22 +70,21 @@ class CourseViewSet(ModelViewSet):
 
 class AssessmentTemplateViewSet(ModelViewSet):
     """
-    A view the allow users to Create, Read, Update, Delete assessment templates.
+    A view the allow users to Create, Retrieve, Update, Delete assessment templates.
     """
+
     queryset = models.AssessmentTemplate.objects.all()
     serializer_class = serializers.AssessmentTemplateSerializer
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.IsSuperuser |
                                           app_perms.IsConvener, ]
 
-    # TODO: forbid update of template name, as its tight to business logic???
-
 
 class ContractViewSet(ModelViewSet):
     """
-    A view the allow users to Create, Read, Update, Delete contracts.
+    A view the allow users to Create, Retrieve, Update, Delete contracts. Also have submit and
+    approve action to support contract administration.
     """
-    queryset = models.Contract.objects.all()
     serializer_class = serializers.ContractSerializer
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
                                           app_perms.AllowPOST |
@@ -76,7 +94,39 @@ class ContractViewSet(ModelViewSet):
                                            app_perms.ContractNotSubmitted),
                                           ]
 
+    def get_queryset(self) -> QuerySet:
+        """
+        Override the default method to only allow user retrieve related contracts.
+        """
+
+        requester: SrpmsUser = self.request.user
+
+        if app_perms.IsSuperuser.check(requester):
+            # Superuser sees all contract
+            self.queryset = models.Contract.objects.all()
+        elif app_perms.IsConvener.check(requester):
+            # Convener sees all contracts that has been submitted at least once.
+            self.queryset = models.Contract.objects.filter(was_submitted=True)
+        else:
+            # For other users, only display contract that they own, supervise, or examine, or other
+            # user's contracts that has passed convener approval.
+            # NOTE: supervise and examine would include contracts that have been submitted at least
+            #       once
+            contract_finalized = models.Contract.objects.filter(
+                    convener_approval_date__isnull=False)
+            contract_own = requester.own.all()
+            contract_supervise = models.Contract.objects.filter(
+                    supervise__in=requester.supervise.all(), was_submitted=True)
+            contract_examine = models.Contract.objects.filter(
+                    assessment_examine__examine__examiner=requester, was_submitted=True)
+
+            queryset = contract_finalized | contract_own | contract_supervise | contract_examine
+            self.queryset = queryset.distinct()
+
+        return super(ContractViewSet, self).get_queryset()
+
     def perform_create(self, serializer: serializers.ContractSerializer):
+        """Override the default method to automatically attach request user as contract owner"""
 
         # Set the contract owner to the requester
         serializer.validated_data['owner'] = self.request.user
@@ -89,14 +139,29 @@ class ContractViewSet(ModelViewSet):
                                                 (app_perms.IsContractOwner &
                                                  app_perms.ContractNotSubmitted), ])
     def submit(self, request, pk=None):
+        """The submit action for contract owner to submit their contract."""
+
         serializer: SubmitSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             contract = self.get_object()
             contract.submit_date = serializer.validated_data['submit']
+            contract.was_submitted = True
             contract.save()
+
+            # Log activity, and send signal to trigger notifications
+            activity_log = models.ActivityLog.objects.create(
+                    actor=self.request.user,
+                    action=ACTION_CONTRACT_SUBMIT
+                    if serializer.validated_data['submit']
+                    else ACTION_CONTRACT_UN_SUBMIT,
+                    content_object=contract)
+            CONTRACT_SUBMIT.send(sender=self.__class__,
+                                 contract=contract,
+                                 activity_log=activity_log)
+
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError()
+            raise ValidationError(serializer.errors)
 
     # noinspection PyUnusedLocal
     @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=ApproveSerializer,
@@ -105,6 +170,9 @@ class ContractViewSet(ModelViewSet):
                                                  app_perms.ContractNotFinalApproved), ])
     def approve(self, request, pk=None):
         """
+        The approve action for course convener to approve contract. Disapprove would cause
+        all supervisor's approval be cleared.
+
         Note that the permission for this class is relatively incomplete, this is to allow
         convener getting details regarding what criteria hasn't meet through database's
         validation error.
@@ -114,21 +182,38 @@ class ContractViewSet(ModelViewSet):
             contract = self.get_object()
             approve_date = serializer.validated_data['approve']
 
-            # TODO: Should all supervisor's approval be reset upon convener disapprove
-
-            # Set the approval date, and set the convener to the user who is doing the
-            # approval action to this contract.
             if approve_date:
+                # On approval, set the approval date, and set the convener to the user who
+                # is doing the approval action to this contract.
                 contract.convener = self.request.user
                 contract.convener_approval_date = approve_date
+                contract.save()
             else:
-                contract.convener = None
-                contract.convener_approval_date = None
-            contract.save()
+                # On disapproval, clear all supervisor approvals. Use atomic as we need to
+                # save multiple objects
+                with transaction.atomic():
+                    contract.convener = None
+                    contract.convener_approval_date = None
+                    contract.save()
+                    for supervise in contract.supervise.all():
+                        supervise.supervisor_approval_date = None
+                        supervise.save()
+
+            # Log activity, and send signal to trigger notifications
+            activity_log = models.ActivityLog.objects.create(
+                    actor=self.request.user,
+                    action=ACTION_CONTRACT_APPROVE
+                    if serializer.validated_data['approve']
+                    else ACTION_CONTRACT_DISAPPROVE,
+                    message=serializer.validated_data['message'],
+                    content_object=contract)
+            CONTRACT_APPROVE.send(sender=self.__class__,
+                                  contract=contract,
+                                  activity_log=activity_log)
 
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError()
+            raise ValidationError(serializer.errors)
 
 
 class AssessmentExamineViewSet(CreateModelMixin,
@@ -137,6 +222,13 @@ class AssessmentExamineViewSet(CreateModelMixin,
                                DestroyModelMixin,
                                ListModelMixin,
                                NestedGenericViewSet):
+    """
+    A view the allow users to Create, Retrieve, Update, Delete contract's assessments examiner.
+    Also have approval action for examiner to approve assessments.
+
+    Note that this view would be nested inside AssessmentViewSet.
+    """
+
     queryset = models.AssessmentExamine.objects.all()
     serializer_class = serializers.AssessmentExamineSerializer
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
@@ -147,29 +239,18 @@ class AssessmentExamineViewSet(CreateModelMixin,
                                           (app_perms.IsContractSupervisor &
                                            app_perms.ContractSubmitted &
                                            app_perms.ContractNotApprovedBySupervisor &
-                                           app_perms.ContractNotFinalApproved), ]
+                                           app_perms.ContractNotFinalApproved &
+                                           app_perms.IsExaminerNominator), ]
 
     def perform_create(self, serializer: serializers.AssessmentExamineSerializer):
+        """Override the default method to automatically attach relevant objects."""
 
         self.attach_attributes(serializer)
 
-        if not app_perms.IsSuperuser.check(self.request.user):
-
-            # Forbid individual project and special topic contract to have more than one
-            # examiner for each assessment
-            assessment: models.Assessment = serializer.validated_data['assessment']
-            if hasattr(assessment.contract, 'individual_project') and \
-                    len(models.AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
-                raise PermissionDenied('Individual project cannot have more than one examiner for '
-                                       'each assessment.')
-            if hasattr(assessment.contract, 'special_topic') and \
-                    len(models.AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
-                raise PermissionDenied('Special topic cannot have more than one examiner for '
-                                       'each assessment.')
-
         return super(AssessmentExamineViewSet, self).perform_create(serializer)
 
-    def perform_update(self, serializer):
+    def perform_update(self, serializer: serializers.AssessmentExamineSerializer):
+        """Override the default method to automatically attach relevant objects."""
 
         self.attach_attributes(serializer)
 
@@ -185,9 +266,10 @@ class AssessmentExamineViewSet(CreateModelMixin,
                                                  app_perms.ContractNotFinalApproved), ])
     def approve(self, request, pk=None, parent_lookup_contract=None, parent_lookup_assessment=None):
         """Allow examiners to approve assessments"""
+
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            assessment_examine = self.get_object()
+            assessment_examine: models.AssessmentExamine = self.get_object()
 
             # Examiner cannot undo their approval
             if not app_perms.IsSuperuser.check(request.user) and \
@@ -196,17 +278,42 @@ class AssessmentExamineViewSet(CreateModelMixin,
                 raise PermissionDenied('Action on approved item is not allowed, please contact '
                                        'course convener if you need to disapprove.')
 
-            # Examiner disapprove won't trigger anything else
-            assessment_examine.examiner_approval_date = serializer.validated_data['approve']
-            assessment_examine.save()
+            approval_date = serializer.validated_data['approve']
+            if approval_date:
+                assessment_examine.examiner_approval_date = approval_date
+                assessment_examine.save()
+            else:
+                # Examiner disapprove would clear it's nominator's approval status. However, in the
+                # case that the nominator is not one of the contract supervisor, e.g. the supervisor
+                # changed, or the examiner was assigned directly by superuser or convener, no
+                # approval would be reset, and the convener should be contacted to handle this.
+                with transaction.atomic():
+                    for supervise in models.Supervise.objects.filter(
+                            supervisor=assessment_examine.examine.nominator,
+                            contract=assessment_examine.contract):
+                        supervise.supervisor_approval_date = None
+                        supervise.save()
+
+            # Log activity, and send signal to trigger notifications
+            activity_log = models.ActivityLog.objects.create(
+                    actor=self.request.user,
+                    action=ACTION_EXAMINER_APPROVE
+                    if serializer.validated_data['approve']
+                    else ACTION_EXAMINER_DISAPPROVE,
+                    content_object=assessment_examine)
+            EXAMINER_APPROVE.send(sender=self.__class__,
+                                  assessment_examine=assessment_examine,
+                                  activity_log=activity_log)
 
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError()
+            raise ValidationError(serializer.errors)
 
     def attach_attributes(self, serializer: serializers.AssessmentExamineSerializer) -> None:
+        """Attach parent object to serializer according to url"""
         serializer.validated_data['assessment'] = self.resolved_parents['assessment']
         serializer.validated_data['contract'] = self.resolved_parents['contract']
+        serializer.validated_data['nominator'] = self.request.user
 
 
 class AssessmentViewSet(CreateModelMixin,
@@ -216,8 +323,9 @@ class AssessmentViewSet(CreateModelMixin,
                         ListModelMixin,
                         NestedGenericViewSet):
     """
-    This ViewSet automatically provides `list`, `create`, `retrieve`,
-    `update` and `destroy` actions.
+    A view the allow users to Create, Retrieve, Update, Delete contract's assessments.
+
+    Note that this view would be nested inside ContractViewSet.
     """
     queryset = models.Assessment.objects.all()
     serializer_class = serializers.AssessmentSerializer
@@ -228,10 +336,15 @@ class AssessmentViewSet(CreateModelMixin,
                                            app_perms.ContractNotSubmitted), ]
 
     def perform_create(self, serializer):
+        """Override the default method to automatically attach relevant objects."""
+
         serializer.validated_data['contract'] = self.resolved_parents['contract']
+
         return super(AssessmentViewSet, self).perform_create(serializer)
 
     def perform_update(self, serializer):
+        """Override the default method to automatically attach relevant objects."""
+
         serializer.validated_data['contract'] = self.resolved_parents['contract']
 
         # Forbid editing assessment template for individual project
@@ -251,8 +364,9 @@ class SuperviseViewSet(CreateModelMixin,
                        ListModelMixin,
                        NestedGenericViewSet):
     """
-    This ViewSet automatically provides `list`, `create`, `retrieve`,
-    `update` and `destroy` actions.
+    A view the allow users to Create, Retrieve, Update, Delete contract's assessments.
+
+    Note that this view would be nested inside ContractViewSet.
     """
     queryset = models.Supervise.objects.all()
     serializer_class = serializers.SuperviseSerializer
@@ -263,24 +377,26 @@ class SuperviseViewSet(CreateModelMixin,
                                           (app_perms.IsContractOwner &
                                            app_perms.ContractNotSubmitted &
                                            app_perms.ContractNotFinalApproved) |
-                                          (app_perms.IsContractSupervisor &
+                                          (app_perms.IsContractFormalSupervisor &
                                            app_perms.ContractNotApprovedBySupervisor &
                                            app_perms.ContractNotFinalApproved), ]
 
     def perform_create(self, serializer: serializers.SuperviseSerializer):
+        """
+        Override the default method to attach relevant objects, and check the nominated
+        supervisor is qualified.
+        """
 
         self.attach_attributes(serializer)
-
-        # Forbid more than 1 supervisor for individual project
-        contract: models.Contract = self.resolved_parents['contract']
-        if len(models.Supervise.objects.filter(contract=contract)) >= 1:
-            raise PermissionDenied('Individual project does not allowed more than 1 supervisor.')
-
         self.check_field_permission(serializer)
 
         return super(SuperviseViewSet, self).perform_create(serializer)
 
     def perform_update(self, serializer: serializers.SuperviseSerializer):
+        """
+        Override the default method to attach relevant objects, and check the nominated
+        supervisor is qualified.
+        """
 
         self.attach_attributes(serializer)
         self.check_field_permission(serializer)
@@ -298,7 +414,7 @@ class SuperviseViewSet(CreateModelMixin,
         """Allow supervisor to approve supervise relation"""
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            supervise = self.get_object()
+            supervise: models.Supervise = self.get_object()
 
             # Supervisor cannot undo their approval
             if not app_perms.IsSuperuser.check(request.user) and \
@@ -312,21 +428,44 @@ class SuperviseViewSet(CreateModelMixin,
             with transaction.atomic():
                 if serializer.validated_data['approve']:
                     supervise.supervisor_approval_date = serializer.validated_data['approve']
+                    supervise.save()
                 else:
-                    # On disapprove, clean contract's submitted status
+                    # On disapprove, first clear all contract's assessment's approval.
+                    # This is because contract owner would be able to modify assessments after
+                    # supervisor disapprove, as such examiners should approve again.
+                    for assessment_examine in models.AssessmentExamine.objects.filter(
+                            contract=supervise.contract):
+                        assessment_examine.examiner_approval_date = None
+                        assessment_examine.save()
+
+                    # Clear supervisor's approval
                     supervise.supervisor_approval_date = None
+                    supervise.save()
+
+                    # Clear contract's submit status
                     supervise.contract.submit_date = None
                     supervise.contract.save()
-                supervise.save()
+
+            # Log activity, and send signal to trigger notifications
+            activity_log = models.ActivityLog.objects.create(
+                    actor=self.request.user,
+                    action=ACTION_SUPERVISE_APPROVE
+                    if serializer.validated_data['approve']
+                    else ACTION_SUPERVISE_DISAPPROVE,
+                    content_object=supervise)
+            SUPERVISE_APPROVE.send(sender=self.__class__,
+                                   supervise=supervise,
+                                   activity_log=activity_log)
 
             return Response(status=HTTP_200_OK)
         else:
-            raise ValidationError()
+            raise ValidationError(serializer.errors)
 
     def attach_attributes(self, serializer: serializers.SuperviseSerializer) -> None:
         """Attach automatic attributes according to the request url and content"""
 
         serializer.validated_data['contract'] = self.resolved_parents['contract']
+        serializer.validated_data['nominator'] = self.request.user
 
         # Check if supervisor is approved, if yes, set the is_formal attribute
         supervisor = serializer.validated_data['supervisor']
@@ -336,14 +475,15 @@ class SuperviseViewSet(CreateModelMixin,
             serializer.validated_data['is_formal'] = False
 
     def check_field_permission(self, serializer: serializers.SuperviseSerializer) -> None:
-        # Forbid normal user to nominate unapproved supervisors
+        """Forbid normal user to nominate unapproved supervisors"""
+
         requester: SrpmsUser = self.request.user
         if app_perms.IsSuperuser.check(requester) or app_perms.IsConvener.check(requester):
-            pass
+            pass  # Superuser and convener can nominate whoever they want as supervisor
         elif app_perms.IsContractFormalSupervisor.check(self.resolved_parents['contract'],
                                                         requester):
-            pass
+            pass  # User with 'can_supervise' permission can nominate whoever they want
         elif serializer.validated_data['is_formal']:
-            pass
+            pass  # User can nominate user who has 'can_supervise' permission as supervisor
         else:
             raise PermissionDenied('Nominate un-approved supervisor is not allowed')

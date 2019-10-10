@@ -1,3 +1,13 @@
+"""
+Filters that enable query string for views. For example, 'api/user/?search=my_name'.
+"""
+
+__author__ = "Dajie (Cooper) Yang"
+__credits__ = ["Dajie Yang", "Shang Wang", "Glader"]
+
+__maintainer__ = "Dajie (Cooper) Yang"
+__email__ = "dajie.yang@anu.edu.au"
+
 from django_filters import FilterSet, BooleanFilter
 from django.contrib.auth.models import Permission
 from django.db.models import Q
@@ -7,13 +17,25 @@ from accounts.models import SrpmsUser
 
 
 class UserFilter(FilterSet):
+    """Filter that shows all users with/without 'can_supervise' permission"""
+
     is_approved_supervisor = BooleanFilter(method='filter_approved_supervisor')
 
     class Meta:
         model = SrpmsUser
         fields = []
 
+    # noinspection PyMethodMayBeStatic
     def filter_approved_supervisor(self, queryset: QuerySet, name, value: bool):
+        """
+        Filter function.
+
+        Note that user being inside a group (with certain permission assigned to the group)
+        would not automatically assign user to a Permission object. Thus we refer the method
+        [here](https://stackoverflow.com/questions/378303/how-to-get-a-list-of-all-users-with-a-specific-permission-group-in-django)
+        to query user given a permission.
+        """
+
         perm = Permission.objects.get(codename='can_supervise')
 
         if value:

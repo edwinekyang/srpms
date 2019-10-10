@@ -2,7 +2,10 @@
 Create group and assign related permissions for this app.
 """
 
-__author__ = 'Dajie Yang'
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
 __email__ = 'dajie.yang@anu.edu.au'
 
 from django.db import migrations
@@ -14,6 +17,7 @@ from django.apps.registry import Apps
 from research_mgt.models import AppPermission
 
 
+# noinspection PyPep8Naming
 def create_group_permission(apps: Apps, schema_editor: BaseDatabaseSchemaEditor):
     """
     Create group for approved supervisor and course convener
@@ -50,6 +54,7 @@ def create_group_permission(apps: Apps, schema_editor: BaseDatabaseSchemaEditor)
     superuser.permissions.set([ThePermission.objects.get(codename='is_mgt_superuser')])
 
 
+# noinspection PyPep8Naming
 def revert_create_group_permission(apps: Apps, schema_editor: BaseDatabaseSchemaEditor):
     """
     Revert what's done in create_group_permission

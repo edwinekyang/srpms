@@ -1,3 +1,17 @@
+"""
+Define test data, or test data generation functions.
+
+Note that test data normally should not be passed directly, as they might be modified during the
+test (which would then affect other tests that want to use these data). Instead, a copy of the
+test data should be return.
+"""
+
+__author__ = 'Dajie (Cooper) Yang'
+__credits__ = ['Dajie Yang']
+
+__maintainer__ = 'Dajie (Cooper) Yang'
+__email__ = 'dajie.yang@anu.edu.au'
+
 import random
 from typing import List, Dict, Tuple
 
@@ -9,17 +23,19 @@ from research_mgt import models
 # General use
 
 def get_submit_data(submit: bool):
+    """Generate data for test contract submission"""
     if submit:
         return {'submit': True}
     else:
         return {'submit': False}
 
 
-def get_approve_data(approve: bool):
+def get_approve_data(approve: bool, message: str = None):
+    """Generate data for test approval, can be used for contract, supervise, assessment_examine"""
     if approve:
-        return {'approve': True}
+        return {'approve': True, 'message': message if message else ''}
     else:
-        return {'approve': False}
+        return {'approve': False, 'message': message if message else ''}
 
 
 ############################################################################################
@@ -43,6 +59,7 @@ course_list_valid = [
 
 
 def get_course() -> Dict:
+    """Return a copy of test data"""
     c_req = random.choice(course_list_valid)
     return {**c_req}
 
@@ -320,7 +337,7 @@ assessment_02_response = {
 assessment_custom_request = {
     'template': temp_custom.id,
     'additional_description': '',
-    'weight': 40,
+    'weight': 100,
 }
 
 assessment_custom_response = {
@@ -328,7 +345,7 @@ assessment_custom_response = {
     'contract': None,  # Supply data here
     'additional_description': '',
     'due': None,
-    'weight': 40,
+    'weight': 100,
     'is_all_examiners_approved': False
 }
 
