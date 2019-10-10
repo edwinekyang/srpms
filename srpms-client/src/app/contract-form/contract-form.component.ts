@@ -8,6 +8,7 @@ import {ContractMgtService} from '../contract-mgt.service';
 import {Router} from '@angular/router';
 import {MatDialog} from '@angular/material';
 import {ContractDialogComponent} from '../contract-dialog/contract-dialog.component';
+import {map} from 'rxjs/operators';
 
 @Component({
     selector: 'app-contract-form',
@@ -236,52 +237,46 @@ export class ContractFormComponent implements OnInit, OnChanges {
         };
 
         this.assessment.push(this.assessment1, this.assessment2, this.assessment3);
-
         await this.contractMgtService.getAssessments(this.contractId)
-            .toPromise().then(async assessments => {
-                const promiseAssessment = assessments.map(async assessment => {
-                    // @ts-ignore
-                    if (assessment.template === this.assessment1.template) {
-                        await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment1))
-                            .toPromise().then(async () => {
+            .pipe(
+                map( assessments => {
+                    assessments.map(assessment => {
+                        if (assessment.template === 1) {
+                            const promisePatch1 = this.contractService.patchAssessment(this.contractId, assessment.id,
+                                JSON.stringify(this.assessment1)).toPromise();
+                            Promise.race([promisePatch1]);
+                            // @ts-ignore
+                            if (this.assessment1.examiner) {
+                                const promiseAdd1 = this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                    // @ts-ignore
+                                    examiner: this.assessment1.examiner,
+                                })).toPromise();
+                                Promise.race([promiseAdd1]);
+                            }
+                        }
+                        if (assessment.template === 2) {
+                            const promiseAdd2 = this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
                                 // @ts-ignore
-                                if (this.assessment1.examiner) {
-                                    await this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
-                                        // @ts-ignore
-                                        examiner: this.assessment1.examiner,
-                                    })).toPromise();
-                                }
-                            });
-                    // @ts-ignore
-                    } else if (assessment.template === this.assessment2.template) {
-                        await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment2))
-                            .toPromise().then(async () => {
+                                examiner: this.assessment2.examiner,
+                            })).toPromise();
+                            Promise.race([promiseAdd2]);
+                            const promisePatch2 = this.contractService.patchAssessment(this.contractId, assessment.id,
+                                JSON.stringify(this.assessment2)).toPromise();
+                            Promise.race([promisePatch2]);
+                        }
+                        if (assessment.template === 3) {
+                            const promiseAdd3 = this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
                                 // @ts-ignore
-                                if (this.assessment2.examiner) {
-                                    await this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
-                                        // @ts-ignore
-                                        examiner: this.assessment2.examiner,
-                                    })).toPromise();
-                                }
-                            });
-                    // @ts-ignore
-                    } else if (assessment.template === this.assessment3.template) {
-                        await this.contractService.patchAssessment(this.contractId, assessment.id, JSON.stringify(this.assessment3))
-                            .toPromise().then(async () => {
-                                // @ts-ignore
-                                if (this.assessment3.examiner) {
-                                    await this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
-                                        // @ts-ignore
-                                        examiner: this.assessment3.examiner,
-                                    })).toPromise();
-                                }
-                            });
-                    }
-                });
-
-                await Promise.all(promiseAssessment);
-
-            });
+                                examiner: this.assessment3.examiner,
+                            })).toPromise();
+                            Promise.race([promiseAdd3]);
+                            const promisePatch3 = this.contractService.patchAssessment(this.contractId, assessment.id,
+                                JSON.stringify(this.assessment3)).toPromise();
+                            Promise.race([promisePatch3]);
+                        }
+                    });
+                })
+            ).toPromise();
     }
 
     /**

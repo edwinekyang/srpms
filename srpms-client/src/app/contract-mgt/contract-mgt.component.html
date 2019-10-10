@@ -48,7 +48,7 @@
                     <mat-grid-tile colspan="12">
                         <mat-list-item><h3 mat-line class="project-header">Project Description</h3></mat-list-item>
                     </mat-grid-tile>
-                        <mat-grid-tile>
+                        <mat-grid-tile colspan="12">
                             <mat-list-item>
                                 <h4 mat-line>{{contract.contractObj['special_topics']?
                                     contract.contractObj['special_topics']['description']:
@@ -86,7 +86,7 @@
                         <mat-grid-tile colspan="4">
                             <h3 mat-subheader>Examiner</h3>
                             <mat-list-item>
-                                <h4 mat-line>{{assessment["examiner"]}}</h4>
+                                <h4 mat-line>{{assessment["examinerName"]}}</h4>
                             </mat-list-item>
                         </mat-grid-tile>
                         </div>
@@ -207,7 +207,7 @@
                             <mat-grid-tile colspan="4">
                                 <h3 mat-subheader>Examiner</h3>
                                 <mat-list-item>
-                                    <h4 mat-line>{{assessment["examiner"]}}</h4>
+                                    <h4 mat-line>{{assessment["examinerName"]}}</h4>
                                 </mat-list-item>
                             </mat-grid-tile>
                         </div>

@@ -31,6 +31,7 @@ export interface AssessmentList<T> {
     isAllExaminersApproved: boolean;
     examinerApprovalDate: string;
     additionalDescription: string;
+    examinerName: string;
 }
 
 
@@ -74,7 +75,7 @@ export class ContractMgtComponent implements OnInit {
      * 1. Retrieves the pre-list
      * 2. Retrieves the assessments of the pre-list
      * 3. Re-arranges the pre-list information for the view
-     * 4. Retrives the post-list
+     * 4. Retrieves the post-list
      * 5. Retrieves the assessments of the post-list
      * 6. Re-arranges the post-list information for the view
      */
@@ -445,6 +446,14 @@ export class ContractMgtComponent implements OnInit {
             await this.contractMgtService.getAssessments(id).toPromise()
                 .then(async assessments => {
                     const promiseAssessments = assessments.map(async assessment => {
+                        let examinerName: any;
+                        examinerName = '';
+                        if (assessment.assessment_examine[0]) {
+                            const promiseExaminer = this.accountService.getUser(assessment.assessment_examine[0].examiner).toPromise();
+                            await Promise.race([promiseExaminer]).then(result => {
+                                examinerName = result.first_name + ' ' + result.last_name;
+                            });
+                        }
                         if (type === 'pre') {
                             this.preAssessmentList.push({
                                 id: assessment.id,
@@ -458,8 +467,10 @@ export class ContractMgtComponent implements OnInit {
                                 examiner: assessment.assessment_examine[0] ?
                                     assessment.assessment_examine[0].examiner : '',
                                 isAllExaminersApproved: assessment.is_all_examiners_approved,
-                                examinerApprovalDate: assessment.assessment_examine[0].examiner_approval_date,
+                                examinerApprovalDate: assessment.assessment_examine[0] ?
+                                    assessment.assessment_examine[0].examiner_approval_date : '',
                                 additionalDescription: assessment.additional_description,
+                                examinerName,
                             });
                         } else if (type === 'post') {
                             this.postAssessmentList.push({
@@ -474,8 +485,10 @@ export class ContractMgtComponent implements OnInit {
                                 examiner: assessment.assessment_examine[0] ?
                                     assessment.assessment_examine[0].examiner : '',
                                 isAllExaminersApproved: assessment.is_all_examiners_approved,
-                                examinerApprovalDate: assessment.examiner_approval_date,
+                                examinerApprovalDate: assessment.assessment_examine[0] ?
+                                    assessment.assessment_examine[0].examiner_approval_date : '',
                                 additionalDescription: assessment.additional_description,
+                                examinerName,
                             });
                         }
                     });
