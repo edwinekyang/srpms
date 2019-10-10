@@ -10,10 +10,10 @@ import {ContractMgtService} from '../contract-mgt.service';
 
 export class SidenavComponent implements OnInit {
   private userID: any;
-  private haveOwn: boolean;
-  private haveConvene: boolean;
-  private haveSupervise: boolean;
-  private haveExamine: boolean;
+  public haveOwn: boolean;
+  public haveConvene: boolean;
+  public haveSupervise: boolean;
+  public haveExamine: boolean;
 
   constructor(
       public contractMgtService: ContractMgtService,
