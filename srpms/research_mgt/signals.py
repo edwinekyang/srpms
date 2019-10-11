@@ -21,7 +21,7 @@ from accounts.models import SrpmsUser
 from django.dispatch import receiver, Signal
 from django.core import management
 from django.core.mail import send_mail
-from django.db.models.signals import post_migrate
+from django.db.models.signals import post_migrate, post_save
 
 from .models import (Contract, Supervise, AssessmentExamine, ActivityLog, ActivityAction)
 from srpms.settings import EMAIL_SENDER
@@ -43,7 +43,8 @@ ACTION_EXAMINER_DISAPPROVE = None
 
 
 # noinspection PyUnusedLocal
-@receiver(post_migrate, dispatch_uid='init_actions')
+@receiver(post_save, sender=ActivityAction, dispatch_uid='post_save_init_actions')
+@receiver(post_migrate, dispatch_uid='post_migrate_init_actions')
 def init_actions(**kwargs):
     """
     Initiate activity actions after database migration completed, otherwise these actions
