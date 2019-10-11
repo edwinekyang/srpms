@@ -73,7 +73,7 @@ def init_actions(**kwargs):
         management.call_command('showmigrations', stdout=s_io)
 
         # Only initialize actions when corresponding migration is finished
-        if re.search(r'(?<=\[)X(?=\] 0005_actitivity_actions)', s_io.getvalue()):
+        if re.search(r'(?<=\[)X(?=\] 0005_activity_actions)', s_io.getvalue()):
             ACTION_CONTRACT_SUBMIT = ActivityAction.objects.get(name='contract_submit')
             ACTION_CONTRACT_UN_SUBMIT = ActivityAction.objects.get(name='contract_un_submit')
             ACTION_CONTRACT_APPROVE = ActivityAction.objects.get(name='contract_approve')

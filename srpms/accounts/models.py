@@ -44,7 +44,7 @@ class SrpmsUser(AbstractUser):
 
     def get_display_name(self) -> str:
         display_name = ' '.join([self.first_name, self.last_name])
-        if not display_name:
+        if not display_name.replace(' ', ''):
             # First name and last name both empty would make display name empty
             return self.username
         return display_name
