@@ -13,17 +13,27 @@
   <mat-divider></mat-divider>
   <mat-divider></mat-divider>
   <p mat-list-item><br></p>
+  <div *ngIf="haveExamine || haveSupervise || haveConvene || haveOwn">
   <mat-divider></mat-divider>
   <mat-divider></mat-divider>
   <h1 mat-subheader>CONTRACT MANAGEMENT</h1>
+  <div *ngIf="haveOwn">
   <mat-divider></mat-divider>
   <a mat-list-item routerLink="/submit">Submit</a>
+  </div>
+  <div *ngIf="haveSupervise">
   <mat-divider></mat-divider>
   <a mat-list-item routerLink="/supervise">Supervise</a>
+  </div>
+  <div *ngIf="haveExamine">
   <mat-divider></mat-divider>
   <a mat-list-item routerLink="/examine">Examine</a>
+  </div>
+  <div *ngIf="haveConvene">
   <mat-divider></mat-divider>
   <a mat-list-item routerLink="/convene">Convene</a>
+  </div>
   <mat-divider></mat-divider>
   <mat-divider></mat-divider>
+  </div>
 </mat-nav-list>

@@ -1,9 +1,12 @@
 <h1 mat-dialog-title>{{this.route === '/contract' ? 'Your contract has been saved!' :
     this.route === '/contract-viewer' ? 'Your contract has been updated!' :
     this.route === '/submit' ? 'Your contract has been submitted!' :
-    this.route === '/supervise' ? 'This contract has been approved!' :
-    this.route === '/examine' ? 'This examiner request has been confirmed!' :
-    this.route === '/convene' ? 'This contract has been finalised!' : ''}}</h1>
+    this.route === '/supervise' ? 'Contract has been approved!' :
+    this.route === '/examine' ? 'Examiner request has been confirmed!' :
+    (this.route === '/convene' && data === 'Confirmed') ? 'Contract has been finalised!' :
+    (this.route === '/convene' && data === 'Submitted') ? 'Examiner has been nominated!' :
+    (this.route === '/convene' && data === 'Nominated') ? 'Contract has been approved!' :
+    (this.route === '/convene' && data === 'Approved') ? 'Examiner request has been confirmed!' : ''}}</h1>
 <div *ngIf="this.route === '/contract'" mat-dialog-content>
     <p>Contract is now saved.</p><br>
     <p>You can either EDIT your saved contract OR SUBMIT your saved contract on the contract management page.</p><br>
@@ -29,7 +32,10 @@
     <p>You will be redirected to the contract management page.</p>
 </div>
 <div *ngIf="this.route === '/convene'" mat-dialog-content>
-    <p>This contract has been finalised.</p><br>
+    <p>{{data === 'Submitted' ? 'Examiner for this contract has been nominated.' :
+        data === 'Nominated' ? 'This contract has been approved.' :
+        data === 'Approved' ? 'This examiner request has been confirmed.' :
+        'This contract has been finalised.'}}</p><br>
     <p>You will be redirected to the contract management page.</p>
 </div>
 <div mat-dialog-actions>
