@@ -22,3 +22,4 @@ class ResearchMgtConfig(AppConfig):
 
         # noinspection PyUnresolvedReferences
         from . import signals
+        signals.init_actions()
