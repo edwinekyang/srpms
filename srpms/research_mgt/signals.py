@@ -23,9 +23,9 @@ from django.core import management
 from django.core.mail import send_mail
 from django.db.models.signals import post_migrate, post_save
 from django.db.models.query import Q
+from django.contrib.auth.models import Permission
 
 from .models import (Contract, Supervise, AssessmentExamine, ActivityLog, ActivityAction)
-from .apps import ResearchMgtConfig
 from srpms.settings import EMAIL_SENDER
 
 CONTRACT_SUBMIT = Signal(providing_args=['contract', 'activity_log'])
@@ -199,8 +199,10 @@ def supervise_approve_notifications(supervise: Supervise, activity_log: Activity
                           supervisor_name=supervise.supervisor.get_display_name()),
                   EMAIL_SENDER,
                   get_email_addr([supervise.contract.owner]))
-        # Inform examiners
+        # Inform examiners, exclude the course convener
+        perm = Permission.objects.get(codename='can_convene')
         for address in get_email_addr(SrpmsUser.objects.filter(
+                ~Q(groups__permissions=perm) & ~Q(user_permissions=perm) & Q(is_superuser=False),
                 Q(examine__nominator=supervise.supervisor) |
                 Q(examine__nominator=activity_log.actor),
                 examine__contract=supervise.contract,

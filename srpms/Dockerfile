@@ -10,6 +10,10 @@ WORKDIR /djangoproj/srpms
 # install dependencies
 RUN apk add --no-cache libldap libsasl postgresql-libs postgresql-client bash \
                        cairo-dev pango-dev gdk-pixbuf
+# install fonts needed for printing pdf contract
+RUN apk add --no-cache msttcorefonts-installer fontconfig && \
+    update-ms-fonts && \
+    fc-cache -f
 RUN apk add --no-cache --virtual .build-deps \
                        postgresql-dev \
                        gcc \
