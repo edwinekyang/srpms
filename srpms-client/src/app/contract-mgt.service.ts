@@ -7,6 +7,7 @@ import { catchError } from 'rxjs/operators';
     providedIn: 'root'
 })
 export class ContractMgtService {
+    private API_URL = '/api/';
 
     constructor(
         private http: HttpClient,
