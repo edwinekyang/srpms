@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -32,19 +32,17 @@ export class ContractService {
    * Retrieves the course list
    */
   getCourses(): Observable<Course[]> {
-    return this.http.get<Course[]>(`${this.API_URL}research_mgt/courses/`, this.httpOptions)
-        .pipe(
+    return this.http.get<Course[]>(`${this.API_URL}research_mgt/courses/`, this.httpOptions);
+        /*.pipe(
             catchError(this.handleError<Course[]>('getCourses'))
-        );
+        );*/
   }
 
   private handleError<T>(operation = 'operation', result?: T) {
-    return (error: any): Observable<T> => {
+    return (error: HttpErrorResponse): Observable<T> => {
 
-      // TODO: send the error to remote logging infrastructure
-      console.error(error); // log to console instead
+      console.error(error.status); // log to console instead
 
-      // TODO: better job of transforming error for user consumption
       ContractService.log(`${operation} failed: ${error.message}`);
 
       // Let the app keep running by returning an empty result.
@@ -73,10 +71,10 @@ export class ContractService {
    */
   patchAssessment(contractId: any, assessmentId: any, assessment: string): Observable<any> {
     return this.http.patch<any>(this.API_URL + `research_mgt/contracts/${contractId}/assessments/${assessmentId}/`,
-        assessment, this.httpOptions)
-        .pipe(
+        assessment, this.httpOptions);
+        /*.pipe(
             catchError(this.handleError<any>('patchAssessmentMethod'))
-        );
+        );*/
   }
 
   /**
@@ -86,9 +84,9 @@ export class ContractService {
    * @param supervise - Supervise information to create
    */
   addSupervise(contractId: any, supervise: string): Observable<any> {
-    return this.http.post<any>(this.API_URL + `research_mgt/contracts/${contractId}/supervise/`, supervise, this.httpOptions)
-        .pipe(
+    return this.http.post<any>(this.API_URL + `research_mgt/contracts/${contractId}/supervise/`, supervise, this.httpOptions);
+        /*.pipe(
             catchError(this.handleError<any>('addSupervise'))
-        );
+        );*/
   }
 }

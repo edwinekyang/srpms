@@ -3,15 +3,15 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-
 @Injectable({
     providedIn: 'root'
 })
 export class ContractMgtService {
 
-    private API_URL = '/api/';
-
-    constructor(private http: HttpClient) { }
+    constructor(
+        private http: HttpClient,
+        ) {
+    }
     public httpOptions = {
         headers: new HttpHeaders({
             'Content-Type':  'application/json',
@@ -40,10 +40,10 @@ export class ContractMgtService {
      * @param contractId - Contract ID
      */
     getAssessments(contractId: any): Observable<any[]> {
-        return this.http.get<any[]>(`${this.API_URL}research_mgt/contracts/${contractId}/assessments/`, this.httpOptions)
-            .pipe(
+        return this.http.get<any[]>(`${this.API_URL}research_mgt/contracts/${contractId}/assessments/`, this.httpOptions);
+            /*.pipe(
                 catchError(this.handleError<any[]>('getAssessmentMethods'))
-            );
+            );*/
     }
 
     /**
@@ -76,10 +76,10 @@ export class ContractMgtService {
     confirmExamine(contractId: any, assessmentId: any, examineId: any, s: string) {
         // tslint:disable-next-line:max-line-length
         return this.http.put(`${this.API_URL}research_mgt/contracts/${contractId}/assessments/${assessmentId}/examine/${examineId}/approve/`,
-            s, this.httpOptions)
-            .pipe(
+            s, this.httpOptions);
+            /*.pipe(
                 catchError(this.handleError<any[]>('confirmExamine'))
-            );
+            );*/
     }
 
     /**
@@ -91,10 +91,10 @@ export class ContractMgtService {
      */
     approveContract(contractId: any, superviseId: any, s: string) {
         return this.http.put(`${this.API_URL}research_mgt/contracts/${contractId}/supervise/${superviseId}/approve/`,
-            s, this.httpOptions)
-            .pipe(
+            s, this.httpOptions);
+            /*.pipe(
                 catchError(this.handleError<any[]>('approveContract'))
-            );
+            );*/
     }
 
     /**
@@ -105,10 +105,10 @@ export class ContractMgtService {
     updateSubmitted(contractId: any): Observable<any> {
         return this.http.put(`${this.API_URL}research_mgt/contracts/${contractId}/submit/`, JSON.stringify({
             submit: true,
-        }), this.httpOptions)
-            .pipe(
+        }), this.httpOptions);
+            /*.pipe(
                 catchError(this.handleError<any>('updateSubmitted'))
-            );
+            );*/
 
     }
 
@@ -121,10 +121,10 @@ export class ContractMgtService {
      */
     addExamine(contractId: number, assessmentId: any, s: string) {
         return this.http.post(this.API_URL + `research_mgt/contracts/${contractId}/assessments/${assessmentId}/examine/`,
-            s, this.httpOptions)
-            .pipe(
+            s, this.httpOptions);
+            /*.pipe(
                 catchError(this.handleError<any>('addExamine'))
-            );
+            );*/
     }
 
     /**
@@ -149,10 +149,10 @@ export class ContractMgtService {
      */
     updateSupervise(contractId: any, superviseId: any, s: string): Observable<any> {
         return this.http.patch<any>(this.API_URL + `research_mgt/contracts/${contractId}/supervise/${superviseId}/`,
-            s, this.httpOptions)
-            .pipe(
+            s, this.httpOptions);
+            /*.pipe(
                 catchError(this.handleError<any>('addSupervise'))
-            );
+            );*/
     }
 
     /**
@@ -184,10 +184,10 @@ export class ContractMgtService {
      * @param userId - User ID
      */
     getRelatedContracts(userId: any) {
-        return this.http.get(this.API_URL + `research_mgt/users/${userId}/`, this.httpOptions)
-            .pipe(
+        return this.http.get(this.API_URL + `research_mgt/users/${userId}/`, this.httpOptions);
+            /*.pipe(
                 catchError(this.handleError<any>('getRelatedContracts'))
-            );
+            );*/
     }
 
     /**
@@ -233,5 +233,14 @@ export class ContractMgtService {
             .pipe(
                 catchError(this.handleError<any>('approveConvene'))
             );
+    }
+
+    /**
+     * Deletes the contract used by the contract owner
+     *
+     * @param contractId - Contract ID
+     */
+    deleteContract(contractId: any) {
+        return this.http.delete(this.API_URL + `research_mgt/contracts/${contractId}`, this.httpOptions);
     }
 }

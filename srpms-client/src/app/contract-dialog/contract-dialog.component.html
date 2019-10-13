@@ -1,6 +1,7 @@
 <h1 mat-dialog-title>{{this.route === '/contract' ? 'Your contract has been saved!' :
     this.route === '/contract-viewer' ? 'Your contract has been updated!' :
-    this.route === '/submit' ? 'Your contract has been submitted!' :
+    this.route === '/submit' && data === 'Draft' ? 'Your contract has been submitted!' :
+    (this.route === '/submit' && data === 'DraftDeleted') ? 'Your contract has been removed!' :
     this.route === '/supervise' ? 'Contract has been approved!' :
     this.route === '/examine' ? 'Examiner request has been confirmed!' :
     (this.route === '/convene' && data === 'Confirmed') ? 'Contract has been finalised!' :
@@ -16,9 +17,13 @@
     <p>Contract has been updated.</p><br>
     <p>You will be redirected to the contract management page.</p>
 </div>
-<div *ngIf="this.route === '/submit'" mat-dialog-content>
+<div *ngIf="this.route === '/submit' && data === 'Draft'" mat-dialog-content>
     <p>Contract has been submitted.</p><br>
     <p>Your contract will be reviewed by the supervisor.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div *ngIf="(this.route === '/submit' && data === 'DraftDeleted')" mat-dialog-content>
+    <p>Contract has been removed.</p><br>
     <p>You will be redirected to the contract management page.</p>
 </div>
 <div *ngIf="this.route === '/supervise'" mat-dialog-content>

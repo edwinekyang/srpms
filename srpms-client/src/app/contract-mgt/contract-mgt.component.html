@@ -7,10 +7,10 @@
             <mat-expansion-panel *ngFor="let contract of preContractList">
                 <mat-expansion-panel-header>
                     <mat-panel-title>
-                        <p>{{contract.title}}</p>
+                        <p>{{contract.courseNumber}}, {{contract.courseName}}</p>
                     </mat-panel-title>
                     <mat-panel-description>
-                        {{contract.studentName}}({{contract.studentId}})
+                        {{contract.studentName}}({{contract.studentId}}), {{contract.title}}
                         {{this.route === '/convene' ? ' - ' + contract.status : ''}}
                     </mat-panel-description>
                 </mat-expansion-panel-header>
@@ -34,7 +34,9 @@
                             <h4 mat-line>{{contract.contractObj['duration']}} Semester</h4>
                         </mat-list-item>
                     </mat-grid-tile>
-
+                    <mat-grid-tile colspan="12">
+                        <mat-list-item></mat-list-item>
+                    </mat-grid-tile>
                     <mat-grid-tile colspan="12">
                         <mat-list-item><h3 mat-line class="project-header">Project Objectives</h3></mat-list-item>
                     </mat-grid-tile>
@@ -96,16 +98,21 @@
                 <br>
                 <div class="control-button-row">
                 <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/contract-viewer" [state]="contract">EDIT</a>
-                <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/submit" (click)="submit(contract.contractId)">SUBMIT</a>
+                <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/submit" (click)="submit(contract)">SUBMIT</a>
+                <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" (click)="delete(contract)">DELETE</a>
                 <form *ngIf="this.route === '/supervise' || (this.route === '/convene' && contract.status === 'Submitted')"
-                      (ngSubmit)="this.route === '/supervise' ? approveSupervise(contract, examiner.value) :
-                      nominateExaminer(examiner.value, contract)">
-                    <div class="nomination-form">
+                      (ngSubmit)="this.route === '/supervise' ? approveSupervise(contract) :
+                      nominateExaminer(contract)" [formGroup]="examinerForm">
+                    <div *ngFor="let assessment of contract.assessment">
+                        <div class="nomination-form" *ngIf="!assessment['examiner']">
                     <mat-form-field appearance="standard">
-                        <mat-label>Examiner's Name</mat-label>
-                        <input #examiner matInput required id="examiner">
+                        <mat-label>{{assessment['assessmentName'].toString().toLocaleUpperCase()}} Examiner's Name</mat-label>
+                        <input matInput required formControlName="examiner{{assessment['template']}}">
                     </mat-form-field>
-                    <button class="" mat-raised-button color="primary" type="submit" [disabled]="!examiner.checkValidity()">
+                        </div>
+                    </div>
+                    <div class="nomination-form">
+                    <button mat-raised-button color="primary" type="submit" [disabled]="!examinerFormValid">
                         {{(this.route === '/supervise') ? 'NOMINATE EXAMINER AND APPROVE' :
                         'NOMINATE EXAMINER'}}</button>
                     </div>
@@ -128,10 +135,10 @@
             <mat-expansion-panel *ngFor="let contract of postContractList">
                 <mat-expansion-panel-header>
                     <mat-panel-title>
-                        <p>{{contract.title}}</p>
+                        <p>{{contract.courseNumber}}, {{contract.courseName}}</p>
                     </mat-panel-title>
                     <mat-panel-description>
-                        {{contract.studentName}}({{contract.studentId}})
+                        {{contract.studentName}}({{contract.studentId}}), {{contract.title}}
                         {{this.route === '/submit' ? ' - ' + contract.status : ''}}
                     </mat-panel-description>
                 </mat-expansion-panel-header>
@@ -155,7 +162,9 @@
                                 <h4 mat-line>{{contract.contractObj['duration']}} Semester</h4>
                             </mat-list-item>
                         </mat-grid-tile>
-
+                        <mat-grid-tile colspan="12">
+                            <mat-list-item></mat-list-item>
+                        </mat-grid-tile>
                         <mat-grid-tile colspan="12">
                             <mat-list-item><h3 mat-line class="project-header">Project Objectives</h3></mat-list-item>
                         </mat-grid-tile>

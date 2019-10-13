@@ -25,7 +25,7 @@
                                 <mat-form-field appearance="outline" hintLabel="{{element.maxlength?'Max ' + element.maxlength + ' characters':''}}">
                                     <mat-label>{{element.label}}</mat-label>
                                     <input #input matInput placeholder="{{element.placeholder === ''?element.label:element.placeholder}}" [formControl]="form.controls[element.key]"
-                                           [id]="element.key" [type]="element.type" [value]="contractViewer[element.key]" [required]="element.required"
+                                           [id]="element.key" [type]="element.type" [value]="contractViewer[element.key] ? contractViewer[element.key] : ''" [required]="element.required"
                                            [maxLength]="element.maxlength?element.maxlength:200">
                                     <mat-hint align="end">{{input.maxLength === 200?'':input.value?.length + ' / ' || 0}}{{element.maxlength}}</mat-hint>
                                     <mat-error *ngIf="form.controls[element.key].invalid">{{getErrorMessage(form.controls[element.key])}}</mat-error>
@@ -66,7 +66,7 @@
                 </div>
             </ng-template>
         </div>
-        <div class="errorMessage" *ngIf="!form.controls[element.key].valid">{{element.label}} is required</div>
+        <!--<div class="errorMessage" *ngIf="!form.controls[element.key].valid">{{element.label}} is required</div>-->
     </div>
     <div class="new-line">
         <button class="form-submit-button" mat-raised-button color="primary" type="submit" [disabled]="!form.valid ||

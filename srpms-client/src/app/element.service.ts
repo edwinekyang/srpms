@@ -196,7 +196,7 @@ export class ElementService {
                 key: 'assessment1Due',
                 label: 'DUE DATE',
                 value: '',
-                required: true,
+                required: false,
                 order: 26,
                 flag: 'common',
                 placeholder: '(e.g. 2019-01-01)',
@@ -272,7 +272,7 @@ export class ElementService {
                 key: 'assessment2Due',
                 label: 'DUE DATE',
                 value: '',
-                required: true,
+                required: false,
                 order: 36,
                 flag: 'common',
                 placeholder: '(e.g. 2019-01-01)',
@@ -281,9 +281,9 @@ export class ElementService {
 
             new TextboxElement({
                 key: 'assessment2Examiner',
-                label: 'SUPERVISOR',
+                label: 'EXAMINER',
                 value: '',
-                required: true,
+                required: false,
                 order: 37,
                 flag: 'project'
             }),
@@ -367,7 +367,7 @@ export class ElementService {
                 key: 'assessment3Due',
                 label: 'DUE DATE',
                 value: '',
-                required: true,
+                required: false,
                 order: 47,
                 flag: 'common',
                 placeholder: '(e.g. 2019-01-01)',

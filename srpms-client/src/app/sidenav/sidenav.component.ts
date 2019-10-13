@@ -18,17 +18,19 @@ export class SidenavComponent implements OnInit {
   constructor(
       public contractMgtService: ContractMgtService,
   ) {
-    this.userID = JSON.parse(localStorage.getItem('srpmsUser')).id;
-    contractMgtService.getRelatedContracts(this.userID).subscribe(user => {
-      // @ts-ignore
-      this.haveConvene = user.convene.length > 0;
-      // @ts-ignore
-      this.haveOwn = user.own.length > 0;
-      // @ts-ignore
-      this.haveSupervise = user.supervise.length > 0;
-      // @ts-ignore
-      this.haveExamine = user.examine.length > 0;
-    });
+    if (JSON.parse(localStorage.getItem('srpmsUser'))) {
+      this.userID = JSON.parse(localStorage.getItem('srpmsUser')).id;
+      contractMgtService.getRelatedContracts(this.userID).subscribe(user => {
+        // @ts-ignore
+        this.haveConvene = user.convene.length > 0;
+        // @ts-ignore
+        this.haveOwn = user.own.length > 0;
+        // @ts-ignore
+        this.haveSupervise = user.supervise.length > 0;
+        // @ts-ignore
+        this.haveExamine = user.examine.length > 0;
+      });
+    }
   }
 
   ngOnInit() {

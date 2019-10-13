@@ -30,6 +30,7 @@ import {MatCheckboxModule, MatExpansionModule, MatRadioModule, MatSelectModule} 
 import { ContractMgtComponent } from './contract-mgt/contract-mgt.component';
 import { ContractViewerComponent } from './contract-viewer/contract-viewer.component';
 import { ContractDialogComponent } from './contract-dialog/contract-dialog.component';
+import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
 
 @NgModule({
   declarations: [
@@ -44,6 +45,7 @@ import { ContractDialogComponent } from './contract-dialog/contract-dialog.compo
     ContractMgtComponent,
     ContractViewerComponent,
     ContractDialogComponent,
+    ErrorDialogComponent,
   ],
     imports: [
         BrowserModule,
@@ -71,6 +73,7 @@ import { ContractDialogComponent } from './contract-dialog/contract-dialog.compo
   entryComponents: [
     LoginDialogComponent,
     ContractDialogComponent,
+    ErrorDialogComponent,
   ],
   providers: [
     HttpClientModule,

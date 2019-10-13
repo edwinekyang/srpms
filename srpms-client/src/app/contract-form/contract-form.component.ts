@@ -9,6 +9,7 @@ import {Router} from '@angular/router';
 import {MatDialog} from '@angular/material';
 import {ContractDialogComponent} from '../contract-dialog/contract-dialog.component';
 import {map} from 'rxjs/operators';
+import {ErrorDialogComponent} from '../error-dialog/error-dialog.component';
 
 @Component({
     selector: 'app-contract-form',
@@ -17,11 +18,11 @@ import {map} from 'rxjs/operators';
     providers: [ ContractFormControlService, ContractService ]
 })
 export class ContractFormComponent implements OnInit, OnChanges {
-    errorMessage: string;
     @Input() elements: ElementBase<any>[] = [];
     form: FormGroup;
     payLoad = {};
     assessment = [];
+    errorMessage = {};
     assessment1 = {};
     assessment2 = {};
     assessment3 = {};
@@ -158,44 +159,41 @@ export class ContractFormComponent implements OnInit, OnChanges {
      * 4. Creates the supervise relation of the contract
      */
     async onSubmit() {
-        this.payLoad = {
-            year: this.form.value.year,
-            semester: this.form.value.semester,
-            duration: this.form.value.duration,
-            resources: '',
-            course: this.form.value.course,
-            owner: JSON.parse(localStorage.getItem('srpmsUser')).id,
-        };
-        if (this.contractFlag === 'project') {
-            this.individualProject = {
-                individual_project: {
-                    title: this.form.value.title,
-                    objectives: this.form.value.objectives,
-                    description: this.form.value.description
-                },
+        if (confirm('Are you sure?')) {
+            this.payLoad = {
+                year: this.form.value.year,
+                semester: this.form.value.semester,
+                duration: this.form.value.duration,
+                resources: '',
+                course: this.form.value.course,
+                owner: JSON.parse(localStorage.getItem('srpmsUser')).id,
             };
-            Object.assign(this.payLoad, this.individualProject);
-        } else if (this.contractFlag === 'special') {
-            this.specialTopics = {
-                special_topics: {
-                    title: this.form.value.title,
-                    objectives: this.form.value.objectives,
-                    description: this.form.value.description
-                },
-            };
-            Object.assign(this.payLoad, this.specialTopics, {duration: 1});
-        }
-        await this.contractService.addContract(JSON.stringify(this.payLoad))
-            .toPromise().then(async (res) => {
-                this.contractId = res.id;
-                await this.addAssessmentMethod().then(async () => {
+            if (this.contractFlag === 'project') {
+                this.individualProject = {
+                    individual_project: {
+                        title: this.form.value.title,
+                        objectives: this.form.value.objectives,
+                        description: this.form.value.description
+                    },
+                };
+                Object.assign(this.payLoad, this.individualProject);
+            } else if (this.contractFlag === 'special') {
+                this.specialTopics = {
+                    special_topics: {
+                        title: this.form.value.title,
+                        objectives: this.form.value.objectives,
+                        description: this.form.value.description
+                    },
+                };
+                Object.assign(this.payLoad, this.specialTopics, {duration: 1});
+            }
+            await this.contractService.addContract(JSON.stringify(this.payLoad))
+                .toPromise().then(async (res) => {
+                    this.contractId = res.id;
+                    await this.addAssessmentMethod();
                     await this.addSupervise();
                 });
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
-                }
-            });
+        }
     }
 
     /**
@@ -213,66 +211,111 @@ export class ContractFormComponent implements OnInit, OnChanges {
             template: this.form.value.assessment1,
             contract: this.contractId,
             additional_description: this.form.value.assessment1Description,
-            due: this.form.value.assessment1Due,
             weight: this.form.value.assessment1Mark,
-            examiner: this.form.value.assessment1Examiner
         };
+        if (this.form.value.assessment1Due) {
+            Object.assign(this.assessment1, {due: this.form.value.assessment1Due, });
+        }
+        if (this.form.value.assessment1Examiner) {
+            Object.assign(this.assessment1, {examiner: this.form.value.assessment1Examiner, });
+        }
 
         this.assessment2 = {
             template: this.form.value.assessment2,
             contract: this.contractId,
             additional_description: this.form.value.assessment2Description,
-            due: this.form.value.assessment2Due,
             weight: this.form.value.assessment2Mark,
-            examiner: this.form.value.assessment2Examiner
         };
+        if (this.form.value.assessment2Due) {
+            Object.assign(this.assessment2, {due: this.form.value.assessment2Due, });
+        }
+        if (this.form.value.assessment2Examiner) {
+            Object.assign(this.assessment2, {examiner: this.form.value.assessment2Examiner, });
+        }
 
         this.assessment3 = {
             template: this.form.value.assessment3,
             contract: this.contractId,
             additional_description: this.form.value.assessment3Description,
-            due: this.form.value.assessment3Due,
             weight: this.form.value.assessment3Mark,
-            examiner: this.form.value.assessment3Examiner
         };
-
+        if (this.form.value.assessment3Due) {
+            Object.assign(this.assessment3, {due: this.form.value.assessment3Due, });
+        }
+        if (this.form.value.assessment3Examiner) {
+            Object.assign(this.assessment3, {examiner: this.form.value.assessment3Examiner, });
+        }
         this.assessment.push(this.assessment1, this.assessment2, this.assessment3);
         await this.contractMgtService.getAssessments(this.contractId)
             .pipe(
                 map( assessments => {
-                    assessments.map(assessment => {
+                    assessments.map(async assessment => {
                         if (assessment.template === 1) {
                             const promisePatch1 = this.contractService.patchAssessment(this.contractId, assessment.id,
                                 JSON.stringify(this.assessment1)).toPromise();
-                            Promise.race([promisePatch1]);
+                            await Promise.race([promisePatch1]).catch((err: HttpErrorResponse) => {
+                                if (Math.floor(err.status / 100) === 4) {
+                                    Object.assign(this.errorMessage, err.error);
+                                }
+                            });
                             // @ts-ignore
                             if (this.assessment1.examiner) {
                                 const promiseAdd1 = this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
                                     // @ts-ignore
                                     examiner: this.assessment1.examiner,
                                 })).toPromise();
-                                Promise.race([promiseAdd1]);
+                                await Promise.race([promiseAdd1]).catch((err: HttpErrorResponse) => {
+                                    if (Math.floor(err.status / 100) === 4) {
+                                        Object.assign(this.errorMessage, err.error);
+                                    }
+                                });
                             }
                         }
                         if (assessment.template === 2) {
-                            const promiseAdd2 = this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
-                                // @ts-ignore
-                                examiner: this.assessment2.examiner,
-                            })).toPromise();
-                            Promise.race([promiseAdd2]);
+                            // @ts-ignore
+                            if (this.assessment2.examiner) {
+                                const promiseAdd2 = this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                    // @ts-ignore
+                                    examiner: this.assessment2.examiner,
+                                })).toPromise();
+                                await Promise.race([promiseAdd2]).catch((err: HttpErrorResponse) => {
+                                    if (Math.floor(err.status / 100) === 4) {
+                                        Object.assign(this.errorMessage, err.error);
+                                    }
+                                });
+                            }
                             const promisePatch2 = this.contractService.patchAssessment(this.contractId, assessment.id,
                                 JSON.stringify(this.assessment2)).toPromise();
-                            Promise.race([promisePatch2]);
+                            await Promise.race([promisePatch2]).catch(err => {
+                                if (Math.floor(err.status / 100) === 4) {
+                                    Object.assign(this.errorMessage, {
+                                        assessment2Weight: err.error
+                                    });
+                                }
+                            });
                         }
                         if (assessment.template === 3) {
-                            const promiseAdd3 = this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
-                                // @ts-ignore
-                                examiner: this.assessment3.examiner,
-                            })).toPromise();
-                            Promise.race([promiseAdd3]);
+                            // @ts-ignore
+                            if (this.assessment3.examiner) {
+                                const promiseAdd3 = this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                    // @ts-ignore
+                                    examiner: this.assessment3.examiner,
+                                })).toPromise();
+                                await Promise.race([promiseAdd3]).catch((err: HttpErrorResponse) => {
+                                    if (Math.floor(err.status / 100) === 4) {
+                                        Object.assign(this.errorMessage, err.error);
+                                    }
+                                });
+                            }
                             const promisePatch3 = this.contractService.patchAssessment(this.contractId, assessment.id,
                                 JSON.stringify(this.assessment3)).toPromise();
-                            Promise.race([promisePatch3]);
+                            await Promise.race([promisePatch3]).catch(err => {
+                                if (Math.floor(err.status / 100) === 4) {
+                                    Object.assign(this.errorMessage, {
+                                        assessment3Weight: err.error
+                                    });
+                                }
+                            });
                         }
                     });
                 })
@@ -293,11 +336,15 @@ export class ContractFormComponent implements OnInit, OnChanges {
         };
 
         await this.contractService.addSupervise(this.contractId, JSON.stringify(this.supervise))
-            .toPromise().then(() => {
-                this.openSuccessDialog();
-            }, error => {
-                if (error instanceof HttpErrorResponse) {
-                    this.errorMessage = error.error.detail;
+            .toPromise().catch((err: HttpErrorResponse) => {
+                if (Math.floor(err.status / 100) === 4) {
+                    Object.assign(this.errorMessage, err.error);
+                }
+            }).then(() => {
+                if (Object.keys(this.errorMessage).length) {
+                    this.openFailDialog();
+                } else {
+                    this.openSuccessDialog();
                 }
             });
     }
@@ -308,6 +355,17 @@ export class ContractFormComponent implements OnInit, OnChanges {
     private openSuccessDialog() {
         const dialogRef = this.dialog.open(ContractDialogComponent, {
             width: '400px',
+        });
+
+        dialogRef.afterClosed().subscribe(() => {
+            this.router.navigate(['/submit']).then(() => {});
+        });
+    }
+
+    private openFailDialog() {
+        const dialogRef = this.dialog.open(ErrorDialogComponent, {
+            width: '400px',
+            data: this.errorMessage,
         });
 
         dialogRef.afterClosed().subscribe(() => {
