@@ -99,6 +99,12 @@ class IndividualProject(utils.SrpmsTest):
                          data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def set_convener_approve(self):
+        """Set convener approval for the contract"""
+        response = self.convener.put(utils.get_contract_url(self.contract_id, approve=True),
+                                     data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def setUp(self):
         super(IndividualProject, self).setUp()
 
@@ -633,5 +639,20 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise_approve()
         self.set_examiner_approve()
 
-        resposne = self.superuser.get(utils.ApiUrls.mgt_user)
-        self.assertEqual(resposne.status_code, status.HTTP_200_OK)
+        response = self.superuser.get(utils.ApiUrls.mgt_user)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_print(self):
+        """Test if contract printing function works correctly"""
+        self.set_supervise()
+        self.set_submit()
+        self.set_examine()
+        self.set_supervise_approve()
+        self.set_examiner_approve()
+        self.set_convener_approve()
+
+        response = self.user_01.get(utils.get_contract_url(self.contract_id, print=True),
+                                    data.get_approve_data(False))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.get('content-type'), 'application/pdf')
+        self.assertTrue(int(response.get('Content-Length')) > 1000)

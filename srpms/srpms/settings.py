@@ -217,9 +217,11 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'srpms.utils.custom_exception_handler'
 }
 
-# Disable browsable API in production
-if not DEBUG:
-    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = ('rest_framework.renderers.JSONRenderer',)
+# FIXME: Disable browsable API in production. Browsable API is current enable even for production
+#        settings, however this would hamper the database performance, as browsable API does a lot
+#        of query to allow auto complete.
+# if not DEBUG:
+#     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = ('rest_framework.renderers.JSONRenderer',)
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),

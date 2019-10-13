@@ -32,7 +32,6 @@ from . import models
 from . import permissions as app_perms
 from .print import print_individual_project_contract
 from accounts.models import SrpmsUser
-from srpms.settings import MEDIA_URL
 from .serializer_utils import SubmitSerializer, ApproveSerializer
 from .filters import UserFilter
 from .signals import (CONTRACT_SUBMIT, CONTRACT_APPROVE, SUPERVISE_APPROVE, EXAMINER_APPROVE,
@@ -88,6 +87,10 @@ class ContractViewSet(ModelViewSet):
     """
     A view the allow users to Create, Retrieve, Update, Delete contracts. Also have submit and
     approve action to support contract administration.
+
+    Please note that the API current have two nested serializer, 'individual_project' and
+    'special_topic', and only one of them is allowed, the other one should be removed or
+    set to null in JSON data for POST, PUT, or PATCH methods.
     """
     serializer_class = serializers.ContractSerializer
     permission_classes = default_perms + [app_perms.AllowSafeMethods |
@@ -235,10 +238,11 @@ class ContractViewSet(ModelViewSet):
             file_object = None
             try:
                 file_object = BytesIO()
-                print_individual_project_contract(contract, file_object)
+                print_individual_project_contract(contract, file_object,
+                                                  base_url=request.build_absolute_uri())
                 response = HttpResponse(file_object.getvalue(),
                                         content_type='application/pdf')
-                response['Content-Disposition'] = 'inline; filename=test.pdf'
+                response['Content-Disposition'] = 'inline; filename=contract.pdf'
                 return response
             except Exception as exc:
                 raise exc
