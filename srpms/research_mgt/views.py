@@ -35,11 +35,12 @@ from .models import (Course, AssessmentTemplate, Contract, Supervise, Assessment
                      AssessmentExamine, ActivityLog)
 from .permissions import (AllowSafeMethods, AllowPOST,
                           IsConvener, IsSuperuser, IsContractOwner,
-                          IsContractSupervisor, IsContractFormalSupervisor,
-                          IsContractSuperviseOwner,
+                          IsContractFormalSupervisor,
+                          IsContractSuperviseOwner, IsThisSupervisorNotApprove,
+                          IsSuperviseNominator,
                           IsContractAssessmentExaminer, IsExaminerNominator,
                           ContractSubmitted, ContractNotSubmitted,
-                          ContractNotApprovedBySupervisor, ContractApprovedBySupervisor,
+                          ContractApprovedBySupervisor,
                           ContractNotFinalApproved, ContractFinalApproved)
 from .print import print_individual_project_contract
 from .serializer_utils import SubmitSerializer, ApproveSerializer
@@ -185,7 +186,7 @@ class ContractViewSet(ModelViewSet):
         """
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            contract = self.get_object()
+            contract: Contract = self.get_object()
             approve_date = serializer.validated_data['approve']
 
             if approve_date:
@@ -195,13 +196,13 @@ class ContractViewSet(ModelViewSet):
                 contract.convener_approval_date = approve_date
                 contract.save()
             else:
-                # On disapproval, clear all supervisor approvals. Use atomic as we need to
+                # On disapproval, clear all formal supervisor's approvals. Use atomic as we need to
                 # save multiple objects
                 with transaction.atomic():
                     contract.convener = None
                     contract.convener_approval_date = None
                     contract.save()
-                    for supervise in contract.supervise.all():
+                    for supervise in contract.supervise.filter(is_formal=True):
                         supervise.supervisor_approval_date = None
                         supervise.save()
 
@@ -265,9 +266,9 @@ class AssessmentExamineViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModel
     permission_classes = default_perms + [AllowSafeMethods | IsSuperuser |
                                           (IsConvener & ContractSubmitted &
                                            ContractNotFinalApproved) |
-                                          (IsContractSupervisor & ContractSubmitted &
-                                           ContractNotApprovedBySupervisor &
-                                           ContractNotFinalApproved & IsExaminerNominator), ]
+                                          (IsContractFormalSupervisor & ContractSubmitted &
+                                           IsThisSupervisorNotApprove & ContractNotFinalApproved &
+                                           IsExaminerNominator), ]
 
     def perform_create(self, serializer: AssessmentExamineSerializer):
         """Override the default method to automatically attach relevant objects."""
@@ -390,9 +391,8 @@ class SuperviseViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
                                           (IsConvener & ContractSubmitted) |
                                           (IsContractOwner & ContractNotSubmitted &
                                            ContractNotFinalApproved) |
-                                          (IsContractFormalSupervisor &
-                                           ContractNotApprovedBySupervisor &
-                                           ContractNotFinalApproved), ]
+                                          (IsContractFormalSupervisor & IsThisSupervisorNotApprove &
+                                           IsSuperviseNominator & ContractNotFinalApproved), ]
 
     def perform_create(self, serializer: SuperviseSerializer):
         """
@@ -428,8 +428,7 @@ class SuperviseViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
             supervise: Supervise = self.get_object()
 
             # Supervisor cannot undo their approval
-            if not IsSuperuser.check(request.user) and \
-                    not IsConvener.check(request.user) and \
+            if not IsSuperuser.check(request.user) and not IsConvener.check(request.user) and \
                     supervise.supervisor_approval_date:
                 raise PermissionDenied('Action on approved item is not allowed, please contact '
                                        'convener if you need to disapprove.')
@@ -437,7 +436,17 @@ class SuperviseViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
             # Wrap with transaction since we may need to modify related objects, this would
             # let all related database commits rollback to previous state if any commit fail.
             with transaction.atomic():
+                contract: Contract = self.resolved_parents['contract']
                 if serializer.validated_data['approve']:
+
+                    # Formal supervisor approve check
+                    if IsContractFormalSupervisor.check(contract, request.user):
+                        # All assessment must have at least on examiner
+                        for assessment in contract.assessment.all():
+                            if len(assessment.assessment_examine.all()) < 1:
+                                raise ValidationError('Please make sure you\'ve assigned at least '
+                                                      'one examiner for each assessment.')
+
                     supervise.supervisor_approval_date = serializer.validated_data['approve']
                     supervise.save()
                 else:
@@ -477,7 +486,7 @@ class SuperviseViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
         serializer.validated_data['contract'] = self.resolved_parents['contract']
         serializer.validated_data['nominator'] = self.request.user
 
-        # Check if supervisor is approved, if yes, set the is_formal attribute
+        # Check if supervisor has 'can_supervise' permission, if yes, set the is_formal attribute
         supervisor = serializer.validated_data['supervisor']
         if supervisor.has_perm('research_mgt.can_supervise'):
             serializer.validated_data['is_formal'] = True
@@ -485,13 +494,25 @@ class SuperviseViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
             serializer.validated_data['is_formal'] = False
 
     def check_field_permission(self, serializer: SuperviseSerializer) -> None:
-        """Forbid normal user to nominate unapproved supervisors"""
+        """
+        Forbid supervisor if he/she already approved, also forbid normal user to nominate
+        unapproved supervisors.
+        """
 
         requester: SrpmsUser = self.request.user
         if IsSuperuser.check(requester) or IsConvener.check(requester):
             pass  # Superuser and convener can nominate whoever they want as supervisor
         elif IsContractFormalSupervisor.check(self.resolved_parents['contract'],
                                               requester):
+            # Forbid supervisor if he/she already approved
+            try:
+                supervise = Supervise.objects.get(contract=self.resolved_parents['contract'],
+                                                  supervisor=requester)
+                if supervise.supervisor_approval_date:
+                    raise PermissionDenied('Further modification is forbidden after you approved')
+            except Supervise.DoesNotExist:
+                pass
+
             pass  # User with 'can_supervise' permission can nominate whoever they want
         elif serializer.validated_data['is_formal']:
             pass  # User can nominate user who has 'can_supervise' permission as supervisor

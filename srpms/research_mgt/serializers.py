@@ -122,17 +122,35 @@ class SuperviseSerializer(serializers.ModelSerializer):
     def create(self, validated_data: dict):
         """
         Forbid more than 1 formal supervisor for individual project
+        TODO: Non-formal supervisor would not get any notification currently
 
         Args:
             validated_data: a dictionary contain the data a request sent, already validated
         """
         contract: Contract = validated_data['contract']
-        if hasattr(contract, 'individual_project') and \
+        if hasattr(contract, 'individual_project') and validated_data['is_formal'] and \
                 len(Supervise.objects.filter(contract=contract, is_formal=True)) >= 1:
             raise serializers.ValidationError(
-                    'Individual project does not allowed more than 1 supervisor.')
+                    'Individual project does not allowed more than 1 formal supervisor.')
 
         return super(SuperviseSerializer, self).create(validated_data)
+
+    def update(self, instance: Supervise, validated_data: dict):
+        """
+        Clear supervisor's approval if the supervisor field is being updated.
+        TODO: Non-formal supervisor would not get any notification currently
+
+        Args:
+            instance: the object that is being updated
+            validated_data: a dictionary contain the data a request sent, already validated
+        """
+        new_supervisor = validated_data.get('supervisor', None)
+        if new_supervisor and instance.supervisor_approval_date and \
+                instance.supervisor != validated_data['supervisor']:
+            instance.supervisor_approval_date = None
+            # TODO: Notify supervisor that his/her approval has been cleared
+
+        return super(SuperviseSerializer, self).update(instance, validated_data)
 
 
 class AssessmentExamineSerializer(serializers.ModelSerializer):
@@ -175,9 +193,10 @@ class AssessmentExamineSerializer(serializers.ModelSerializer):
 
         return super(AssessmentExamineSerializer, self).create(validated_data)
 
-    def update(self, instance: AssessmentExamine,
-               validated_data) -> AssessmentExamine:
+    def update(self, instance: AssessmentExamine, validated_data) -> AssessmentExamine:
         """
+        Allow write for nested examiner field, automatically create missing Examine
+        relation for new AssessmentExamine relation.
 
         Args:
             instance: the object that is being updated
@@ -195,11 +214,10 @@ class AssessmentExamineSerializer(serializers.ModelSerializer):
         # This is for the case where convener disapprove examiner, in this case the existing
         # examiner might already approved, but the supervisor's approval has been cleared because
         # of convener's disapprove.
-        if examine and \
-                instance.examine.examiner != examine.examiner and \
+        if examine and instance.examine.examiner != examine.examiner and \
                 instance.examiner_approval_date:
             validated_data['examiner_approval_date'] = None
-            # TODO: Notify examiner that their approval has been cleared
+            # TODO: Notify examiner that his/her approval has been cleared
 
         return super(AssessmentExamineSerializer, self).update(instance, validated_data)
 
@@ -269,11 +287,14 @@ class ContractSerializer(serializers.ModelSerializer):
                   'supervise', 'is_all_supervisors_approved',
                   'assessment', 'is_all_assessments_approved']
 
-    def create(self, validated_data: dict):
+    def create(self, validated_data: dict) -> Contract:
         """
         Nested field does not support write by DRF, we have to do it ourselves
 
         https://www.django-rest-framework.org/api-guide/serializers/#writing-create-methods-for-nested-representations
+
+        Args:
+            validated_data: a dictionary contain the data a request sent, already validated
         """
         if validated_data.get('submit_date', False):
             raise serializers.ValidationError('You can\'t submit a contract on creation')
@@ -301,8 +322,7 @@ class ContractSerializer(serializers.ModelSerializer):
             # transaction to make sure all creation success, otherwise rollback to previous
             # state.
             with transaction.atomic():
-                contract = IndividualProject.objects.create(**validated_data,
-                                                            **individual_project)
+                contract = IndividualProject.objects.create(**validated_data, **individual_project)
                 Assessment.objects.create(
                         template=AssessmentTemplate.objects.get(name='report'),
                         contract=contract)
@@ -316,11 +336,15 @@ class ContractSerializer(serializers.ModelSerializer):
         if special_topic:
             return SpecialTopic.objects.create(**validated_data, **special_topic)
 
-    def update(self, instance: Contract, validated_data: dict):
+    def update(self, instance: Contract, validated_data: dict) -> Contract:
         """
         Nested field does not support write by DRF, we have to do it ourselves
 
         https://www.django-rest-framework.org/api-guide/serializers/#writing-update-methods-for-nested-representations
+
+        Args:
+            instance: the object that is being updated
+            validated_data: a dictionary contain the data a request sent, already validated
         """
         try:
             # We can't use get() because we need to treat missing key and

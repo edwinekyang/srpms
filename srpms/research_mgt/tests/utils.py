@@ -60,13 +60,13 @@ def get_contract_url(contract_id: int = None, submit: bool = False, approve: boo
 
 def get_supervise_url(contract_id: int, supervise_id: int = None, approve: bool = False) -> str:
     """
-    Return supervise list url, or supervise detail url, depending on whether the supervise_id
-    is specified. Note that 'approve' is only valid when supervise_id is given.
+    Return supervise list url, or supervise detail url, depending on whether the supervise_formal_id
+    is specified. Note that 'approve' is only valid when supervise_formal_id is given.
 
     Args:
         contract_id: for specifying parent url
         supervise_id: for generating supervise detail url
-        approve: for generating approval url given a supervise_id
+        approve: for generating approval url given a supervise_formal_id
     """
 
     if not supervise_id:

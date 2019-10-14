@@ -162,11 +162,11 @@ def contract_approve_notifications(contract: Contract, activity_log: ActivityLog
                       [address])
     # Disapprove
     elif activity_log.action == ACTION_CONTRACT_DISAPPROVE:
-        # Inform supervisors. Contract owner is not being notified here, since the owner would
-        # need to wait for supervisor's disapproval before editing the contract. Also, if it's
-        # just a matter of changing examiner, the contract owner doesn't really need to be
+        # Inform formal supervisors. Contract owner is not being notified here, since the owner
+        # would need to wait for supervisor's disapproval before editing the contract. Also, if
+        # it's just a matter of changing examiner, the contract owner doesn't really need to be
         # involve.
-        for address in get_email_addr(contract.get_all_supervisors()):
+        for address in get_email_addr(contract.get_all_formal_supervisors()):
             send_mail('Contract disapproved by convener',
                       'Contract "{contract_title}" has been disapproved by convener {convener_name}'
                       '{disapprove_reason}'
@@ -199,21 +199,18 @@ def supervise_approve_notifications(supervise: Supervise, activity_log: Activity
                           supervisor_name=supervise.supervisor.get_display_name()),
                   EMAIL_SENDER,
                   get_email_addr([supervise.contract.owner]))
-        # Inform examiners, exclude the course convener
-        perm = Permission.objects.get(codename='can_convene')
-        for address in get_email_addr(SrpmsUser.objects.filter(
-                ~Q(groups__permissions=perm) & ~Q(user_permissions=perm) & Q(is_superuser=False),
-                Q(examine__nominator=supervise.supervisor) |
-                Q(examine__nominator=activity_log.actor),
-                examine__contract=supervise.contract,
-                examine__assessment_examine__examiner_approval_date__isnull=True)):
-            send_mail('New contract assessment',
-                      'Contract "{contract_title}"\'s supervisor {supervisor_name} invites you '
-                      'as the examiner for its assessment.'
-                      .format(contract_title=str(supervise.contract),
-                              supervisor_name=supervise.supervisor.get_display_name()),
-                      EMAIL_SENDER,
-                      [address])
+        # Inform examiners on all supervisor approval passed, exclude the course convener
+        if supervise.contract.is_all_supervisors_approved():
+            perm = Permission.objects.get(codename='can_convene')
+            for address in get_email_addr(SrpmsUser.objects.filter(
+                    ~Q(groups__permissions=perm) & ~Q(user_permissions=perm) &
+                    Q(is_superuser=False),
+                    examine__contract=supervise.contract,
+                    examine__assessment_examine__examiner_approval_date__isnull=True)):
+                send_mail('New contract assessment',
+                          'Contract "{contract_title}"\'s invites you '
+                          'as the examiner for its assessment.'
+                          .format(contract_title=str(supervise.contract)), EMAIL_SENDER, [address])
     # Disapprove
     elif activity_log.action == ACTION_SUPERVISE_DISAPPROVE:
         # Inform contract owner

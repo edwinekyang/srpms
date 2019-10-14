@@ -158,14 +158,12 @@ class TestSupervise(utils.SrpmsTest):
         response = self.convener.put(supervise_url, req)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Contract formal supervisor is allowed to edit
+        # Contract formal supervisor isn't allowed to edit, because not the nominator
         req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_non_formal.id, False)
         response = self.supervisor_formal.put(supervise_url, req)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data.pop('id'))
-        assert_supervise_response(self, response, resp)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
-        # Contract non-formal supervisor is allowed to edit
+        # Contract non-formal supervisor isn't allowed to edit
         req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_formal.id, True)
         response = self.supervisor_formal.put(supervise_url, req)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -202,14 +200,12 @@ class TestSupervise(utils.SrpmsTest):
         response = self.convener.put(supervise_url, req)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Contract formal supervisor is allowed to edit
+        # Contract formal supervisor isn't allowed to edit, not the nominator
         req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_non_formal.id, False)
         response = self.supervisor_formal.put(supervise_url, req)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data.pop('id'))
-        assert_supervise_response(self, response, resp)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Contract non-formal supervisor is allowed to edit
+        # Contract non-formal supervisor isn't allowed to edit
         req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_formal.id, True)
         response = self.supervisor_formal.put(supervise_url, req)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -246,14 +242,12 @@ class TestSupervise(utils.SrpmsTest):
         response = self.convener.patch(supervise_url, req)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Contract formal supervisor is allowed to edit
+        # Contract formal supervisor isn't allowed to edit
         req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_non_formal.id, False)
         response = self.supervisor_formal.patch(supervise_url, req)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data.pop('id'))
-        assert_supervise_response(self, response, resp)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Contract non-formal supervisor is allowed to edit
+        # Contract non-formal supervisor isn't allowed to edit
         req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_formal.id, True)
         response = self.supervisor_formal.patch(supervise_url, req)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -293,9 +287,7 @@ class TestSupervise(utils.SrpmsTest):
         # Contract formal supervisor is allowed to edit
         req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_non_formal.id, False)
         response = self.supervisor_formal.patch(supervise_url, req)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data.pop('id'))
-        assert_supervise_response(self, response, resp)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Contract non-formal supervisor is allowed to edit
         req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_formal.id, True)
@@ -314,14 +306,14 @@ class TestSupervise(utils.SrpmsTest):
         contract_id = self.contract_individual['id']
 
         # Create a supervise relation
-        req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_non_formal.id, True)
-        response = self.superuser.post(utils.get_supervise_url(contract_id), req)
+        req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_formal.id, True)
+        response = self.user_01.post(utils.get_supervise_url(contract_id), req)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         supervise_url = utils.get_supervise_url(contract_id, response.data['id'])
 
         # Contract owner is allowed to deleted
         response = self.user_01.delete(supervise_url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
         response = self.user_01.delete(supervise_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -348,8 +340,8 @@ class TestSupervise(utils.SrpmsTest):
         contract_id = self.contract_special['id']
 
         # Create a supervise relation
-        req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_non_formal.id, True)
-        response = self.superuser.post(utils.get_supervise_url(contract_id), req)
+        req, resp = data.gen_supervise_req_resp(contract_id, self.supervisor_formal.id, True)
+        response = self.user_02.post(utils.get_supervise_url(contract_id), req)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         supervise_url = utils.get_supervise_url(contract_id, response.data['id'])
 

@@ -20,8 +20,8 @@ from rest_framework import viewsets
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.request import Request
 
-from . import models
 from . import views
+from .models import (Contract, Supervise, Assessment, AssessmentExamine)
 from accounts.models import SrpmsUser
 
 
@@ -86,7 +86,7 @@ class IsContractOwner(BasePermission):
     """Check if the requester is the owner of the requested contract"""
 
     @staticmethod
-    def check(contract: models.Contract, user: SrpmsUser):
+    def check(contract: Contract, user: SrpmsUser):
         return contract.owner == user
 
     def has_permission(self, request, view) -> bool:
@@ -95,7 +95,7 @@ class IsContractOwner(BasePermission):
         elif isinstance(view, views.SuperviseViewSet):
             return self.check(view.resolved_parents['contract'], request.user)
         elif isinstance(view, views.AssessmentViewSet):
-            contract: models.Contract = view.resolved_parents['contract']
+            contract: Contract = view.resolved_parents['contract']
             if hasattr(contract, 'individual_project') and request.method in ['POST', 'DELETE']:
                 return False
             else:
@@ -104,11 +104,11 @@ class IsContractOwner(BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.Contract):
+        if isinstance(obj, Contract):
             return self.check(obj, request.user)
-        elif isinstance(obj, models.Assessment):
+        elif isinstance(obj, Assessment):
             return self.check(obj.contract, request.user)
-        elif isinstance(obj, models.Supervise):
+        elif isinstance(obj, Supervise):
             return self.check(obj.contract, request.user)
 
         return False
@@ -118,33 +118,8 @@ class IsContractFormalSupervisor(BasePermission):
     """Check if the requester is one of the contract formal supervisor"""
 
     @staticmethod
-    def check(contract: models.Contract, user: SrpmsUser) -> bool:
-        if user in contract.get_all_formal_supervisors():
-            return True
-        return False
-
-    def has_permission(self, request, view) -> bool:
-        if isinstance(view, views.SuperviseViewSet):
-            return self.check(view.resolved_parents['contract'], request.user)
-        return False
-
-    def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.Supervise):
-            return self.check(obj.contract, request.user)
-        return False
-
-
-class IsContractSupervisor(BasePermission):
-    """
-    Check if the requester is one of the contract supervisor, this includes both formal
-    and non-formal supervisor.
-    """
-
-    @staticmethod
-    def check(contract: models.Contract, user: SrpmsUser) -> bool:
-        if user in contract.get_all_supervisors():
-            return True
-        return False
+    def check(contract: Contract, user: SrpmsUser) -> bool:
+        return user in contract.get_all_formal_supervisors()
 
     def has_permission(self, request, view) -> bool:
         if isinstance(view, views.SuperviseViewSet):
@@ -154,11 +129,10 @@ class IsContractSupervisor(BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.AssessmentExamine):
+        if isinstance(obj, Supervise):
             return self.check(obj.contract, request.user)
-        elif isinstance(obj, models.Supervise):
+        elif isinstance(obj, AssessmentExamine):
             return self.check(obj.contract, request.user)
-
         return False
 
 
@@ -173,7 +147,7 @@ class IsContractSuperviseOwner(BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.Supervise):
+        if isinstance(obj, Supervise):
             return obj.supervisor == request.user
         return False
 
@@ -190,7 +164,7 @@ class IsContractAssessmentExaminer(BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.AssessmentExamine):
+        if isinstance(obj, AssessmentExamine):
             return obj.examine.examiner == request.user
         return False
 
@@ -210,13 +184,13 @@ class ContractNotFinalApproved(BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.Contract):
+        if isinstance(obj, Contract):
             return not obj.is_convener_approved()
-        elif isinstance(obj, models.Supervise):
+        elif isinstance(obj, Supervise):
             return not obj.contract.is_convener_approved()
-        elif isinstance(obj, models.Assessment):
+        elif isinstance(obj, Assessment):
             return not obj.contract.is_convener_approved()
-        elif isinstance(obj, models.AssessmentExamine):
+        elif isinstance(obj, AssessmentExamine):
             return not obj.contract.is_convener_approved()
         return False
 
@@ -234,11 +208,11 @@ class ContractSubmitted(BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.Supervise):
+        if isinstance(obj, Supervise):
             return obj.contract.is_submitted()
-        elif isinstance(obj, models.AssessmentExamine):
+        elif isinstance(obj, AssessmentExamine):
             return obj.contract.is_submitted()
-        elif isinstance(obj, models.Assessment):
+        elif isinstance(obj, Assessment):
             return not obj.contract.is_submitted()
         return False
 
@@ -256,11 +230,11 @@ class ContractNotSubmitted(BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.Supervise):
+        if isinstance(obj, Supervise):
             return not obj.contract.is_submitted()
-        elif isinstance(obj, models.Contract):
+        elif isinstance(obj, Contract):
             return not obj.is_submitted()
-        elif isinstance(obj, models.Assessment):
+        elif isinstance(obj, Assessment):
             return not obj.contract.is_submitted()
         return False
 
@@ -269,7 +243,7 @@ class ContractApprovedBySupervisor(BasePermission):
     """Check if the requested contract has been approved by all of its supervisors"""
 
     @staticmethod
-    def check(contract: models.Contract):
+    def check(contract: Contract) -> bool:
         return contract.is_all_supervisors_approved()
 
     def has_permission(self, request, view) -> bool:
@@ -278,30 +252,40 @@ class ContractApprovedBySupervisor(BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.AssessmentExamine):
+        if isinstance(obj, AssessmentExamine):
             return self.check(obj.contract)
         return False
 
 
-class ContractNotApprovedBySupervisor(BasePermission):
-    """Check if the requested contract hasn't been approved by all of its supervisors"""
+class IsThisSupervisorNotApprove(BasePermission):
+    """Check if the supervise relation has been approve by the requester"""
 
     @staticmethod
-    def check(contract: models.Contract):
-        return not contract.is_all_supervisors_approved()
+    def check(supervise: Supervise, user: SrpmsUser) -> bool:
+        return supervise.supervisor == user and not supervise.supervisor_approval_date
 
     def has_permission(self, request, view) -> bool:
         if isinstance(view, views.AssessmentExamineViewSet):
-            return self.check(view.resolved_parents['contract'])
+            contract: Contract = view.resolved_parents['contract']
+            try:
+                supervise = contract.supervise.get(supervisor=request.user)
+                return self.check(supervise, request.user)
+            except Supervise.DoesNotExist:
+                return False
         elif isinstance(view, views.SuperviseViewSet):
-            return self.check(view.resolved_parents['contract'])
+            return True
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.AssessmentExamine):
-            return self.check(obj.contract)
-        if isinstance(obj, models.Supervise):
-            return self.check(obj.contract)
+        if isinstance(obj, AssessmentExamine):
+            contract: Contract = view.resolved_parents['contract']
+            try:
+                supervise = contract.supervise.get(supervisor=request.user)
+                return self.check(supervise, request.user)
+            except Supervise.DoesNotExist:
+                return False
+        if isinstance(obj, Supervise):
+            return self.check(obj, request.user)
         return False
 
 
@@ -309,16 +293,16 @@ class IsExaminerNominator(BasePermission):
     """Check if the requester is the nominator of this examiner"""
 
     @staticmethod
-    def check(assessment_examine: models.AssessmentExamine, user):
+    def check(assessment_examine: AssessmentExamine, user):
         return assessment_examine.examine.nominator == user
 
     def has_permission(self, request, view) -> bool:
         if isinstance(view, views.AssessmentExamineViewSet):
-            return IsContractSupervisor.check(view.resolved_parents['contract'], request.user)
+            return True
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.AssessmentExamine):
+        if isinstance(obj, AssessmentExamine):
             return self.check(obj, request.user)
         return False
 
@@ -332,6 +316,20 @@ class ContractFinalApproved(BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if isinstance(obj, models.Contract):
+        if isinstance(obj, Contract):
             return bool(obj.convener_approval_date)
+        return False
+
+
+class IsSuperviseNominator(BasePermission):
+    """Check if the requester is the nominator of this supervise relationship"""
+
+    def has_permission(self, request, view) -> bool:
+        if isinstance(view, views.SuperviseViewSet):
+            return True
+        return False
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        if isinstance(obj, Supervise):
+            return obj.nominator == request.user
         return False
