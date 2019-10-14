@@ -21,9 +21,12 @@ export class ContractComponent implements OnInit {
   courseValue: string;
 
   constructor(
-    public elementService: ElementService
+      public elementService: ElementService
   ) {
+    // Retrieves the list of form elements
     this.elements = this.elementService.getElements();
+
+    // Filters the course dropdown only for the page initialisation
     this.elements.forEach((data: any) => {
       if (data.key === 'course') {
         this.courseElement.push(data);
@@ -31,10 +34,14 @@ export class ContractComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
+  ngOnInit() {}
 
-  }
-
+  /**
+   * Receives the flag from ContractFormComponent after the user has selected the course
+   * and filters form element based on the received flag value (either 'project' or 'special')
+   *
+   * @param $event - Object that contains the flag and course value
+   */
   receiveFormFlag($event) {
     this.filteredElements = [];
     this.formFlag = $event.formFlag;

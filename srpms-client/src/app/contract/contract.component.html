@@ -6,7 +6,7 @@
 <mat-card class="form-card">
     <p *ngIf="!formFlag" class="mat-h4"><b>*Please choose the course from the Course List first</b></p>
 <div *ngIf="formFlag; else elseBlock">
-    <app-contract-form [courseSelected]="courseValue" [elements]="filteredElements"
+    <app-contract-form [courseSelected]="courseValue" [elements]="filteredElements" [contractFlag]="formFlag"
                        (formFlagEvent)="receiveFormFlag($event)"></app-contract-form>
 </div>
 <ng-template #elseBlock>

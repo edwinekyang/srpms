@@ -29,6 +29,8 @@ import { ContractFormElementComponent } from './contract-form-element/contract-f
 import {MatCheckboxModule, MatExpansionModule, MatRadioModule, MatSelectModule} from '@angular/material';
 import { ContractMgtComponent } from './contract-mgt/contract-mgt.component';
 import { ContractViewerComponent } from './contract-viewer/contract-viewer.component';
+import { ContractDialogComponent } from './contract-dialog/contract-dialog.component';
+import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
 
 @NgModule({
   declarations: [
@@ -42,6 +44,8 @@ import { ContractViewerComponent } from './contract-viewer/contract-viewer.compo
     ContractFormElementComponent,
     ContractMgtComponent,
     ContractViewerComponent,
+    ContractDialogComponent,
+    ErrorDialogComponent,
   ],
     imports: [
         BrowserModule,
@@ -67,7 +71,9 @@ import { ContractViewerComponent } from './contract-viewer/contract-viewer.compo
         MatExpansionModule,
     ],
   entryComponents: [
-    LoginDialogComponent
+    LoginDialogComponent,
+    ContractDialogComponent,
+    ErrorDialogComponent,
   ],
   providers: [
     HttpClientModule,

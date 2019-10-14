@@ -1,0 +1,44 @@
+.form-container {
+
+}
+
+.form-container > * {
+  width: 100%;
+
+}
+
+.radiobox {
+  margin: 4% 0 0 4%;
+}
+
+mat-radio-button {
+  margin-right: 1em;
+}
+
+.form-element {
+  float: left;
+  width: 40%;
+  margin: 1em 5%;
+  height: 60px;
+}
+
+.section-last-element {
+  float: left;
+  width: 40%;
+  margin: 1em 5% 2em;
+}
+
+.new-line {
+  clear: both;
+  position: relative;
+  margin-bottom: 1em;
+  padding-top: 2em;
+}
+
+.form-submit-button {
+  width: 100%;
+}
+
+.form-card {
+  margin: 0 7em 0;
+}
