@@ -106,6 +106,13 @@ class Contract(models.Model):
         return not bool(SrpmsUser.objects.filter(supervise__contract=self,
                                                  supervise__supervisor_approval_date__isnull=True))
 
+    def is_examiner_nominated(self) -> bool:
+        """Check if all assessments have at least one examiner"""
+        for assessment in self.assessment.all():
+            if not AssessmentExamine.objects.filter(assessment=assessment):
+                return False
+        return True
+
     def is_convener_approved(self) -> bool:
         """No one should be allowed to change after convener approved"""
         return bool(self.convener_approval_date)
