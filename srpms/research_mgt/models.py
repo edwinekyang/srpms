@@ -116,13 +116,14 @@ class Contract(models.Model):
         of the contract does not belong to any assessment, in this case only examiners
         part of a assessment would be return.
         """
-        return SrpmsUser.objects.filter(examine__assessment_examine__contract=self)
+        return SrpmsUser.objects.filter(examine__assessment_examine__contract=self).distinct()
 
     def get_all_formal_supervisors(self):
-        return SrpmsUser.objects.filter(supervise__contract=self, supervise__is_formal=True)
+        return SrpmsUser.objects.filter(supervise__contract=self,
+                                        supervise__is_formal=True).distinct()
 
     def get_all_supervisors(self):
-        return SrpmsUser.objects.filter(supervise__contract=self)
+        return SrpmsUser.objects.filter(supervise__contract=self).distinct()
 
     def clean(self):
         """

@@ -141,6 +141,7 @@ def print_individual_project_contract(contract: Contract, file_object: BytesIO, 
                     (assess_examine.examine.examiner.get_display_name(),
                      assess_examine.examiner_approval_date))
 
+    # Render the HTML contract
     html_string: str = render_to_string(template_name='research_mgt/individual_project.html',
                                         context={'contract': contract,
                                                  'owner': owner,
@@ -152,6 +153,8 @@ def print_individual_project_contract(contract: Contract, file_object: BytesIO, 
                                                  'supervise_approval': supervise_approval,
                                                  'assessments': repr_assessments,
                                                  'assess_examine_approve': assess_examine_approve})
+
+    # Convert HTML contract to PDF and write to buffer
     html = HTML(string=html_string, base_url=base_url)
     font_config = FontConfiguration()
     html.write_pdf(target=file_object, font_config=font_config)

@@ -17,20 +17,22 @@ from django.db import transaction
 from rest_framework import serializers
 
 from accounts.models import SrpmsUser
-from . import models
+from research_mgt.models import (Course, AssessmentTemplate,
+                                 Contract, IndividualProject, SpecialTopic, Supervise, Examine,
+                                 Assessment, AssessmentExamine)
 
 
 class CourseSerializer(serializers.ModelSerializer):
     contract = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
-        model = models.Course
+        model = Course
         fields = ['id', 'course_number', 'name', 'units', 'contract']
 
 
 class AssessmentTemplateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.AssessmentTemplate
+        model = AssessmentTemplate
         fields = ['id', 'name', 'description', 'max_weight', 'min_weight', 'default_weight']
 
 
@@ -51,14 +53,25 @@ class UserContractSerializer(serializers.ModelSerializer):
 
     # noinspection PyMethodMayBeStatic
     def get_supervise(self, obj: SrpmsUser) -> Tuple[int]:
-        return tuple(models.Contract.objects.filter(submit_date__isnull=False,
-                                                    supervise__supervisor=obj)
+        """
+        Show contracts a user supervise
+
+        Args:
+            obj: the user that is being serialized currently
+        """
+        return tuple(Contract.objects.filter(submit_date__isnull=False,
+                                             supervise__supervisor=obj)
                      .values_list('pk', flat=True))
 
     # noinspection PyMethodMayBeStatic
     def get_examine(self, obj: SrpmsUser) -> Tuple[int]:
-        """Show contracts a user examine, the contract must has been approved by supervisor"""
-        return tuple(models.Contract.objects.filter(
+        """
+        Show contracts a user examine, the contract must has been approved by supervisor
+
+        Args:
+            obj: the user that is being serialized currently
+        """
+        return tuple(Contract.objects.filter(
                 assessment_examine__examine__examiner=obj,
                 supervise__supervisor_approval_date__isnull=False).values_list('pk', flat=True))
 
@@ -67,14 +80,13 @@ class UserContractSerializer(serializers.ModelSerializer):
         """
         Shows submitted contracts for privileged users.
 
-        TODO: Currently convener can only see contracts when its been approved by supervisor
-              and examiners, however convener may need to operate on supervisor/examiner's
-              behalf in the case that they don't want to use this system.
+        Args:
+            obj: the user that is being serialized currently
         """
         if obj.has_perm('research_mgt.is_mgt_superuser'):
-            return tuple(models.Contract.objects.all().values_list('pk', flat=True))
+            return tuple(Contract.objects.all().values_list('pk', flat=True))
         elif obj.has_perm('research_mgt.can_convene'):
-            return tuple(models.Contract.objects.filter(
+            return tuple(Contract.objects.filter(
                     submit_date__isnull=False,
                     supervise__supervisor_approval_date__isnull=False,
                     assessment_examine__examiner_approval_date__isnull=False)
@@ -84,6 +96,12 @@ class UserContractSerializer(serializers.ModelSerializer):
 
     # noinspection PyMethodMayBeStatic
     def get_is_approved_supervisor(self, obj: SrpmsUser) -> bool:
+        """
+        Show whether the current user have 'can_supervise' permission
+
+        Args:
+            obj: the user that is being serialized currently
+        """
         return obj.has_perm('research_mgt.can_supervise')
 
 
@@ -97,15 +115,20 @@ class SuperviseSerializer(serializers.ModelSerializer):
     nominator = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
-        model = models.Supervise
+        model = Supervise
         fields = ['id', 'contract', 'supervisor', 'is_formal', 'nominator',
                   'is_supervisor_approved', 'supervisor_approval_date']
 
-    def create(self, validated_data):
-        """Override to forbid more than 1 formal supervisor for individual project"""
-        contract: models.Contract = validated_data['contract']
+    def create(self, validated_data: dict):
+        """
+        Forbid more than 1 formal supervisor for individual project
+
+        Args:
+            validated_data: a dictionary contain the data a request sent, already validated
+        """
+        contract: Contract = validated_data['contract']
         if hasattr(contract, 'individual_project') and \
-                len(models.Supervise.objects.filter(contract=contract, is_formal=True)) >= 1:
+                len(Supervise.objects.filter(contract=contract, is_formal=True)) >= 1:
             raise serializers.ValidationError(
                     'Individual project does not allowed more than 1 supervisor.')
 
@@ -119,37 +142,52 @@ class AssessmentExamineSerializer(serializers.ModelSerializer):
     examiner_approval_date = serializers.ReadOnlyField()
 
     class Meta:
-        model = models.AssessmentExamine
+        model = AssessmentExamine
         fields = ['id', 'examiner', 'nominator', 'examiner_approval_date']
 
-    def create(self, validated_data):
+    def create(self, validated_data) -> AssessmentExamine:
+        """
+        Allow write for nested examiner field, automatically create missing Examine
+        relation for new AssessmentExamine relation. Also apply constraint to forbid
+        some contract type to have more than one examiner for each assessment.
+
+        Args:
+            validated_data: a dictionary contain the data a request sent, already validated
+        """
         examiner = validated_data['examine']['examiner']
         nominator = validated_data.pop('nominator')
-        examine, _ = models.Examine.objects.get_or_create(contract=validated_data['contract'],
-                                                          examiner=examiner,
-                                                          defaults={'nominator': nominator})
+        examine, _ = Examine.objects.get_or_create(contract=validated_data['contract'],
+                                                   examiner=examiner,
+                                                   defaults={'nominator': nominator})
         validated_data['examine'] = examine
 
         # Forbid individual project and special topic contract to have more than one
         # examiner for each assessment
-        assessment: models.Assessment = validated_data['assessment']
+        assessment: Assessment = validated_data['assessment']
         if hasattr(assessment.contract, 'individual_project') and \
-                len(models.AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
+                len(AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
             raise serializers.ValidationError('Individual project cannot have more than one '
                                               'examiner for each assessment.')
         if hasattr(assessment.contract, 'special_topic') and \
-                len(models.AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
+                len(AssessmentExamine.objects.filter(assessment=assessment)) >= 1:
             raise serializers.ValidationError('Special topic cannot have more than one examiner '
                                               'for each assessment.')
 
         return super(AssessmentExamineSerializer, self).create(validated_data)
 
-    def update(self, instance: models.AssessmentExamine, validated_data):
+    def update(self, instance: AssessmentExamine,
+               validated_data) -> AssessmentExamine:
+        """
+
+        Args:
+            instance: the object that is being updated
+            validated_data: a dictionary contain the data a request sent, already validated
+        """
         examiner = validated_data['examine']['examiner']
         nominator = validated_data.pop('nominator')
-        examine, _ = models.Examine.objects.get_or_create(contract=validated_data['contract'],
-                                                          examiner=examiner,
-                                                          defaults={'nominator': nominator})
+        examine, _ = Examine.objects.get_or_create(contract=validated_data['contract'],
+                                                   examiner=examiner,
+                                                   defaults={'nominator': nominator})
         validated_data['examine'] = examine
 
         # On examiner change, if the assessment has been approved, reset examiner's approval, and
@@ -175,20 +213,20 @@ class AssessmentSerializer(serializers.ModelSerializer):
     assessment_examine = AssessmentExamineSerializer(read_only=True, many=True)
 
     class Meta:
-        model = models.Assessment
+        model = Assessment
         fields = ['id', 'template', 'template_info', 'contract', 'additional_description', 'due',
                   'weight', 'assessment_examine', 'is_all_examiners_approved']
 
 
 class IndividualProjectSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.IndividualProject
+        model = IndividualProject
         fields = ['title', 'objectives', 'description']
 
 
 class SpecialTopicSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.SpecialTopic
+        model = SpecialTopic
         fields = ['title', 'objectives', 'description']
 
 
@@ -223,7 +261,7 @@ class ContractSerializer(serializers.ModelSerializer):
     assessment = AssessmentSerializer(read_only=True, many=True)
 
     class Meta:
-        model = models.Contract
+        model = Contract
         fields = ['id', 'year', 'semester', 'duration', 'resources', 'course',
                   'convener', 'is_convener_approved', 'convener_approval_date',
                   'owner', 'create_date', 'submit_date', 'is_submitted', 'was_submitted',
@@ -263,22 +301,22 @@ class ContractSerializer(serializers.ModelSerializer):
             # transaction to make sure all creation success, otherwise rollback to previous
             # state.
             with transaction.atomic():
-                contract = models.IndividualProject.objects.create(**validated_data,
-                                                                   **individual_project)
-                models.Assessment.objects.create(
-                        template=models.AssessmentTemplate.objects.get(name='report'),
+                contract = IndividualProject.objects.create(**validated_data,
+                                                            **individual_project)
+                Assessment.objects.create(
+                        template=AssessmentTemplate.objects.get(name='report'),
                         contract=contract)
-                models.Assessment.objects.create(
-                        template=models.AssessmentTemplate.objects.get(name='artifact'),
+                Assessment.objects.create(
+                        template=AssessmentTemplate.objects.get(name='artifact'),
                         contract=contract)
-                models.Assessment.objects.create(
-                        template=models.AssessmentTemplate.objects.get(name='presentation'),
+                Assessment.objects.create(
+                        template=AssessmentTemplate.objects.get(name='presentation'),
                         contract=contract)
             return contract
         if special_topic:
-            return models.SpecialTopic.objects.create(**validated_data, **special_topic)
+            return SpecialTopic.objects.create(**validated_data, **special_topic)
 
-    def update(self, instance: models.Contract, validated_data: dict):
+    def update(self, instance: Contract, validated_data: dict):
         """
         Nested field does not support write by DRF, we have to do it ourselves
 

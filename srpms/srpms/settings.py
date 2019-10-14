@@ -214,7 +214,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
-    'EXCEPTION_HANDLER': 'srpms.utils.custom_exception_handler'
+    'EXCEPTION_HANDLER': 'srpms.utils.custom_exception_handler',
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
 }
 
 # FIXME: Disable browsable API in production. Browsable API is current enable even for production
