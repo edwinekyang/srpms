@@ -30,7 +30,7 @@ class SrpmsUserSerializer(serializers.HyperlinkedModelSerializer):
     # Specify fields that would serialize
     class Meta:
         model = SrpmsUser
-        fields = ['url', 'id', 'username', 'first_name', 'last_name', 'email',
+        fields = ['url', 'id', 'username', 'first_name', 'last_name', 'display_name', 'email',
                   'nominator', 'expire_date', 'uni_id']
 
     # noinspection PyMethodMayBeStatic

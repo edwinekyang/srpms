@@ -10,8 +10,7 @@ __credits__ = ['Dajie Yang', 'Euikyum Yang']
 __maintainer__ = 'Dajie (Cooper) Yang'
 __email__ = "dajie.yang@anu.edu.au"
 
-from io import BytesIO, StringIO
-from typing import List
+from io import BytesIO
 from django.http import HttpResponse
 from django.db import transaction
 from django.db.models import QuerySet
@@ -250,7 +249,6 @@ class ContractViewSet(ModelViewSet):
         else:
             return Response('This contract type does not support printing service',
                             status=HTTP_400_BAD_REQUEST)
-
 
 
 class AssessmentExamineViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
