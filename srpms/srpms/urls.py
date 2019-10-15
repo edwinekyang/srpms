@@ -59,4 +59,7 @@ if settings.DEBUG:
 else:
     # On production, static and media files are being served from nginx.
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    # Media file should be served through nginx even during development, only use the below line
+    # when you know what you're doing.
+    # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

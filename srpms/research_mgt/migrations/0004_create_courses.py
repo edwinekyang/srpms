@@ -18,13 +18,20 @@ from django.apps.registry import Apps
 def create_courses(apps: Apps, schema_editor: BaseDatabaseSchemaEditor):
     TheCourse: Course = apps.get_model('research_mgt', 'Course')
 
-    TheCourse.objects.create(course_number='COMP2710', name='Special Topics in Computer Science')
-    TheCourse.objects.create(course_number='COMP3710', name='Topics in Computer Science')
-    TheCourse.objects.create(course_number='COMP3740', name='Project Work in Computing')
-    TheCourse.objects.create(course_number='COMP3770', name='Individual Research Project')
-    TheCourse.objects.create(course_number='COMP4560', name='Advanced Computing Project')
-    TheCourse.objects.create(course_number='COMP6470', name='Special Topics in Computing')
-    TheCourse.objects.create(course_number='COMP8755', name='Individual Computing Project')
+    TheCourse.objects.create(course_number='COMP2710',
+                             name='Special Topics in Computer Science', units=6)
+    TheCourse.objects.create(course_number='COMP3710',
+                             name='Topics in Computer Science', units=6)
+    TheCourse.objects.create(course_number='COMP3740',
+                             name='Project Work in Computing', units=6)
+    TheCourse.objects.create(course_number='COMP3770',
+                             name='Individual Research Project', units=6)
+    TheCourse.objects.create(course_number='COMP4560',
+                             name='Advanced Computing Project', units=12)
+    TheCourse.objects.create(course_number='COMP6470',
+                             name='Special Topics in Computing', units=6)
+    TheCourse.objects.create(course_number='COMP8755',
+                             name='Individual Computing Project', units=12)
 
 
 # noinspection PyPep8Naming

@@ -56,3 +56,13 @@ class APITests(utils.SrpmsTest):
         response = self.user_01.get(
                 '{}?is_approved_supervisor=false'.format(utils.ApiUrls.mgt_user))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_convener(self):
+        """Test the is_approved_supervisor filter is working correctly"""
+        response = self.user_01.get(
+                '{}?is_course_convener=true'.format(utils.ApiUrls.mgt_user))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.user_01.get(
+                '{}?is_course_convener=false'.format(utils.ApiUrls.mgt_user))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

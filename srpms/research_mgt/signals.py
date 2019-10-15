@@ -21,7 +21,9 @@ from accounts.models import SrpmsUser
 from django.dispatch import receiver, Signal
 from django.core import management
 from django.core.mail import send_mail
-from django.db.models.signals import post_migrate
+from django.db.models.signals import post_migrate, post_save
+from django.db.models.query import Q
+from django.contrib.auth.models import Permission
 
 from .models import (Contract, Supervise, AssessmentExamine, ActivityLog, ActivityAction)
 from srpms.settings import EMAIL_SENDER
@@ -43,11 +45,15 @@ ACTION_EXAMINER_DISAPPROVE = None
 
 
 # noinspection PyUnusedLocal
-@receiver(post_migrate, dispatch_uid='init_actions')
+@receiver(post_save, sender=ActivityAction, dispatch_uid='post_save_init_actions')
+@receiver(post_migrate, dispatch_uid='post_migrate_init_actions')
 def init_actions(**kwargs):
     """
     Initiate activity actions after database migration completed, otherwise these actions
     won't exist in database.
+
+    Actions would also be refreshed on any action create/update, to cope with any on-the-fly
+    change during the server running.
 
     The 'get_or_create()' method is not recommend here as instance created here won't exist
     during test, and would cause errors during test.
@@ -67,7 +73,7 @@ def init_actions(**kwargs):
         management.call_command('showmigrations', stdout=s_io)
 
         # Only initialize actions when corresponding migration is finished
-        if re.search(r'(?<=\[)X(?=\] 0005_actitivity_actions)', s_io.getvalue()):
+        if re.search(r'(?<=\[)X(?=\] 0005_activity_actions)', s_io.getvalue()):
             ACTION_CONTRACT_SUBMIT = ActivityAction.objects.get(name='contract_submit')
             ACTION_CONTRACT_UN_SUBMIT = ActivityAction.objects.get(name='contract_un_submit')
             ACTION_CONTRACT_APPROVE = ActivityAction.objects.get(name='contract_approve')
@@ -178,6 +184,9 @@ def contract_approve_notifications(contract: Contract, activity_log: ActivityLog
 def supervise_approve_notifications(supervise: Supervise, activity_log: ActivityLog, **kwargs):
     """
     Send notifications on supervisor approve/disapprove a contract
+
+    TODO: Currently examiner would not get notification if the person who approve this supervise
+          relation is both not the supervisor and not the examiner nominator.
     """
 
     # Approve
@@ -190,9 +199,12 @@ def supervise_approve_notifications(supervise: Supervise, activity_log: Activity
                           supervisor_name=supervise.supervisor.get_display_name()),
                   EMAIL_SENDER,
                   get_email_addr([supervise.contract.owner]))
-        # Inform examiners
+        # Inform examiners, exclude the course convener
+        perm = Permission.objects.get(codename='can_convene')
         for address in get_email_addr(SrpmsUser.objects.filter(
-                examine__nominator=supervise.supervisor,
+                ~Q(groups__permissions=perm) & ~Q(user_permissions=perm) & Q(is_superuser=False),
+                Q(examine__nominator=supervise.supervisor) |
+                Q(examine__nominator=activity_log.actor),
                 examine__contract=supervise.contract,
                 examine__assessment_examine__examiner_approval_date__isnull=True)):
             send_mail('New contract assessment',

@@ -20,5 +20,5 @@ class ResearchMgtConfig(AppConfig):
         # Connect signals after app is ready, we do the import here so that every function
         # in signals.py that decorated with @receiver would all be registered automatically.
 
-        # noinspection PyUnresolvedReferences
         from . import signals
+        signals.init_actions()  # need this otherwise signal would not load after start
