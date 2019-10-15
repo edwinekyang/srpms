@@ -1,3 +1,7 @@
+# Test environment override, for running test under an environment as close as production.
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
 version: '3.7'
 
 services:

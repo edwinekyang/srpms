@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# Start up script for the django container. Perform migration and collect static files before
+# actually start the server. It also configure the ANU LDAP address according to the current
+# environment.
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
 
 set -e
 
@@ -44,5 +50,3 @@ else
     echo "Unknown setting '$DEBUG' for DJANGO_DEBUG_MODE"
     exit 1
 fi
-
-

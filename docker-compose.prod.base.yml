@@ -1,3 +1,9 @@
+# Share configuration between deployment environment and test environment, please
+# use in conjunction with *.prod.deploy.yml or *.prod.test.yml, would cause error
+# if use stand alone.
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
 version: '3.7'
 
 services:

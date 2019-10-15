@@ -1,3 +1,13 @@
+# Certbot is a tool for obtaining free HTTPS certificate from Let's Encrypt.
+# This certbot image also add docker-compose support, so that it can tell
+# Nginx to reload after a new certificate has been obtained.
+#
+# Refer to https://certbot.eff.org/docs/contributing.html#running-the-client-with-docker for
+# certbot's official documentation about how certbot works
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
+
 FROM certbot/certbot
 
 ENTRYPOINT ["/bin/bash"]

@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
+# This script would be run inside the CI container to check if docker containers are running
+# as expected, it relies on bash, so make sure the container that utilize this script have
+# bash installed.
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
 
 set -e
 set +x
-
-# This script would be run inside the CI container, make sure you have
-# bash installed there.
 
 COMPOSE_CMD=$1
 

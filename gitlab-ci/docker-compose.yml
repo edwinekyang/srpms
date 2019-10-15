@@ -1,4 +1,8 @@
 # This compose file is for the Runner of the GitLab CI pipeline
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
+
 version: '3'
 
 services:
