@@ -1,4 +1,8 @@
-<h1 mat-dialog-title>{{data.action === 'nominateExaminer' ? 'Examiner nomination' : ''}}</h1>
+<h1 mat-dialog-title>
+    {{data.action === 'nominateExaminer' ? 'Examiner nomination' :
+    data.action === 'disapproveSupervise' ? 'Supervise disapproval' :
+    data.action === 'rejectExamine' ? 'Examine rejection' : ''}}
+</h1>
 <div mat-dialog-content *ngIf="this.route === '/supervise' && data.action === 'nominateExaminer' ||
     (this.route === '/convene' && data.status === 'Submitted')">
     <form (ngSubmit)="nominateExaminer(data)" [formGroup]="examinerForm">
@@ -18,10 +22,17 @@
 </div>
 <div class="nomination-form" mat-dialog-content *ngIf="this.route === '/supervise' && data.action === 'disapproveSupervise'">
     <mat-form-field appearance="standard">
-        <textarea #message matInput id="message" placeholder="Disapproval message(optional)"></textarea>
+        <textarea #message matInput placeholder="Disapproval message(optional)"></textarea>
         <mat-hint align="end">Student will see this message.</mat-hint>
     </mat-form-field>
     <button mat-raised-button color="primary" (click)="disapproveSupervise(data, message)">DISAPPROVE</button>
+</div>
+<div class="nomination-form" mat-dialog-content *ngIf="this.route === '/examine' && data.action === 'rejectExamine'">
+    <mat-form-field appearance="standard">
+        <textarea #message matInput placeholder="Reject message(optional)"></textarea>
+        <mat-hint align="end">Supervisor will see this message.</mat-hint>
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="rejectExamine(data, message)">REJECT</button>
 </div>
 <div mat-dialog-actions>
     <button mat-button (click)="onClick()">CLOSE</button>

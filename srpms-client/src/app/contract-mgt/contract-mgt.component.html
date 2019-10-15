@@ -145,8 +145,21 @@
                         </div>
                     </form>-->
                     <!--<a *ngIf="this.route === '/supervise'" mat-raised-button color="primary" routerLink="/approve">APPROVE</a>-->
-                    <a *ngIf="this.route === '/examine' || (this.route === '/convene' && contract.status === 'Approved')" mat-raised-button color="primary"
-                       (click)="confirmExamine(contract, contract.assessment)">CONFIRM</a>
+                    <a *ngIf="this.route === '/examine' ||
+                    (this.route === '/convene' && contract.status === 'Approved')"
+                       mat-raised-button color="primary"
+                       (click)="confirmExamine(contract, contract.assessment)"
+                        [disabled]="contract.status !== 'Approved'">CONFIRM
+                    </a>
+                    <a *ngIf="this.route === '/examine' ||
+                    (this.route === '/convene' && contract.status === 'Approved')"
+                       mat-raised-button color="primary"
+                       (click)="openActionDialog(contract, 'rejectExamine')"
+                       [disabled]="contract.status !== 'Approved'">REJECT
+                    </a>
+                    <p class="mat-small" *ngIf="this.route === '/examine' && contract.status !== 'Approved'">
+                        *You will be able to confirm the request once all supervisors of this contract has approved the contract.
+                    </p>
                     <a *ngIf="this.route === '/convene' && contract.status === 'Confirmed'" mat-raised-button color="primary"
                        (click)="approveConvene(contract)">FINALISE</a>
                     <a *ngIf="this.route === '/convene' && contract.status === 'Nominated'" mat-raised-button color="primary"

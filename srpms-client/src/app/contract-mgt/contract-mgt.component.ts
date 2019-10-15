@@ -440,7 +440,7 @@ export class ContractMgtComponent implements OnInit {
                                     if (type === 'pre') {
                                         let examineStatus: string;
                                         examineStatus = '';
-                                        if (!contract.is_all_assessments_approved) {
+                                        /*if (!contract.is_all_assessments_approved) {
                                             assessmentList.forEach(assessment => {
                                                 if (assessment.template === 1) {
                                                     if (assessment.examinerApprovalDate) {
@@ -450,6 +450,11 @@ export class ContractMgtComponent implements OnInit {
                                                     }
                                                 }
                                             });
+                                        }*/
+                                        if (!contract.is_all_assessments_approved && contract.is_examiners_nominated) {
+                                            examineStatus = 'Nominated';
+                                        } else if (contract.is_all_assessments_approved) {
+                                            examineStatus = 'Confirmed';
                                         }
                                         this.preContractList.push({
                                             courseNumber: course.course_number,
@@ -668,7 +673,7 @@ export class ContractMgtComponent implements OnInit {
         });
     }
 
-    private openActionDialog(contract: any, action: any) {
+    public openActionDialog(contract: any, action: any) {
         if (action === 'nominateNonformalSupervisor') {
             if (confirm('Are you sure you want to nominate non-formal supervisor?')) {
                 Object.assign(contract, {action});
@@ -742,7 +747,7 @@ export class ContractMgtComponent implements OnInit {
                     JSON.stringify({
                         approve: true,
                     })).subscribe(() => {
-                    this.openSuccessDialog(contract.status);
+                    this.openSuccessDialog('ConfirmExamine');
                 });
             });
         }
