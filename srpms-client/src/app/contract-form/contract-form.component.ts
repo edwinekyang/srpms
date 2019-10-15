@@ -253,75 +253,72 @@ export class ContractFormComponent implements OnInit, OnChanges {
         await this.contractMgtService.getAssessments(this.contractId)
             .pipe(
                 map( assessments => {
-                    assessments.map(async assessment => {
-                        if (assessment.template === 1) {
-                            const promisePatch1 = this.contractService.patchAssessment(this.contractId, assessment.id,
-                                JSON.stringify(this.assessment1)).toPromise();
-                            await Promise.race([promisePatch1]).catch((err: HttpErrorResponse) => {
-                                if (Math.floor(err.status / 100) === 4) {
-                                    Object.assign(this.errorMessage, err.error);
-                                }
-                            });
-                            // @ts-ignore
-                            if (this.assessment1.examiner) {
-                                const promiseAdd1 = this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
-                                    // @ts-ignore
-                                    examiner: this.assessment1.examiner,
-                                })).toPromise();
-                                await Promise.race([promiseAdd1]).catch((err: HttpErrorResponse) => {
+                    const updateAssessments = async () => {
+                        await this.asyncForEach(assessments, async (assessment) => {
+                            if (assessment.template === 1) {
+                                await this.contractService.patchAssessment(this.contractId, assessment.id,
+                                    JSON.stringify(this.assessment1)).toPromise().catch((err: HttpErrorResponse) => {
                                     if (Math.floor(err.status / 100) === 4) {
                                         Object.assign(this.errorMessage, err.error);
                                     }
                                 });
-                            }
-                        }
-                        if (assessment.template === 2) {
-                            // @ts-ignore
-                            if (this.assessment2.examiner) {
-                                const promiseAdd2 = this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
-                                    // @ts-ignore
-                                    examiner: this.assessment2.examiner,
-                                })).toPromise();
-                                await Promise.race([promiseAdd2]).catch((err: HttpErrorResponse) => {
-                                    if (Math.floor(err.status / 100) === 4) {
-                                        Object.assign(this.errorMessage, err.error);
-                                    }
-                                });
-                            }
-                            const promisePatch2 = this.contractService.patchAssessment(this.contractId, assessment.id,
-                                JSON.stringify(this.assessment2)).toPromise();
-                            await Promise.race([promisePatch2]).catch(err => {
-                                if (Math.floor(err.status / 100) === 4) {
-                                    Object.assign(this.errorMessage, {
-                                        assessment2Weight: err.error
+                                // @ts-ignore
+                                if (this.assessment1.examiner) {
+                                    await this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                        // @ts-ignore
+                                        examiner: this.assessment1.examiner,
+                                    })).toPromise().catch((err: HttpErrorResponse) => {
+                                        if (Math.floor(err.status / 100) === 4) {
+                                            Object.assign(this.errorMessage, err.error);
+                                        }
                                     });
                                 }
-                            });
-                        }
-                        if (assessment.template === 3) {
-                            // @ts-ignore
-                            if (this.assessment3.examiner) {
-                                const promiseAdd3 = this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
-                                    // @ts-ignore
-                                    examiner: this.assessment3.examiner,
-                                })).toPromise();
-                                await Promise.race([promiseAdd3]).catch((err: HttpErrorResponse) => {
+                            }
+                            if (assessment.template === 2) {
+                                // @ts-ignore
+                                if (this.assessment2.examiner) {
+                                    await this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                        // @ts-ignore
+                                        examiner: this.assessment2.examiner,
+                                    })).toPromise().catch((err: HttpErrorResponse) => {
+                                        if (Math.floor(err.status / 100) === 4) {
+                                            Object.assign(this.errorMessage, err.error);
+                                        }
+                                    });
+                                }
+                                await this.contractService.patchAssessment(this.contractId, assessment.id,
+                                    JSON.stringify(this.assessment2)).toPromise().catch(err => {
                                     if (Math.floor(err.status / 100) === 4) {
-                                        Object.assign(this.errorMessage, err.error);
+                                        Object.assign(this.errorMessage, {
+                                            assessment2Weight: err.error
+                                        });
                                     }
                                 });
                             }
-                            const promisePatch3 = this.contractService.patchAssessment(this.contractId, assessment.id,
-                                JSON.stringify(this.assessment3)).toPromise();
-                            await Promise.race([promisePatch3]).catch(err => {
-                                if (Math.floor(err.status / 100) === 4) {
-                                    Object.assign(this.errorMessage, {
-                                        assessment3Weight: err.error
+                            if (assessment.template === 3) {
+                                // @ts-ignore
+                                if (this.assessment3.examiner) {
+                                    await this.contractMgtService.addExamine(this.contractId, assessment.id, JSON.stringify({
+                                        // @ts-ignore
+                                        examiner: this.assessment3.examiner,
+                                    })).toPromise().catch((err: HttpErrorResponse) => {
+                                        if (Math.floor(err.status / 100) === 4) {
+                                            Object.assign(this.errorMessage, err.error);
+                                        }
                                     });
                                 }
-                            });
-                        }
-                    });
+                                await this.contractService.patchAssessment(this.contractId, assessment.id,
+                                    JSON.stringify(this.assessment3)).toPromise().catch(err => {
+                                    if (Math.floor(err.status / 100) === 4) {
+                                        Object.assign(this.errorMessage, {
+                                            assessment3Weight: err.error
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    };
+                    updateAssessments();
                 })
             ).toPromise();
     }
@@ -375,5 +372,11 @@ export class ContractFormComponent implements OnInit, OnChanges {
         dialogRef.afterClosed().subscribe(() => {
             this.router.navigate(['/submit']).then(() => {});
         });
+    }
+
+    public async asyncForEach(array, callback) {
+        for (let index = 0; index < array.length; index++) {
+            await callback(array[index], index, array);
+        }
     }
 }

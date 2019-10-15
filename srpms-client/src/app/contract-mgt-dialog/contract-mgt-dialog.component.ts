@@ -72,28 +72,26 @@ export class ContractMgtDialogComponent implements OnInit {
     if (confirm('Are you sure?')) {
       // Nominate the examiner
       if (contract.status !== 'Nominated') {
-        const promiseAssessment = contract.assessment.map(async assessment => {
-          if (this.examinerForm.value['examiner' + assessment.template]) {
-            const promiseAdd = this.contractMgtService.addExamine(contract.contractId, assessment.id, JSON.stringify({
-              examiner: this.examinerForm.value['examiner' + assessment.template],
-            })).toPromise();
-            await Promise.all([promiseAdd]).catch((err: HttpErrorResponse) => {
-              if (Math.floor(err.status / 100) === 4) {
-                Object.assign(this.errorMessage, err.error);
-              }
+        const promiseAssessment = async () => {
+            await this.asyncForEach(contract.assessment, async (assessment) => {
+                if (this.examinerForm.value['examiner' + assessment.template]) {
+                    await this.contractMgtService.addExamine(contract.contractId, assessment.id, JSON.stringify({
+                        examiner: this.examinerForm.value['examiner' + assessment.template],
+                    })).toPromise().catch((err: HttpErrorResponse) => {
+                        if (Math.floor(err.status / 100) === 4) {
+                            Object.assign(this.errorMessage, err.error);
+                        }
+                    });
+                }
             });
-          }
+        };
+        promiseAssessment().then(() => {
+            if (Object.keys(this.errorMessage).length) {
+                this.openFailDialog();
+            } else {
+                this.openSuccessDialog('NominateExaminer');
+            }
         });
-        await Promise.all(promiseAssessment).catch((err: HttpErrorResponse) => {
-          if (Math.floor(err.status / 100) === 4) {
-            Object.assign(this.errorMessage, err.error);
-          }
-        });
-        if (Object.keys(this.errorMessage).length) {
-          this.openFailDialog();
-        } else {
-          this.openSuccessDialog('NominateExaminer');
-        }
       }
     }
   }
@@ -200,6 +198,12 @@ export class ContractMgtDialogComponent implements OnInit {
                     }
                 });
             });
+        }
+    }
+
+    public async asyncForEach(array, callback) {
+        for (let index = 0; index < array.length; index++) {
+            await callback(array[index], index, array);
         }
     }
 }

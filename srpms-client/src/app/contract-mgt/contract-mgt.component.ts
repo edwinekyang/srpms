@@ -610,22 +610,52 @@ export class ContractMgtComponent implements OnInit {
     async approveSupervise(contract: any) {
         if (confirm('Are you sure?')) {
             // Approve the contract
-            const promiseApproveSupervise = contract.contractObj.supervise.map(async supervise => {
-                if (JSON.parse(localStorage.getItem('srpmsUser')).id === supervise.supervisor) {
-                    await this.contractMgtService.approveContract(contract.contractId, supervise.id,
-                        JSON.stringify({
-                            approve: true,
-                        })).toPromise();
-                }
-            });
-            await Promise.race([promiseApproveSupervise]).catch((err: HttpErrorResponse) => {
-                if (Math.floor(err.status / 100) === 4) {
-                    Object.assign(this.errorMessage, err.error);
-                }
-            });
+            const promiseApproveSupervise = async () => {
+                await this.asyncForEach(contract.contractObj.supervise, async (supervise) => {
+                    if (JSON.parse(localStorage.getItem('srpmsUser')).id === supervise.supervisor) {
+                        await this.contractMgtService.approveContract(contract.contractId, supervise.id,
+                            JSON.stringify({
+                                approve: true,
+                            })).toPromise().catch((err: HttpErrorResponse) => {
+                            if (Math.floor(err.status / 100) === 4) {
+                                Object.assign(this.errorMessage, err.error);
+                            }
+                        });
+                    }
+                });
+            };
+            await promiseApproveSupervise();
 
             // Confirm supervisor's examiner role of the one of the assessments if any
-            const promiseConfirmExamine = contract.assessment.map(async assessment => {
+            const promiseConfirmExamine = async () => {
+                await this.asyncForEach(contract.assessment, async (assessment) => {
+                    if (assessment.examiner) {
+                        if (assessment.examiner === JSON.parse(localStorage.getItem('srpmsUser')).id) {
+                            console.log(assessment);
+                            await this.contractMgtService.confirmExamine(contract.contractId, assessment.id,
+                                assessment.examineId, JSON.stringify({
+                                    approve: true,
+                                })).toPromise().catch((err: HttpErrorResponse) => {
+                                if (Math.floor(err.status / 100) === 4) {
+                                    Object.assign(this.errorMessage, err.error);
+                                }
+                            });
+                        }
+                    }
+                });
+            };
+            await promiseConfirmExamine().then(() => {
+                if (Object.keys(this.errorMessage).length) {
+                    this.openFailDialog();
+                } else {
+                    if (this.isApprovedSupervisor) {
+                        this.openSuccessDialog('ApproveSupervise');
+                    } else {
+                        this.openSuccessDialog('ConfirmSupervise');
+                    }
+                }
+            });
+            /*const promiseConfirmExamine = contract.assessment.map(async assessment => {
                 if (assessment.examiner) {
                     if (assessment.examiner === JSON.parse(localStorage.getItem('srpmsUser')).id) {
                         await this.contractMgtService.confirmExamine(contract.contractId, assessment.id,
@@ -634,9 +664,9 @@ export class ContractMgtComponent implements OnInit {
                             })).toPromise();
                     }
                 }
-            });
+            });*/
 
-            await Promise.all(promiseConfirmExamine).catch((err: HttpErrorResponse) => {
+            /*await Promise.all(promiseConfirmExamine).catch((err: HttpErrorResponse) => {
                 if (Math.floor(err.status / 100) === 4) {
                     Object.assign(this.errorMessage, err.error);
                 }
@@ -650,7 +680,7 @@ export class ContractMgtComponent implements OnInit {
                         this.openSuccessDialog('ConfirmSupervise');
                     }
                 }
-            });
+            });*/
         }
     }
 
@@ -841,6 +871,12 @@ export class ContractMgtComponent implements OnInit {
                 console.log(contract.status);
                 this.openSuccessDialog(contract.status + 'Deleted');
             }
+        }
+    }
+
+    public async asyncForEach(array, callback) {
+        for (let index = 0; index < array.length; index++) {
+            await callback(array[index], index, array);
         }
     }
 }

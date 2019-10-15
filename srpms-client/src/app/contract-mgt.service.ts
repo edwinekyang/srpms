@@ -220,10 +220,10 @@ export class ContractMgtService {
      */
     updateExamine(contractId: number, assessmentId: number, examineId: number, s: string) {
         return this.http.patch(this.API_URL + `research_mgt/contracts/${contractId}/assessments/${assessmentId}/examine/${examineId}/`,
-            s, this.httpOptions)
-            .pipe(
+            s, this.httpOptions);
+            /*.pipe(
                 catchError(this.handleError<any>('updateExamine'))
-            );
+            );*/
     }
 
     /**
@@ -247,5 +247,13 @@ export class ContractMgtService {
      */
     deleteContract(contractId: any) {
         return this.http.delete(this.API_URL + `research_mgt/contracts/${contractId}`, this.httpOptions);
+    }
+
+    deleteExamine(contractId: number, assessmentId: number, examineId: number) {
+        return this.http.delete(this.API_URL + `research_mgt/contracts/${contractId}/assessments/${assessmentId}/examine/${examineId}/`,
+            this.httpOptions);
+        /*.pipe(
+            catchError(this.handleError<any>('updateExamine'))
+        );*/
     }
 }
