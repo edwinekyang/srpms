@@ -1,3 +1,7 @@
+/**
+ * @fileoverview This file decides attributes of element base.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 export class ElementBase<T> {
   value: T;
   key: string;

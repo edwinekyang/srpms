@@ -31,6 +31,7 @@ import { ContractMgtComponent } from './contract-mgt/contract-mgt.component';
 import { ContractViewerComponent } from './contract-viewer/contract-viewer.component';
 import { ContractDialogComponent } from './contract-dialog/contract-dialog.component';
 import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
+import { ContractMgtDialogComponent } from './contract-mgt-dialog/contract-mgt-dialog.component';
 
 @NgModule({
   declarations: [
@@ -46,6 +47,7 @@ import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
     ContractViewerComponent,
     ContractDialogComponent,
     ErrorDialogComponent,
+    ContractMgtDialogComponent,
   ],
     imports: [
         BrowserModule,
@@ -74,6 +76,7 @@ import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
     LoginDialogComponent,
     ContractDialogComponent,
     ErrorDialogComponent,
+    ContractMgtDialogComponent,
   ],
   providers: [
     HttpClientModule,

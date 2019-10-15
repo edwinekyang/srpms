@@ -1,3 +1,7 @@
+/**
+ * @fileoverview This file draws each element of the form.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import { FormGroup } from '@angular/forms';
 

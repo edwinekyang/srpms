@@ -1,3 +1,7 @@
+/**
+ * @fileoverview This file contains the services relevant to Contract.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
 import { Observable, of } from 'rxjs';

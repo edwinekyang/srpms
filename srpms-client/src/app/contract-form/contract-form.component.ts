@@ -1,3 +1,7 @@
+/**
+ * @fileoverview This file draws the contract form.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ElementBase } from '../element-base';

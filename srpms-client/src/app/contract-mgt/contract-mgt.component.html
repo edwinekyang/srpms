@@ -16,30 +16,30 @@
                 </mat-expansion-panel-header>
                 <mat-grid-list cols="12" rowHeight="3:1">
                     <mat-list>
-                    <mat-grid-tile colspan="6">
-                        <h3 mat-subheader>Course</h3>
-                        <mat-list-item>
-                            <h4 mat-line>{{contract.courseNumber}}, {{contract.courseName}}</h4>
-                        </mat-list-item>
-                    </mat-grid-tile>
-                    <mat-grid-tile colspan="3">
-                        <h3 mat-subheader>Year/Semester</h3>
-                        <mat-list-item>
-                            <h4 mat-line>{{contract.contractObj["year"]}}/S{{contract.contractObj["semester"]}}</h4>
-                        </mat-list-item>
-                    </mat-grid-tile>
-                    <mat-grid-tile colspan="3">
-                        <h3 mat-subheader>Duration</h3>
-                        <mat-list-item>
-                            <h4 mat-line>{{contract.contractObj['duration']}} Semester</h4>
-                        </mat-list-item>
-                    </mat-grid-tile>
-                    <mat-grid-tile colspan="12">
-                        <mat-list-item></mat-list-item>
-                    </mat-grid-tile>
-                    <mat-grid-tile colspan="12">
-                        <mat-list-item><h3 mat-line class="project-header">Project Objectives</h3></mat-list-item>
-                    </mat-grid-tile>
+                        <mat-grid-tile colspan="6">
+                            <h3 mat-subheader>Course</h3>
+                            <mat-list-item>
+                                <h4 mat-line>{{contract.courseNumber}}, {{contract.courseName}}</h4>
+                            </mat-list-item>
+                        </mat-grid-tile>
+                        <mat-grid-tile colspan="3">
+                            <h3 mat-subheader>Year/Semester</h3>
+                            <mat-list-item>
+                                <h4 mat-line>{{contract.contractObj["year"]}}/S{{contract.contractObj["semester"]}}</h4>
+                            </mat-list-item>
+                        </mat-grid-tile>
+                        <mat-grid-tile colspan="3">
+                            <h3 mat-subheader>Duration</h3>
+                            <mat-list-item>
+                                <h4 mat-line>{{contract.contractObj['duration']}} Semester</h4>
+                            </mat-list-item>
+                        </mat-grid-tile>
+                        <mat-grid-tile colspan="12">
+                            <mat-list-item></mat-list-item>
+                        </mat-grid-tile>
+                        <mat-grid-tile colspan="12">
+                            <mat-list-item><h3 mat-line class="project-header">Project Objectives</h3></mat-list-item>
+                        </mat-grid-tile>
                         <mat-grid-tile colspan="12">
                             <mat-list-item>
                                 <h4 mat-line>{{contract.contractObj['special_topics']?
@@ -47,9 +47,9 @@
                                     contract.contractObj['individual_project']['objectives']}}</h4>
                             </mat-list-item>
                         </mat-grid-tile>
-                    <mat-grid-tile colspan="12">
-                        <mat-list-item><h3 mat-line class="project-header">Project Description</h3></mat-list-item>
-                    </mat-grid-tile>
+                        <mat-grid-tile colspan="12">
+                            <mat-list-item><h3 mat-line class="project-header">Project Description</h3></mat-list-item>
+                        </mat-grid-tile>
                         <mat-grid-tile colspan="12">
                             <mat-list-item>
                                 <h4 mat-line>{{contract.contractObj['special_topics']?
@@ -58,75 +58,103 @@
                             </mat-list-item>
                         </mat-grid-tile>
                         <div *ngFor="let assessment of contract.assessment">
-                    <mat-grid-tile colspan="12">
-                        <mat-list-item></mat-list-item>
-                    </mat-grid-tile>
-                    <mat-grid-tile colspan="12">
-                        <h3 mat-subheader>Assessment: </h3>
-                        <mat-list-item>
-                            <h4 mat-line>{{assessment["assessmentName"]}}<br></h4>
-                        </mat-list-item>
-                    </mat-grid-tile>
-                    <mat-grid-tile colspan="4">
-                        <h3 mat-subheader>Style</h3>
-                        <mat-list-item>
-                            <h4 mat-line>{{assessment["additionalDescription"]}}</h4>
-                        </mat-list-item>
-                    </mat-grid-tile>
-                    <mat-grid-tile colspan="1">
-                        <h3 mat-subheader>Mark</h3>
-                        <mat-list-item>
-                            <h4 mat-line>{{assessment["weight"]}}</h4>
-                        </mat-list-item>
-                    </mat-grid-tile>
-                        <mat-grid-tile colspan="3">
-                            <h3 mat-subheader>Due</h3>
-                            <mat-list-item>
-                                <h4 mat-line>{{assessment["due"]}}</h4>
-                            </mat-list-item>
-                        </mat-grid-tile>
-                        <mat-grid-tile colspan="4">
-                            <h3 mat-subheader>Examiner</h3>
-                            <mat-list-item>
-                                <h4 mat-line>{{assessment["examinerName"]}}</h4>
-                            </mat-list-item>
-                        </mat-grid-tile>
+                            <mat-grid-tile colspan="12">
+                                <mat-list-item></mat-list-item>
+                            </mat-grid-tile>
+                            <mat-grid-tile colspan="12">
+                                <h3 mat-subheader>Assessment: </h3>
+                                <mat-list-item>
+                                    <h4 mat-line>{{assessment["assessmentName"]}}<br></h4>
+                                </mat-list-item>
+                            </mat-grid-tile>
+                            <mat-grid-tile colspan="4">
+                                <h3 mat-subheader>Style</h3>
+                                <mat-list-item>
+                                    <h4 mat-line>{{assessment["additionalDescription"]}}</h4>
+                                </mat-list-item>
+                            </mat-grid-tile>
+                            <mat-grid-tile colspan="1">
+                                <h3 mat-subheader>Mark</h3>
+                                <mat-list-item>
+                                    <h4 mat-line>{{assessment["weight"]}}</h4>
+                                </mat-list-item>
+                            </mat-grid-tile>
+                            <mat-grid-tile colspan="3">
+                                <h3 mat-subheader>Due</h3>
+                                <mat-list-item>
+                                    <h4 mat-line>{{assessment["due"]}}</h4>
+                                </mat-list-item>
+                            </mat-grid-tile>
+                            <mat-grid-tile colspan="4">
+                                <h3 mat-subheader>Examiner</h3>
+                                <mat-list-item>
+                                    <h4 mat-line>{{assessment["examinerName"]}}</h4>
+                                </mat-list-item>
+                            </mat-grid-tile>
                         </div>
 
                     </mat-list>
                 </mat-grid-list>
                 <br>
                 <div class="control-button-row">
-                <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/contract-viewer" [state]="contract">EDIT</a>
-                <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/submit" (click)="submit(contract)">SUBMIT</a>
-                <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" (click)="delete(contract)">DELETE</a>
-                <form *ngIf="this.route === '/supervise' || (this.route === '/convene' && contract.status === 'Submitted')"
-                      (ngSubmit)="this.route === '/supervise' ? approveSupervise(contract) :
-                      nominateExaminer(contract)" [formGroup]="examinerForm">
-                    <div *ngFor="let assessment of contract.assessment">
-                        <div class="nomination-form" *ngIf="!assessment['examiner']">
-                    <mat-form-field appearance="standard">
-                        <mat-label>{{assessment['assessmentName'].toString().toLocaleUpperCase()}} Examiner's Name</mat-label>
-                        <input matInput required formControlName="examiner{{assessment['template']}}">
-                    </mat-form-field>
+                    <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/contract-viewer" [state]="contract">EDIT</a>
+                    <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/submit" (click)="submit(contract)">SUBMIT</a>
+                    <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" (click)="delete(contract)">DELETE</a>
+                    <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor) ||
+                    (this.route === '/convene' && contract.status === 'Submitted')"
+                       mat-raised-button color="primary"
+                       (click)="openActionDialog(contract, 'nominateNonformalSupervisor')">
+                        NOMINATE NON-FORMAL SUPERVISOR(OPTIONAL)
+                    </a><br><br>
+                    <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor) ||
+                    (this.route === '/convene' && contract.status === 'Submitted')"
+                       mat-raised-button color="primary"
+                       (click)="openActionDialog(contract, 'nominateExaminer')">
+                        NOMINATE EXAMINER
+                    </a>
+                    <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor) ||
+                    (this.route === '/convene' && contract.status === 'Submitted')"
+                       mat-raised-button color="primary"
+                       (click)="approveSupervise(contract)">
+                        APPROVE
+                    </a>
+                    <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor) ||
+                    (this.route === '/convene' && contract.status === 'Submitted')"
+                       mat-raised-button color="primary"
+                       (click)="openActionDialog(contract, 'disapproveSupervise')">
+                        DISAPPROVE
+                    </a>
+                    <a *ngIf="this.route === '/supervise' && !this.isApprovedSupervisor"
+                        mat-raised-button color="primary"
+                        (click)="approveSupervise(contract)">CONFIRM</a>
+                    <!--<form *ngIf="this.route === '/supervise' || (this.route === '/convene' && contract.status === 'Submitted')"
+                          (ngSubmit)="this.route === '/supervise' ? approveSupervise(contract) :
+                          nominateExaminer(contract)" [formGroup]="examinerForm">
+                        <div *ngFor="let assessment of contract.assessment">
+                            <div class="nomination-form" *ngIf="!assessment['examiner']">
+                        <mat-form-field appearance="standard">
+                            <mat-label>{{assessment['assessmentName'].toString().toLocaleUpperCase()}} Examiner's Name</mat-label>
+                            <input matInput required formControlName="examiner{{assessment['template']}}">
+                        </mat-form-field>
+                            </div>
                         </div>
-                    </div>
-                    <div class="nomination-form">
-                    <button mat-raised-button color="primary" type="submit" [disabled]="!examinerFormValid">
-                        {{(this.route === '/supervise') ? 'NOMINATE EXAMINER AND APPROVE' :
-                        'NOMINATE EXAMINER'}}</button>
-                    </div>
-                </form>
-                <!--<a *ngIf="this.route === '/supervise'" mat-raised-button color="primary" routerLink="/approve">APPROVE</a>-->
-                <a *ngIf="this.route === '/examine' || (this.route === '/convene' && contract.status === 'Approved')" mat-raised-button color="primary"
-                   (click)="confirmExamine(contract, contract.assessment)">CONFIRM</a>
-                <a *ngIf="this.route === '/convene' && contract.status === 'Confirmed'" mat-raised-button color="primary"
-                   (click)="approveConvene(contract)">FINALISE</a>
-                <a *ngIf="this.route === '/convene' && contract.status === 'Nominated'" mat-raised-button color="primary"
-                   (click)="approveSupervise(contract)">APPROVE</a>
+                        <div class="nomination-form">
+                        <button mat-raised-button color="primary" type="submit" [disabled]="!examinerFormValid">
+                            {{(this.route === '/supervise') ? 'NOMINATE EXAMINER AND APPROVE' :
+                            'NOMINATE EXAMINER'}}</button>
+                        </div>
+                    </form>-->
+                    <!--<a *ngIf="this.route === '/supervise'" mat-raised-button color="primary" routerLink="/approve">APPROVE</a>-->
+                    <a *ngIf="this.route === '/examine' || (this.route === '/convene' && contract.status === 'Approved')" mat-raised-button color="primary"
+                       (click)="confirmExamine(contract, contract.assessment)">CONFIRM</a>
+                    <a *ngIf="this.route === '/convene' && contract.status === 'Confirmed'" mat-raised-button color="primary"
+                       (click)="approveConvene(contract)">FINALISE</a>
+                    <a *ngIf="this.route === '/convene' && contract.status === 'Nominated'" mat-raised-button color="primary"
+                       (click)="approveSupervise(contract)">APPROVE</a>
                 </div>
             </mat-expansion-panel>
         </mat-accordion>
+        <br>
         <mat-divider></mat-divider>
         <h3 mat-subheader>{{(this.route === '/supervise' || this.route === '/convene')?
             'Approved Contracts - ' + this.route.slice(1).toLocaleUpperCase() :

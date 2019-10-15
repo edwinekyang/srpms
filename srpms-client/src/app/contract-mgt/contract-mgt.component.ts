@@ -1,3 +1,7 @@
+/**
+ * @fileoverview This file draws the contract management page.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import {Component, OnInit} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {ContractService, Course} from '../contract.service';
@@ -8,6 +12,7 @@ import {ContractDialogComponent} from '../contract-dialog/contract-dialog.compon
 import {MatDialog} from '@angular/material';
 import {FormControl, FormGroup} from '@angular/forms';
 import {ErrorDialogComponent} from '../error-dialog/error-dialog.component';
+import {ContractMgtDialogComponent} from '../contract-mgt-dialog/contract-mgt-dialog.component';
 
 export interface ContractList<T> {
     contractId: string;
@@ -56,6 +61,7 @@ export class ContractMgtComponent implements OnInit {
     public courses: Course[] = [];
     public examinerForm: FormGroup;
     public examinerFormValid: boolean;
+    public isApprovedSupervisor = true;
 
     constructor(
         public contractService: ContractService,
@@ -161,7 +167,8 @@ export class ContractMgtComponent implements OnInit {
     async getPreContractIds() {
         if (this.route === '/supervise') {
             await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
-                .then(async data => {
+                .then(async (data: any) => {
+                    this.isApprovedSupervisor = data.is_approved_supervisor;
                     // @ts-ignore
                     const promisesPreList = data.supervise.map(async id => {
                         await this.contractMgtService.getContract(id).toPromise().then(contract => {
@@ -589,24 +596,24 @@ export class ContractMgtComponent implements OnInit {
     /**
      * Approves the supervise relation of the contract used by the contract supervisor
      * This function goes as following:
-     * 1. Creates the examiner relation for the corresponding assessment of the contract
-     * 2. Approves the contract
-     * 3. Confirms supervisor's examiner role of the corresponding assessment
-     * 4. Opens the dialog
+     * 1. Approves the contract
+     * 2. Confirms supervisor's examiner role of the corresponding assessment
+     * 3. Opens the dialog
      *
      * @param contract - Contract object
      */
     async approveSupervise(contract: any) {
         if (confirm('Are you sure?')) {
-            // Nominate the empty examiner
-            this.nominateExaminer(contract);
-
             // Approve the contract
-            await Promise.race([this.contractMgtService.approveContract(contract.contractId, contract.contractObj.supervise[0].id,
-                JSON.stringify({
-                    approve: true,
-                }))
-                .toPromise()]).catch((err: HttpErrorResponse) => {
+            const promiseApproveSupervise = contract.contractObj.supervise.map(async supervise => {
+                if (JSON.parse(localStorage.getItem('srpmsUser')).id === supervise.supervisor) {
+                    await this.contractMgtService.approveContract(contract.contractId, supervise.id,
+                        JSON.stringify({
+                            approve: true,
+                        })).toPromise();
+                }
+            });
+            await Promise.race([promiseApproveSupervise]).catch((err: HttpErrorResponse) => {
                 if (Math.floor(err.status / 100) === 4) {
                     Object.assign(this.errorMessage, err.error);
                 }
@@ -632,7 +639,11 @@ export class ContractMgtComponent implements OnInit {
                 if (Object.keys(this.errorMessage).length) {
                     this.openFailDialog();
                 } else {
-                    this.openSuccessDialog(contract.status);
+                    if (this.isApprovedSupervisor) {
+                        this.openSuccessDialog('ApproveSupervise');
+                    } else {
+                        this.openSuccessDialog('ConfirmSupervise');
+                    }
                 }
             });
         }
@@ -655,6 +666,30 @@ export class ContractMgtComponent implements OnInit {
                 this.router.navigate([this.route]).then(() => {});
             });
         });
+    }
+
+    private openActionDialog(contract: any, action: any) {
+        if (action === 'nominateNonformalSupervisor') {
+            if (confirm('Are you sure you want to nominate non-formal supervisor?')) {
+                Object.assign(contract, {action});
+                const dialogRef = this.dialog.open(ContractMgtDialogComponent, {
+                    width: '400px',
+                    data: contract,
+                });
+            }
+        } else {
+            Object.assign(contract, {action});
+            const dialogRef = this.dialog.open(ContractMgtDialogComponent, {
+                width: '400px',
+                data: contract,
+            });
+        }
+
+        /*dialogRef.afterClosed().subscribe(() => {
+            this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+                this.router.navigate([this.route]).then(() => {});
+            });
+        });*/
     }
 
     /**

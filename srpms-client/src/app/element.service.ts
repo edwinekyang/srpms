@@ -1,3 +1,7 @@
+/**
+ * @fileoverview This file contains each element of the form.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import { Injectable } from '@angular/core';
 
 import { DropdownElement } from './element-dropdown';

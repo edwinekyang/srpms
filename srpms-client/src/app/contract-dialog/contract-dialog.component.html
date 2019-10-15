@@ -2,7 +2,10 @@
     this.route === '/contract-viewer' ? 'Your contract has been updated!' :
     this.route === '/submit' && data === 'Draft' ? 'Your contract has been submitted!' :
     (this.route === '/submit' && data === 'DraftDeleted') ? 'Your contract has been removed!' :
-    this.route === '/supervise' ? 'Contract has been approved!' :
+    this.route === '/supervise' && data === 'NominateExaminer' ? 'Examiner has been nominated!' :
+    this.route === '/supervise' && data === 'DisapproveSupervise' ? 'Contract has been disapproved!' :
+    this.route === '/supervise' && data === 'ApproveSupervise' ? 'Contract has been approved!' :
+    this.route === '/supervise' && data === 'ConfirmSupervise' ? 'Supervisor request has been confirmed!' :
     this.route === '/examine' ? 'Examiner request has been confirmed!' :
     (this.route === '/convene' && data === 'Confirmed') ? 'Contract has been finalised!' :
     (this.route === '/convene' && data === 'Submitted') ? 'Examiner has been nominated!' :
@@ -26,9 +29,21 @@
     <p>Contract has been removed.</p><br>
     <p>You will be redirected to the contract management page.</p>
 </div>
-<div *ngIf="this.route === '/supervise'" mat-dialog-content>
+<div *ngIf="this.route === '/supervise' && data === 'NominateExaminer'" mat-dialog-content>
+    <p>Examiner for this contract has been nominated.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div *ngIf="this.route === '/supervise' && data === 'DisapproveSupervise'" mat-dialog-content>
+    <p>Contract has been disapproved and returned back to the student.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div *ngIf="this.route === '/supervise' && data === 'ApproveSupervise'" mat-dialog-content>
     <p>Contract has been approved and a request has been sent to the nominated examiner.</p><br>
     <p>Once the nominated examiner confirms the request, this contract will be sent to be reviewed by the course convener.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div *ngIf="this.route === '/supervise' && data === 'ConfirmSupervise'" mat-dialog-content>
+    <p>Non-formal supervisor request sent by the contract supervisor has been confirmed.</p><br>
     <p>You will be redirected to the contract management page.</p>
 </div>
 <div *ngIf="this.route === '/examine'" mat-dialog-content>
