@@ -1,3 +1,7 @@
+/**
+ * @fileoverview This file draws the error dialog from 4XX HTTP responds.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import {Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
 import {Router} from '@angular/router';
@@ -16,7 +20,6 @@ export class ErrorDialogComponent implements OnInit {
       @Inject(MAT_DIALOG_DATA) public data: any,
       private router: Router,
   ) {
-    console.log(data);
     this.errorTitles = Object.keys(data);
     this.route = this.router.url;
   }

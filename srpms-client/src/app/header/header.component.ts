@@ -1,3 +1,8 @@
+/**
+ * @fileoverview This file draws the header of the system.
+ * @author dajie.yang@anu.edu.au (Dajie (Cooper) Yang)
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import { Component, OnInit } from '@angular/core';
 
 import { AccountsService, SrpmsUser, ACC_SIG } from '../accounts.service';

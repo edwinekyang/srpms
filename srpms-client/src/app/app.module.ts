@@ -20,7 +20,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -36,6 +37,7 @@ import { ContractMgtComponent } from './contract-mgt/contract-mgt.component';
 import { ContractViewerComponent } from './contract-viewer/contract-viewer.component';
 import { ContractDialogComponent } from './contract-dialog/contract-dialog.component';
 import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
+import { ContractMgtDialogComponent } from './contract-mgt-dialog/contract-mgt-dialog.component';
 
 @NgModule({
   declarations: [
@@ -51,6 +53,7 @@ import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
     ContractViewerComponent,
     ContractDialogComponent,
     ErrorDialogComponent,
+    ContractMgtDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -75,11 +78,14 @@ import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
     MatRadioModule,
     MatExpansionModule,
     MatAutocompleteModule,
+    MatNativeDateModule,
+    MatDatepickerModule,
   ],
   entryComponents: [
     LoginDialogComponent,
     ContractDialogComponent,
     ErrorDialogComponent,
+    ContractMgtDialogComponent,
   ],
   providers: [
     HttpClientModule,
@@ -87,7 +93,9 @@ import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
       multi: true
-    }
+    }, {
+      provide: MAT_DATE_LOCALE, useValue: 'en-au'
+    },
   ],
   bootstrap: [ AppComponent ]
 })

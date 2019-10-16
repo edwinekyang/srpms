@@ -81,6 +81,21 @@
       </div>
     </div>
 
+    <div *ngSwitchCase="'datepicker'">
+      <div>
+        <div class="form-container datepicker">
+          <mat-form-field appearance="standard">
+            <mat-label>{{element.label}}</mat-label>
+            <input matInput [matDatepicker]="datePicker" [id]="element.key"
+                   [formControl]="form.controls[element.key]"
+                   placeholder="{{element.placeholder}}" [readonly]="true">
+            <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+            <mat-datepicker #datePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+
     <div *ngSwitchCase="'users'">
       <mat-form-field>
         <input type="text" placeholder="{{element.label}}" matInput

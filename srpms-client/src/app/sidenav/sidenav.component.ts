@@ -1,3 +1,7 @@
+/**
+ * @fileoverview This file draws the side navigation bar based on the user's related contracts.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import { Component, OnInit } from '@angular/core';
 import {ContractMgtService} from '../contract-mgt.service';
 

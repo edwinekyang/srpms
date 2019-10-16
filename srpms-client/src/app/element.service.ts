@@ -1,3 +1,8 @@
+/**
+ * @fileoverview This file contains each element of the form.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ * @author Dajie Yang (u6513788) <dajie.yang@anu.edu.au>
+ */
 import { Injectable } from '@angular/core';
 
 import { DropdownElement } from './element-dropdown';
@@ -9,6 +14,8 @@ import { ContractService } from './contract.service';
 import { Course } from './reseach_mgt-objects';
 import { UserElement } from './element-user';
 import { AccountsService, SrpmsUser } from './accounts.service';
+import { HttpErrorResponse } from '@angular/common/http';
+import { DatepickerElement } from './element-datepicker';
 
 
 @Injectable()
@@ -204,15 +211,14 @@ export class ElementService {
         maxlength: 2
       }),
 
-      new TextboxElement({
+      new DatepickerElement({
         key: 'assessment1Due',
         label: 'DUE DATE',
         value: '',
         required: false,
         order: 26,
         flag: 'common',
-        placeholder: '(e.g. 2019-01-01)',
-        maxlength: 10
+        placeholder: 'Choose a date',
       }),
 
       new UserElement({
@@ -280,15 +286,14 @@ export class ElementService {
         maxlength: 2
       }),
 
-      new TextboxElement({
+      new DatepickerElement({
         key: 'assessment2Due',
         label: 'DUE DATE',
         value: '',
         required: false,
         order: 36,
         flag: 'common',
-        placeholder: '(e.g. 2019-01-01)',
-        maxlength: 10
+        placeholder: 'Choose a date',
       }),
 
       new UserElement({
@@ -375,15 +380,14 @@ export class ElementService {
         maxlength: 2
       }),
 
-      new TextboxElement({
+      new DatepickerElement({
         key: 'assessment3Due',
         label: 'DUE DATE',
         value: '',
         required: false,
         order: 47,
         flag: 'common',
-        placeholder: '(e.g. 2019-01-01)',
-        maxlength: 10
+        placeholder: 'Choose a date',
       }),
 
       new UserElement({

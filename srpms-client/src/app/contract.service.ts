@@ -1,7 +1,10 @@
+/**
+ * @fileoverview This file contains the services relevant to Contract.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { API_URL } from './api-url';
 import { Assessment, Contract, Course, Supervise } from './reseach_mgt-objects';
 
@@ -53,10 +56,10 @@ export class ContractService {
    * @param payLoad - Contract general information
    */
   addContract(payLoad: any): Observable<Contract> {
-    return this.http.post<Contract>(this.API_URL + 'research_mgt/contracts/', payLoad, this.httpOptions)
-      .pipe(
-        catchError(this.handleError<Contract>('addContract'))
-      );
+    return this.http.post<Contract>(this.API_URL + 'research_mgt/contracts/', payLoad, this.httpOptions);
+    // .pipe(
+    //   catchError(this.handleError<Contract>('addContract'))
+    // );
   }
 
   /**
@@ -85,5 +88,9 @@ export class ContractService {
     /*.pipe(
         catchError(this.handleError<any>('addSupervise'))
     );*/
+  }
+
+  addAssessment(contractId: number, s: string): Observable<Assessment> {
+    return this.http.post<Assessment>(this.API_URL + `research_mgt/contracts/${contractId}/assessments/`, s, this.httpOptions);
   }
 }

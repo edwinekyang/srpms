@@ -1,7 +1,11 @@
+/**
+ * @fileoverview This file draws the contract management page.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import {Component, OnInit} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {ContractService} from '../contract.service';
-import { Assessment, Course } from '../reseach_mgt-objects';
+import { Assessment, Contract, Course } from '../reseach_mgt-objects';
 import {ContractMgtService} from '../contract-mgt.service';
 import {AccountsService, SrpmsUser} from '../accounts.service';
 import {Router} from '@angular/router';
@@ -9,8 +13,10 @@ import {ContractDialogComponent} from '../contract-dialog/contract-dialog.compon
 import {MatDialog} from '@angular/material';
 import {FormControl, FormGroup} from '@angular/forms';
 import {ErrorDialogComponent} from '../error-dialog/error-dialog.component';
+import {ContractMgtDialogComponent} from '../contract-mgt-dialog/contract-mgt-dialog.component';
 
 export interface ContractList<T> {
+    supervisorName?: Array<T>;
     contractId: number;
     studentName: string;
     studentId: string;
@@ -57,6 +63,7 @@ export class ContractMgtComponent implements OnInit {
     public courses: Course[] = [];
     public examinerForm: FormGroup;
     public examinerFormValid: boolean;
+    public isApprovedSupervisor = true;
 
     constructor(
         public contractService: ContractService,
@@ -162,7 +169,8 @@ export class ContractMgtComponent implements OnInit {
     async getPreContractIds() {
         if (this.route === '/supervise') {
             await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
-                .then(async data => {
+                .then(async (data: any) => {
+                    this.isApprovedSupervisor = data.is_approved_supervisor;
                     // @ts-ignore
                     const promisesPreList = data.supervise.map(async id => {
                         await this.contractMgtService.getContract(id).toPromise().then(contract => {
@@ -230,31 +238,6 @@ export class ContractMgtComponent implements OnInit {
                                 this.preList.push(id);
                             }
                         });
-
-                        /*await this.contractMgtService.getContract(id).toPromise().then(async contract => {
-                            if (contract.is_all_supervisors_approved && !contract.is_convener_approved) {
-                                await this.contractMgtService.getAssessments(id).toPromise().then(async assessments => {
-                                    let preFlag: boolean;
-                                    preFlag = true;
-                                    const promiseAssessments = assessments.map(assessment => {
-                                        // Course convenor is one of the assessment examiner
-                                        if (assessment.assessment_examine[0].examiner ===
-                                            JSON.parse(localStorage.getItem('srpmsUser')).id &&
-                                            !assessment.is_all_examiners_approved) {
-                                            preFlag = preFlag ? preFlag || !assessment.is_all_examiners_approved : preFlag;
-                                        // Other assessments that course convener is not the examiner
-                                        } else {
-                                            preFlag = preFlag ? assessment.is_all_examiners_approved : preFlag;
-                                        }
-                                    });
-                                    await Promise.all(promiseAssessments).then(() => {
-                                        if (preFlag) {
-                                            this.preList.push(id);
-                                        }
-                                    });
-                                });
-                            }
-                        });*/
                     });
                     await Promise.all(promisePreList).catch((err: HttpErrorResponse) => {
                         if (Math.floor(err.status / 100) === 4) {
@@ -412,9 +395,17 @@ export class ContractMgtComponent implements OnInit {
         let assessmentList: any;
         const promiseContractIdList = contractIdList.map(async (contractId: number) => {
             await this.contractMgtService.getContract(contractId).toPromise()
-                .then(async contract => {
+                .then(async (contract: Contract) => {
                     await this.accountService.getUser(contract.owner).toPromise()
                         .then(async (student: SrpmsUser) => {
+                            const supervisorName = [];
+                            contract.supervise.map(async supervise => {
+                                await this.accountService.getUser(supervise.supervisor).toPromise()
+                                    .then((user: SrpmsUser) => {
+                                        supervisorName.push(user.first_name + ' ' + user.last_name +
+                                            (supervise.is_formal ? '(F)' : '(NF)'));
+                                    });
+                            });
                             assessmentList = [];
                             if (type === 'pre') {
                                 this.preAssessmentList.forEach(assessment => {
@@ -434,18 +425,13 @@ export class ContractMgtComponent implements OnInit {
                                     if (type === 'pre') {
                                         let examineStatus: string;
                                         examineStatus = '';
-                                        if (!contract.is_all_assessments_approved) {
-                                            assessmentList.forEach(assessment => {
-                                                if (assessment.template === 1) {
-                                                    if (assessment.examinerApprovalDate) {
-                                                        examineStatus = 'Confirmed';
-                                                    } else if (assessment.examiner) {
-                                                        examineStatus = 'Nominated';
-                                                    }
-                                                }
-                                            });
+                                        if (!contract.is_all_assessments_approved && contract.is_examiner_nominated) {
+                                            examineStatus = 'Nominated';
+                                        } else if (contract.is_all_assessments_approved) {
+                                            examineStatus = 'Confirmed';
                                         }
                                         this.preContractList.push({
+                                            supervisorName,
                                             courseNumber: course.course_number,
                                             courseName: course.name,
                                             contractId: contract.id,
@@ -457,15 +443,17 @@ export class ContractMgtComponent implements OnInit {
                                             contractObj: contract,
                                             assessment: assessmentList,
                                             status: examineStatus ?
-                                                examineStatus === 'Nominated' ?
+                                                (examineStatus === 'Nominated' ?
                                                     contract.is_all_supervisors_approved ?
                                                         'Approved' : 'Nominated' :
                                                     examineStatus === 'Confirmed' && contract.is_convener_approved ? 'Finalised' :
-                                                        'Confirmed' :
-                                                    contract.is_submitted ? 'Submitted' : 'Draft',
+                                                        'Confirmed') :
+                                                (contract.is_all_supervisors_approved ? 'Approved' :
+                                                    contract.is_submitted ? 'Submitted' : 'Draft'),
                                         });
                                     } else if (type === 'post') {
                                         this.postContractList.push({
+                                            supervisorName,
                                             courseNumber: course.course_number,
                                             courseName: course.name,
                                             contractId: contract.id,
@@ -483,12 +471,10 @@ export class ContractMgtComponent implements OnInit {
                                     }
                                 }
                             });
-
                             await Promise.all(promisesCourses);
                         });
                 });
         });
-
         await Promise.all(promiseContractIdList);
     }
 
@@ -590,50 +576,67 @@ export class ContractMgtComponent implements OnInit {
     /**
      * Approves the supervise relation of the contract used by the contract supervisor
      * This function goes as following:
-     * 1. Creates the examiner relation for the corresponding assessment of the contract
-     * 2. Approves the contract
-     * 3. Confirms supervisor's examiner role of the corresponding assessment
-     * 4. Opens the dialog
+     * 1. Approves the contract
+     * 2. Confirms supervisor's examiner role of the corresponding assessment
+     * 3. Opens the dialog
      *
      * @param contract - Contract object
      */
     async approveSupervise(contract: any) {
         if (confirm('Are you sure?')) {
-            // Nominate the empty examiner
-            this.nominateExaminer(contract);
-
             // Approve the contract
-            await Promise.race([this.contractMgtService.approveContract(contract.contractId, contract.contractObj.supervise[0].id,
-                JSON.stringify({
-                    approve: true,
-                }))
-                .toPromise()]).catch((err: HttpErrorResponse) => {
-                if (Math.floor(err.status / 100) === 4) {
-                    Object.assign(this.errorMessage, err.error);
-                }
-            });
-
-            // Confirm supervisor's examiner role of the one of the assessments if any
-            const promiseConfirmExamine = contract.assessment.map(async assessment => {
-                if (assessment.examiner) {
-                    if (assessment.examiner === JSON.parse(localStorage.getItem('srpmsUser')).id) {
-                        await this.contractMgtService.confirmExamine(contract.contractId, assessment.id,
-                            assessment.assessment_examine[0].id, JSON.stringify({
+            const promiseApproveSupervise = async () => {
+                await this.asyncForEach(contract.contractObj.supervise, async (supervise) => {
+                    if ((JSON.parse(localStorage.getItem('srpmsUser')).id === supervise.supervisor &&
+                        !supervise.is_supervisor_approved)) {
+                        await this.contractMgtService.approveContract(contract.contractId, supervise.id,
+                            JSON.stringify({
                                 approve: true,
-                            })).toPromise();
+                            })).toPromise().catch((err: HttpErrorResponse) => {
+                            if (Math.floor(err.status / 100) === 4) {
+                                Object.assign(this.errorMessage, err.error);
+                            }
+                        });
+                    } else if ((JSON.parse(localStorage.getItem('srpmsUser')).id !== supervise.supervisor &&
+                        !supervise.is_supervisor_approved)) {
+                        await this.contractMgtService.approveContract(contract.contractId, supervise.id,
+                            JSON.stringify({
+                                approve: true,
+                            })).toPromise().catch((err: HttpErrorResponse) => {
+                            if (Math.floor(err.status / 100) === 4) {
+                                Object.assign(this.errorMessage, err.error);
+                            }
+                        });
                     }
-                }
-            });
-
-            await Promise.all(promiseConfirmExamine).catch((err: HttpErrorResponse) => {
-                if (Math.floor(err.status / 100) === 4) {
-                    Object.assign(this.errorMessage, err.error);
-                }
-            }).then(() => {
+                });
+            };
+            await promiseApproveSupervise();
+            // Confirm supervisor's examiner role of the one of the assessments if any
+            const promiseConfirmExamine = async () => {
+                await this.asyncForEach(contract.assessment, async (assessment) => {
+                    if (assessment.examiner) {
+                        if (assessment.examiner === contract.contractObj.supervise[0].supervisor) {
+                            await this.contractMgtService.confirmExamine(contract.contractId, assessment.id,
+                                assessment.examineId, JSON.stringify({
+                                    approve: true,
+                                })).toPromise().catch((err: HttpErrorResponse) => {
+                                if (Math.floor(err.status / 100) === 4) {
+                                    Object.assign(this.errorMessage, err.error);
+                                }
+                            });
+                        }
+                    }
+                });
+            };
+            await promiseConfirmExamine().then(() => {
                 if (Object.keys(this.errorMessage).length) {
                     this.openFailDialog();
                 } else {
-                    this.openSuccessDialog(contract.status);
+                    if (this.isApprovedSupervisor) {
+                        this.openSuccessDialog('ApproveSupervise');
+                    } else {
+                        this.openSuccessDialog('ConfirmSupervise');
+                    }
                 }
             });
         }
@@ -656,6 +659,24 @@ export class ContractMgtComponent implements OnInit {
                 this.router.navigate([this.route]).then(() => {});
             });
         });
+    }
+
+    public openActionDialog(contract: any, action: any) {
+        if (action === 'nominateNonformalSupervisor') {
+            if (confirm('Are you sure you want to nominate non-formal supervisor?')) {
+                Object.assign(contract, {action});
+                const dialogRef = this.dialog.open(ContractMgtDialogComponent, {
+                    width: '400px',
+                    data: contract,
+                });
+            }
+        } else {
+            Object.assign(contract, {action});
+            const dialogRef = this.dialog.open(ContractMgtDialogComponent, {
+                width: '400px',
+                data: contract,
+            });
+        }
     }
 
     /**
@@ -684,33 +705,51 @@ export class ContractMgtComponent implements OnInit {
      * @param contract - Contract object
      * @param assessments - Assessment list
      */
-    async confirmExamine(contract: any, assessments: any) {
+    async confirmExamine(contract: any, assessments?: any) {
         if (confirm('Are you sure?')) {
-            let assessmentId: number;
-            let examineId: number;
-            assessmentId = 0;
-            examineId = 0;
-            const promiseAssessments = assessments.map(assessment => {
-                if (this.route === '/examine') {
+            if (this.route === '/examine') {
+                let assessmentId: number;
+                let examineId: number;
+                assessmentId = 0;
+                examineId = 0;
+                const promiseAssessments = assessments.map(assessment => {
                     if (assessment.examiner === JSON.parse(localStorage.getItem('srpmsUser')).id) {
                         assessmentId = assessment.id;
                         examineId = assessment.examineId;
                     }
-                } else if (this.route === '/convene' && contract.status === 'Approved') {
-                    if (assessment.template === 1) {
-                        assessmentId = assessment.id;
-                        examineId = assessment.examineId;
-                    }
-                }
-            });
-            await Promise.all(promiseAssessments).then(() => {
-                this.contractMgtService.confirmExamine(contract.contractId, assessmentId, examineId,
+                });
+                await Promise.all(promiseAssessments).then(async () => {
+                    await this.contractMgtService.confirmExamine(contract.contractId, assessmentId, examineId,
+                        JSON.stringify({
+                            approve: true,
+                        })).toPromise().catch((err: HttpErrorResponse) => {
+                        if (Math.floor(err.status / 100) === 4) {
+                            Object.assign(this.errorMessage, err.error);
+                        }
+                    }).then(() => {
+                        if (Object.keys(this.errorMessage).length) {
+                            this.openFailDialog();
+                        } else {
+                            this.openSuccessDialog('ConfirmExamine');
+                        }
+                    });
+                });
+            } else if (this.route === '/convene' && !contract.isAllExaminersApproved) {
+                await this.contractMgtService.confirmExamine(contract.contract, contract.id, contract.examineId,
                     JSON.stringify({
                         approve: true,
-                    })).subscribe(() => {
-                    this.openSuccessDialog(contract.status);
+                    })).toPromise().catch((err: HttpErrorResponse) => {
+                    if (Math.floor(err.status / 100) === 4) {
+                        Object.assign(this.errorMessage, err.error);
+                    }
+                }).then(() => {
+                    if (Object.keys(this.errorMessage).length) {
+                        this.openFailDialog();
+                    } else {
+                        this.openSuccessDialog('ConfirmExamine');
+                    }
                 });
-            });
+            }
         }
     }
 
@@ -799,9 +838,14 @@ export class ContractMgtComponent implements OnInit {
             if (Object.keys(this.errorMessage).length) {
                 this.openFailDialog();
             } else {
-                console.log(contract.status);
                 this.openSuccessDialog(contract.status + 'Deleted');
             }
+        }
+    }
+
+    public async asyncForEach(array, callback) {
+        for (let index = 0; index < array.length; index++) {
+            await callback(array[index], index, array);
         }
     }
 }
