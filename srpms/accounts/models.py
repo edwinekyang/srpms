@@ -42,7 +42,10 @@ class SrpmsUser(AbstractUser):
     # ANU Account related field
     uni_id = models.CharField("Uni ID", max_length=8, default='', blank=True, null=False)
 
+    display_name = models.CharField(default='', max_length=150, blank=True, null=False)
+
     def get_display_name(self) -> str:
+        """Get display name for the user"""
         display_name = ' '.join([self.first_name, self.last_name])
         if not display_name.replace(' ', ''):
             # First name and last name both empty would make display name empty
@@ -58,4 +61,5 @@ class SrpmsUser(AbstractUser):
 
     def save(self, *args, **kwargs):
         self.full_clean()
+        self.display_name = self.get_display_name()
         super(SrpmsUser, self).save(*args, **kwargs)

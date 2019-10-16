@@ -25,18 +25,13 @@ class SrpmsUserSerializer(serializers.HyperlinkedModelSerializer):
     # manually specify here.
     url = serializers.HyperlinkedIdentityField(view_name="accounts:user-detail")
 
-    display_name = serializers.SerializerMethodField(read_only=True)
+    display_name = serializers.ReadOnlyField()
 
     # Specify fields that would serialize
     class Meta:
         model = SrpmsUser
         fields = ['url', 'id', 'username', 'first_name', 'last_name', 'display_name', 'email',
                   'nominator', 'expire_date', 'uni_id']
-
-    # noinspection PyMethodMayBeStatic
-    def get_display_name(self, obj: SrpmsUser) -> str:
-        """Return combination of first name and last name, or username if those two are empty"""
-        return obj.get_display_name()
 
 
 class LoginSerializer(serializers.ModelSerializer):
