@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { API_URL } from './api-url';
 
 export interface Course {
   id: number;
@@ -16,7 +17,7 @@ export class ContractService {
 
   constructor(private http: HttpClient) { }
 
-  private API_URL = '/api/';
+  private API_URL = API_URL;
 
   public httpOptions = {
     headers: new HttpHeaders({

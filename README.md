@@ -22,4 +22,9 @@
 └── README.md                         # This file
 ```
 
-Please refer to [docs](docs/) for documentations
+Please refer to [docs](docs/) for documentations.
+
+For better coding experience, please use [Intellij IDEA](https://www.jetbrains.com/idea/) or 
+[PyCharm](https://www.jetbrains.com/pycharm/) with Django and Angular plugin. 
+
+For better reading experience and diagram support, please install [Typora](https://www.typora.io/)

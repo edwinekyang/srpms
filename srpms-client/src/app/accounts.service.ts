@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of, Subject, throwError } from 'rxjs';
+import { API_URL } from './api-url';
 
 export const ACC_SIG = {
   LOGIN: 'login',
@@ -45,7 +46,7 @@ export class AccountsService {
   constructor(private http: HttpClient) {
   }
 
-  private API_URL = '/api/';
+  private API_URL = API_URL;
 
   // BehaviorSubject can return last time value for new subscribers, normal subject cannot
   private storageSub = new BehaviorSubject<string>(null);

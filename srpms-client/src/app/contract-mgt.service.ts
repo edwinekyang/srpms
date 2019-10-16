@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { API_URL } from './api-url';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ContractMgtService {
-    private API_URL = '/api/';
+    private API_URL = API_URL;
 
     constructor(
         private http: HttpClient,
