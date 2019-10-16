@@ -1,5 +1,5 @@
 """
-Print contract to PDF.
+Print contract to PDF. Students need this as a record, CECS need this to issue permission code.
 """
 
 __author__ = 'Dajie (Cooper) Yang'

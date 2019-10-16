@@ -697,3 +697,18 @@ class IndividualProject(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.get('content-type'), 'application/pdf')
         self.assertTrue(int(response.get('Content-Length')) > 1000)
+
+    def test_export(self):
+        self.set_supervise()
+        self.set_submit()
+        self.set_examine()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
+        self.set_examiner_approve()
+        self.set_convener_approve()
+
+        response = self.convener.get(utils.get_contract_url(self.contract_id, export=True),
+                                     data.get_approve_data(False))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.get('content-type'), 'text/csv')
+        self.assertTrue(int(response.get('Content-Length')) > 1)
