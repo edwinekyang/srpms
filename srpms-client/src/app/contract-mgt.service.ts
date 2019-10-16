@@ -204,10 +204,10 @@ export class ContractMgtService {
      */
     updateAssessment(contractId: number, assessmentId: number, s: string) {
         return this.http.patch(this.API_URL + `research_mgt/contracts/${contractId}/assessments/${assessmentId}/`,
-            s, this.httpOptions)
-            .pipe(
+            s, this.httpOptions);
+            /*.pipe(
                 catchError(this.handleError<any>('updateAssessment'))
-            );
+            );*/
     }
 
     /**
@@ -255,5 +255,9 @@ export class ContractMgtService {
         /*.pipe(
             catchError(this.handleError<any>('updateExamine'))
         );*/
+    }
+
+    createNonformalSupervisor(contractId: number, s: string) {
+        return this.http.post(this.API_URL + `research_mgt/contracts/${contractId}/supervise/`, s, this.httpOptions);
     }
 }
