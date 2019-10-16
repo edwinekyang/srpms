@@ -231,11 +231,16 @@ export class ContractViewerComponent implements OnInit {
       const updateAssessments = async () => {
         await this.asyncForEach(this.message.contractObj.assessment, async (assessment) => {
           if (assessment.template === this.form.controls.assessment1.value) {
-            await this.contractMgtService.updateAssessment(this.message.contractId, assessment.id, JSON.stringify({
+            const update = {};
+            if (this.form.value.assessment1Due) {
+              Object.assign(update, {due: this.transformDue(new Date(this.form.value.assessment1Due)), });
+            }
+            Object.assign(update, {
               additional_description: this.form.value.assessment1Description,
-              due: this.form.value.assessment1Due,
               weight: this.form.value.assessment1Mark,
-            })).toPromise().catch((err: HttpErrorResponse) => {
+            });
+            await this.contractMgtService.updateAssessment(this.message.contractId, assessment.id,
+                JSON.stringify(update)).toPromise().catch((err: HttpErrorResponse) => {
               if (Math.floor(err.status / 100) === 4) {
                 Object.assign(this.errorMessage, err.error);
               }
@@ -269,11 +274,16 @@ export class ContractViewerComponent implements OnInit {
             }
           }
           if (assessment.template === this.form.controls.assessment2.value) {
-            await this.contractMgtService.updateAssessment(this.message.contractId, assessment.id, JSON.stringify({
+            const update = {};
+            if (this.form.value.assessment2Due) {
+              Object.assign(update, {due: this.transformDue(new Date(this.form.value.assessment2Due)), });
+            }
+            Object.assign(update, {
               additional_description: this.form.value.assessment2Description,
-              due: this.form.value.assessment2Due,
               weight: this.form.value.assessment2Mark,
-            })).toPromise().catch((err: HttpErrorResponse) => {
+            });
+            await this.contractMgtService.updateAssessment(this.message.contractId, assessment.id,
+                JSON.stringify(update)).toPromise().catch((err: HttpErrorResponse) => {
               if (Math.floor(err.status / 100) === 4) {
                 Object.assign(this.errorMessage, err.error);
               }
@@ -307,11 +317,16 @@ export class ContractViewerComponent implements OnInit {
             }
           }
           if (assessment.template === this.form.controls.assessment3.value) {
-            await this.contractMgtService.updateAssessment(this.message.contractId, assessment.id, JSON.stringify({
+            const update = {};
+            if (this.form.value.assessment3Due) {
+              Object.assign(update, {due: this.transformDue(new Date(this.form.value.assessment3Due)), });
+            }
+            Object.assign(update, {
               additional_description: this.form.value.assessment3Description,
-              due: this.form.value.assessment3Due,
               weight: this.form.value.assessment3Mark,
-            })).toPromise().catch((err: HttpErrorResponse) => {
+            });
+            await this.contractMgtService.updateAssessment(this.message.contractId, assessment.id,
+                JSON.stringify(update)).toPromise().catch((err: HttpErrorResponse) => {
               if (Math.floor(err.status / 100) === 4) {
                 Object.assign(this.errorMessage, err.error);
               }
@@ -450,6 +465,21 @@ export class ContractViewerComponent implements OnInit {
     dialogRef.afterClosed().subscribe(() => {
       this.router.navigate(['/submit']).then(() => {});
     });
+  }
+
+  public transformDue(due: any) {
+    let date: string;
+    let month: string;
+    let year: string;
+    date = due.getDate().toString();
+    month = (due.getMonth() + 1).toString();
+    year = due.getFullYear().toString();
+    date = date.length === 1 ?
+        '0' + date : date;
+    month = month.length === 1 ?
+        '0' + month : month;
+
+    return year + '-' + month + '-' + date;
   }
 
 }

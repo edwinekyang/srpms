@@ -419,6 +419,7 @@ export class ContractMgtComponent implements OnInit {
         const promiseContractIdList = contractIdList.map(async (contractId: number) => {
             await this.contractMgtService.getContract(contractId).toPromise()
                 .then(async contract => {
+                    console.log(contract);
                     await this.accountService.getUser(contract.owner).toPromise()
                         .then(async (student: SrpmsUser) => {
                             assessmentList = [];
@@ -494,7 +495,6 @@ export class ContractMgtComponent implements OnInit {
                                     }
                                 }
                             });
-
                             await Promise.all(promisesCourses);
                         });
                 });

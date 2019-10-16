@@ -1,7 +1,8 @@
 <h1 mat-dialog-title>
     {{data.action === 'nominateExaminer' ? 'Examiner nomination' :
     data.action === 'disapproveSupervise' ? 'Supervise disapproval' :
-    data.action === 'rejectExamine' ? 'Examine rejection' : ''}}
+    data.action === 'rejectExamine' ? 'Examine rejection' :
+    data.action === 'nominateNonformalSupervisor'? 'Non-formal supervisor nomination' : ''}}
 </h1>
 <div mat-dialog-content *ngIf="this.route === '/supervise' && data.action === 'nominateExaminer' ||
     (this.route === '/convene' && data.status === 'Submitted')">
@@ -18,6 +19,14 @@
             <button mat-raised-button color="primary" type="submit" [disabled]="!examinerFormValid">
                 NOMINATE EXAMINER</button>
         </div>
+    </form>
+</div>
+<div mat-dialog-content *ngIf="this.route === '/supervise' && data.action === 'nominateNonformalSupervisor'">
+    <form (ngSubmit)="nominateNonformalSupervisor(data)" [formGroup]="nfSupervisorForm">
+        <mat-form-field appearance="standard">
+            <mat-label>Non-formal Supervisor's Name</mat-label>
+            <input matInput required formControlName="nfSupervisor">
+        </mat-form-field>
     </form>
 </div>
 <div class="nomination-form" mat-dialog-content *ngIf="this.route === '/supervise' && data.action === 'disapproveSupervise'">

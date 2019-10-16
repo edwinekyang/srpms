@@ -273,7 +273,7 @@ export class ElementService {
             }),
 
             new DatepickerElement({
-                key: 'assessment1Due',
+                key: 'assessment2Due',
                 label: 'DUE DATE',
                 value: '',
                 required: false,
@@ -367,7 +367,7 @@ export class ElementService {
             }),
 
             new DatepickerElement({
-                key: 'assessment1Due',
+                key: 'assessment3Due',
                 label: 'DUE DATE',
                 value: '',
                 required: false,
