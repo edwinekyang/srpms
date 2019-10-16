@@ -26,7 +26,15 @@ import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 import { AuthInterceptor } from './auth-interceptor.service';
 import { ContractFormComponent } from './contract-form/contract-form.component';
 import { ContractFormElementComponent } from './contract-form-element/contract-form-element.component';
-import {MatCheckboxModule, MatExpansionModule, MatRadioModule, MatSelectModule} from '@angular/material';
+import {
+    MAT_DATE_LOCALE,
+    MatCheckboxModule,
+    MatDatepickerModule,
+    MatExpansionModule,
+    MatNativeDateModule,
+    MatRadioModule,
+    MatSelectModule
+} from '@angular/material';
 import { ContractMgtComponent } from './contract-mgt/contract-mgt.component';
 import { ContractViewerComponent } from './contract-viewer/contract-viewer.component';
 import { ContractDialogComponent } from './contract-dialog/contract-dialog.component';
@@ -71,6 +79,8 @@ import { ContractMgtDialogComponent } from './contract-mgt-dialog/contract-mgt-d
         MatCheckboxModule,
         MatRadioModule,
         MatExpansionModule,
+        MatNativeDateModule,
+        MatDatepickerModule,
     ],
   entryComponents: [
     LoginDialogComponent,
@@ -84,7 +94,9 @@ import { ContractMgtDialogComponent } from './contract-mgt-dialog/contract-mgt-d
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
       multi: true
-    }
+    }, {
+      provide: MAT_DATE_LOCALE, useValue: 'en-au'
+    },
   ],
   bootstrap: [AppComponent]
 })

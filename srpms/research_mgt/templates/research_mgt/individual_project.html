@@ -1,0 +1,315 @@
+{% load staticfiles %}
+<!-- NOTE: Weasyprint does not support grid layout -->
+<style>
+  @page {
+    /*A4 size*/
+    size: 7in 9.25in;
+    margin: 1cm 2cm 2cm 2cm;
+    padding: 1.5cm 0 0 0;
+
+    /*Page number*/
+    @bottom-left {
+      font-family: "Times New Roman", serif;
+      font-size: 0.9em;
+      content: "Research School of Computer Science";
+    }
+    @bottom-right {
+      font-family: "Times New Roman", serif;
+      font-size: 0.9em;
+      content: "Page " counter(page) " of " counter(pages);
+    }
+  }
+
+  body {
+    /* TODO: Use system font, contract printing should not have font fall back */
+    font-family: "Times New Roman", serif;
+    font-size: 0.9em;
+
+    /* ANU Logo */
+    background-image: url("{% static "research_mgt/ANU-LOGO.png" %}");
+    background-repeat: no-repeat;
+    background-position: left top -1.5cm;
+    background-attachment: fixed;
+    background-clip: content-box;
+    image-resolution: 300dpi;
+  }
+
+  /* Contract title */
+  h1 {
+    text-align: center;
+  }
+
+  /* Section title */
+  h2 {
+    font-size: 1.3em;
+  }
+
+  /* Assessment table */
+  table {
+    width: 100%;
+    margin: 0.2em 0 0.8em 0;
+    border-collapse: collapse;
+    border: 1px solid;
+  }
+
+  td, th {
+    border: 1px solid;
+    padding: 5px 5px;
+  }
+
+  th {
+    border-bottom: 2px solid;
+  }
+
+  td {
+    text-align: left;
+  }
+
+  .boxed {
+    margin: 0.2em 0 0.2em 0;
+    min-height: 5em;
+    padding: 0.3em 0.3em 0.5em 0.3em;
+    border: 1px solid;
+  }
+
+  .flex-row {
+    display: flex;
+    flex-direction: row;
+  }
+
+  /* For display information in key-value pair */
+  .field-display {
+    display: flex;
+    page-break-inside: avoid;
+  }
+
+  .field-display > .field-value {
+    margin-left: 0.5em;
+    border-bottom: 1px solid;
+    text-align: center;
+    flex: auto;
+  }
+
+  #basic-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #assessment {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    page-break-inside: avoid;
+  }
+</style>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Independent Study Contract</title>
+</head>
+
+<header>
+</header>
+
+<body>
+<h1>Independent Study Contract</h1>
+
+<h2>Section A (Student and Supervisors)</h2>
+
+<div class="boxed">
+  <div id="basic-info">
+    <div class="flex-row">
+      <div class="field-display" style="flex-grow: 1">
+        <span>UniID: </span>
+        <span class="field-value">{{ owner.uni_id }}</span>
+      </div>
+      <div class="field-display" style="flex-grow: 1"></div>
+    </div>
+    <br style="height: 8px">
+
+    <div class="flex-row">
+      <div class="field-display" style="flex-grow: 1">
+        <span class="field-key">SURNAME: </span>
+        <span class="field-value">{{ owner.last_name }}</span>
+      </div>
+      <div class="field-display" style="flex-grow: 1">
+        <span>FIRST NAME: </span>
+        <span class="field-value">{{ owner.first_name }}</span>
+      </div>
+    </div>
+    <br style="height: 8px">
+
+    {% for supervise in supervise_other %}
+      <div class="field-display">
+        <span>PROJECT SUPERVISOR: </span>
+        <span class="field-value">{{ supervise }}</span>
+      </div>
+      <br style="height: 8px">
+    {% endfor %}
+
+    {% for supervise in supervise_formal %}
+      <div class="field-display">
+        <span>FORMAL SUPERVISOR: </span>
+        <span class="field-value">{{ supervise }}</span>
+      </div>
+      <br style="height: 8px">
+    {% endfor %}
+
+    <div class="field-display">
+      <span>COURSE: </span>
+      <span class="field-value">{{ course_info }}</span>
+    </div>
+  </div>
+</div>
+
+<div style="margin: 0.5em 0;">
+  <b>COMMERCING SEMESTER</b>
+  <div class="flex-row">
+    <div class="field-display" style="flex-grow: 1.5; margin-right: 10px">
+      <span>YEAR: </span>
+      <span class="field-value">{{ contract.year }}</span>
+    </div>
+    <div class="field-display" style="flex-grow: 1; margin-right: 10px">
+      <span>SEMESTER: </span>
+      <span class="field-value">{{ contract.semester }}</span>
+    </div>
+    <div class="field-display" style="flex-grow: 2">
+      <span>Two-semester project (12u courses only): </span>
+      <span class="field-value">
+          {% if contract.duration == 2 %}
+            Yes
+          {% else %}
+            No
+          {% endif %}
+        </span>
+    </div>
+  </div>
+</div>
+
+<div class="boxed" style="min-height: 1em">
+  <b>PROJECT TITLE:</b>
+  {{ contract.title | linebreaks }}
+</div>
+
+<div class="boxed">
+  <b>LEARNING OBJECTIVES:</b>
+  {{ contract.objectives|linebreaks }}
+</div>
+
+<div class="boxed">
+  <b>PROJECT DESCRIPTION:</b>
+  {{ contract.description|linebreaks }}
+</div>
+
+{# Create a table for assessments #}
+<div id="assessment">
+  <b>ASSESSMENT:</b>
+  <table>
+    <tr>
+      <th scope="col">Assessed project components</th>
+      <th scope="col">% of mark</th>
+      <th scope="col">Due date</th>
+      <th scope="col">Examiner</th>
+    </tr>
+    {% for assessment in assessments %}
+      <tr>
+        {% for key, value in assessment.items %}
+          {% if key == "due date" %}
+            <td>{{ value|date }}</td>
+          {% else %}
+            <td>{{ value }}</td>
+          {% endif %}
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<!-- <p>MEETING DATES (IF KNOWN):</p> -->
+
+<div style="page-break-inside: avoid;">
+  <b>STUDENT DECLARATION:</b>
+  <p>I agree to fulfill the above defined contract.</p>
+
+  <div style="display: flex">
+    <div class="field-display" style="flex-grow: 1; margin-right: 1em;">
+      <span>Student: </span>
+      <span class="field-value">{{ owner.get_display_name }}</span>
+    </div>
+    <div class="field-display" style="flex-grow: 1;">
+      <span>Date: </span>
+      <span class="field-value">{{ contract.submit_date|date }}</span>
+    </div>
+  </div>
+</div>
+
+<h2>Section B (Supervisor and Examiner)</h2>
+<p>I am willing to supervise and support this project. I have checked the student's academic
+  record
+  and believe this student can complete the project. I nominate the following examiner, and have
+  obtained
+  their consent to review the report.</p>
+
+<div style="display: flex; flex-direction: column; margin-bottom: 2em;">
+  {% for supervisor, approval_date in supervise_approval %}
+    <div style="display: flex">
+      <div class="field-display" style="flex-grow: 1; margin-right: 1em;">
+        <span>Supervisor: </span>
+        <span class="field-value">{{ supervisor }}</span>
+      </div>
+      <div class="field-display" style="flex-grow: 1;">
+        <span>Approval Date: </span>
+        <span class="field-value">{{ approval_date|date }}</span>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div style="display: flex; flex-direction: column; margin-bottom: 2em;">
+  {% for key, value in assess_examine_approve.items %}
+    <div class="field-display" style="margin-bottom: 0.2em">
+      <span>Examine Item: </span>
+      <span class="field-value" style="text-align: left;">{{ key }}</span>
+    </div>
+
+    <div style="display: flex; margin-bottom: 0.5em">
+      {% for examiner, approval_date in value %}
+        <div class="field-display" style="flex-grow: 1; margin-right: 1em;">
+          <span>Examiner: </span>
+          <span class="field-value">{{ examiner }}</span>
+        </div>
+        <div class="field-display" style="flex-grow: 1;">
+          <span>Approval Date: </span>
+          <span class="field-value">{{ approval_date|date }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>
+
+<div>
+  <p>(Nominated examiners may be subject to change on request by the supervisor or course
+    convenor)</p>
+</div>
+
+<b>REQUIRED DEPARTMENT RESOURCES:</b>
+<div class="boxed">
+
+</div>
+
+<h2>Section C (Course convenor approval)</h2>
+
+<div style="display: flex">
+  <div class="field-display" style="flex-grow: 1; margin-right: 1em;">
+    <span>Convener: </span>
+    <span class="field-value">{{ contract.convener.get_display_name }}</span>
+  </div>
+  <div class="field-display" style="flex-grow: 1;">
+    <span>Approval Date: </span>
+    <span class="field-value">{{ contract.convener_approval_date|date }}</span>
+  </div>
+</div>
+
+</body>
+</html>

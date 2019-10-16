@@ -34,6 +34,10 @@ def get_semester() -> int:
 class Course(models.Model):
     course_number = models.CharField(max_length=20, null=False, blank=False, unique=True)
     name = models.CharField(max_length=50, null=False, blank=False)
+    units = models.IntegerField(validators=[
+        validators.MinValueValidator(0, 'Course unit should larger than zero'),
+        validators.MaxValueValidator(24, 'Course unit larger than 24 is not current supported')
+    ])
 
     def __str__(self):
         return self.name
@@ -112,13 +116,14 @@ class Contract(models.Model):
         of the contract does not belong to any assessment, in this case only examiners
         part of a assessment would be return.
         """
-        return SrpmsUser.objects.filter(examine__assessment_examine__contract=self)
+        return SrpmsUser.objects.filter(examine__assessment_examine__contract=self).distinct()
 
     def get_all_formal_supervisors(self):
-        return SrpmsUser.objects.filter(supervise__contract=self, supervise__is_formal=True)
+        return SrpmsUser.objects.filter(supervise__contract=self,
+                                        supervise__is_formal=True).distinct()
 
     def get_all_supervisors(self):
-        return SrpmsUser.objects.filter(supervise__contract=self)
+        return SrpmsUser.objects.filter(supervise__contract=self).distinct()
 
     def clean(self):
         """

@@ -218,7 +218,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
             weight: this.form.value.assessment1Mark,
         };
         if (this.form.value.assessment1Due) {
-            Object.assign(this.assessment1, {due: this.form.value.assessment1Due, });
+            Object.assign(this.assessment1, {due: this.transformDue(this.form.value.assessment1Due), });
         }
         if (this.form.value.assessment1Examiner) {
             Object.assign(this.assessment1, {examiner: this.form.value.assessment1Examiner, });
@@ -231,7 +231,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
             weight: this.form.value.assessment2Mark,
         };
         if (this.form.value.assessment2Due) {
-            Object.assign(this.assessment2, {due: this.form.value.assessment2Due, });
+            Object.assign(this.assessment2, {due: this.transformDue(this.form.value.assessment2Due), });
         }
         if (this.form.value.assessment2Examiner) {
             Object.assign(this.assessment2, {examiner: this.form.value.assessment2Examiner, });
@@ -244,7 +244,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
             weight: this.form.value.assessment3Mark,
         };
         if (this.form.value.assessment3Due) {
-            Object.assign(this.assessment3, {due: this.form.value.assessment3Due, });
+            Object.assign(this.assessment3, {due: this.transformDue(this.form.value.assessment3Due), });
         }
         if (this.form.value.assessment3Examiner) {
             Object.assign(this.assessment3, {examiner: this.form.value.assessment3Examiner, });
@@ -378,5 +378,20 @@ export class ContractFormComponent implements OnInit, OnChanges {
         for (let index = 0; index < array.length; index++) {
             await callback(array[index], index, array);
         }
+    }
+
+    public transformDue(due: Date) {
+        let date: string;
+        let month: string;
+        let year: string;
+        date = due.getDate().toString();
+        month = (due.getMonth() + 1).toString();
+        year = due.getFullYear().toString();
+        date = date.length === 1 ?
+            '0' + date : date;
+        month = month.length === 1 ?
+            '0' + month : month;
+
+        return year + '-' + month + '-' + date;
     }
 }

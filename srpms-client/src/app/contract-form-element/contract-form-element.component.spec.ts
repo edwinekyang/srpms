@@ -3,6 +3,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { ContractFormElementComponent } from './contract-form-element.component';
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {FormBuilder, FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {MatDatepickerModule} from '@angular/material';
 
 describe('ContractFormElementComponent', () => {
   let component: ContractFormElementComponent;
@@ -13,7 +14,7 @@ describe('ContractFormElementComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [FormsModule, ReactiveFormsModule],
+      imports: [FormsModule, ReactiveFormsModule, MatDatepickerModule],
       declarations: [ ContractFormElementComponent ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

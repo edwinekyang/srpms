@@ -33,7 +33,8 @@ class ApiUrls(object):
     all = [mgt_user, assess_temp, course, contract]
 
 
-def get_contract_url(contract_id: int = None, submit: bool = False, approve: bool = False) -> str:
+def get_contract_url(contract_id: int = None, submit: bool = False, approve: bool = False,
+                     print: bool = False) -> str:
     """
     Return contract list url, or contract detail url, depending on whether the contract_id
     is specified. Note that 'submit' and 'approve' are only valid when contract_id is given.
@@ -51,6 +52,8 @@ def get_contract_url(contract_id: int = None, submit: bool = False, approve: boo
             return '{}{}/submit/'.format(ApiUrls.contract, contract_id)
         elif approve:
             return '{}{}/approve/'.format(ApiUrls.contract, contract_id)
+        elif print:
+            return '{}{}/print/'.format(ApiUrls.contract, contract_id)
         else:
             return '{}{}/'.format(ApiUrls.contract, contract_id)
 
