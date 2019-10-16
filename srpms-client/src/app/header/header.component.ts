@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material';
 
-import { LoginDialogComponent } from '../login-dialog/login-dialog.component';
 import { AccountsService, SrpmsUser, ACC_SIG } from '../accounts.service';
 
 @Component({

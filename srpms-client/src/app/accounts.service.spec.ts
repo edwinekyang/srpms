@@ -5,6 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
 
 import { AccountsService } from './accounts.service';
+import { MatDialog } from '@angular/material';
 
 describe('AccountsService', () => {
   let httpClient: HttpClient;
@@ -12,7 +13,10 @@ describe('AccountsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ HttpClientTestingModule ]
+      imports: [ HttpClientTestingModule ],
+      providers: [
+        { provide: MatDialog, useValue: {} }
+      ]
     });
 
     // Inject the http service and test controller for each test

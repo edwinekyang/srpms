@@ -66,7 +66,7 @@ export class ContractService {
    * @param assessmentId - Assessment relation ID
    * @param assessment - Assessment information to update
    */
-  patchAssessment(contractId: any, assessmentId: any, assessment: string): Observable<Assessment> {
+  patchAssessment(contractId: number, assessmentId: number, assessment: string): Observable<Assessment> {
     return this.http.patch<Assessment>(this.API_URL + `research_mgt/contracts/${contractId}/assessments/${assessmentId}/`,
       assessment, this.httpOptions);
     /*.pipe(
@@ -80,7 +80,7 @@ export class ContractService {
    * @param contractId - Contract ID
    * @param supervise - Supervise information to create
    */
-  addSupervise(contractId: any, supervise: string): Observable<Supervise> {
+  addSupervise(contractId: number, supervise: string): Observable<Supervise> {
     return this.http.post<Supervise>(this.API_URL + `research_mgt/contracts/${contractId}/supervise/`, supervise, this.httpOptions);
     /*.pipe(
         catchError(this.handleError<any>('addSupervise'))

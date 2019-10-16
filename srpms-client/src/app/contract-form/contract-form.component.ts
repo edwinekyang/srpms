@@ -217,7 +217,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
             Object.assign(this.assessment1, {due: this.form.value.assessment1Due, });
         }
         if (this.form.value.assessment1Examiner) {
-            Object.assign(this.assessment1, {examiner: this.form.value.assessment1Examiner, });
+            Object.assign(this.assessment1, {examiner: this.form.value.assessment1Examiner.id, });
         }
 
         this.assessment2 = {
@@ -230,7 +230,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
             Object.assign(this.assessment2, {due: this.form.value.assessment2Due, });
         }
         if (this.form.value.assessment2Examiner) {
-            Object.assign(this.assessment2, {examiner: this.form.value.assessment2Examiner, });
+            Object.assign(this.assessment2, {examiner: this.form.value.assessment2Examiner.id, });
         }
 
         this.assessment3 = {
@@ -243,7 +243,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
             Object.assign(this.assessment3, {due: this.form.value.assessment3Due, });
         }
         if (this.form.value.assessment3Examiner) {
-            Object.assign(this.assessment3, {examiner: this.form.value.assessment3Examiner, });
+            Object.assign(this.assessment3, {examiner: this.form.value.assessment3Examiner.id, });
         }
         this.assessment.push(this.assessment1, this.assessment2, this.assessment3);
         await this.contractMgtService.getAssessments(this.contractId)
@@ -330,7 +330,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
      */
     async addSupervise() {
         this.supervise = {
-            supervisor: this.form.value.projectSupervisor,
+            supervisor: this.form.value.projectSupervisor.id,
             contract: this.contractId,
             is_formal: true
         };
