@@ -88,7 +88,7 @@ class SpecialTopic(utils.SrpmsTest):
         self.examine_01_id: int = response.data['id']
 
         req, _ = data.gen_examine_req_resp(self.user_04.id)
-        response = self.supervisor_non_formal.post(
+        response = self.supervisor_formal.post(
                 utils.get_examine_url(self.contract_id, self.assess_02_id), req)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
         self.examine_02_id: int = response.data['id']

@@ -5,7 +5,6 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 
 export interface Course {
   id: number;
@@ -60,10 +59,10 @@ export class ContractService {
    * @param payLoad - Contract general information
    */
   addContract(payLoad: any): Observable<any> {
-    return this.http.post<any>(this.API_URL + 'research_mgt/contracts/', payLoad, this.httpOptions)
-        .pipe(
+    return this.http.post<any>(this.API_URL + 'research_mgt/contracts/', payLoad, this.httpOptions);
+        /*.pipe(
             catchError(this.handleError<any>('addContract'))
-        );
+        );*/
   }
 
   /**
@@ -92,5 +91,9 @@ export class ContractService {
         /*.pipe(
             catchError(this.handleError<any>('addSupervise'))
         );*/
+  }
+
+  addAssessment(contractId: number, s: string): Observable<any> {
+    return this.http.post<any>(this.API_URL + `research_mgt/contracts/${contractId}/assessments/`, s, this.httpOptions);
   }
 }

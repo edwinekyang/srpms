@@ -232,7 +232,7 @@ export class ContractMgtService {
      * @param contractId - Contract ID
      * @param s - JSON string object that finalises the corresponding contract
      */
-    approveConvene(contractId: string, s: string) {
+    approveConvene(contractId: any, s: string) {
         return this.http.patch(this.API_URL + `research_mgt/contracts/${contractId}/approve/`,
             s, this.httpOptions)
             .pipe(

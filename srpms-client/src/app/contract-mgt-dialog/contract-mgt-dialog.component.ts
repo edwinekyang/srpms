@@ -61,7 +61,6 @@ export class ContractMgtDialogComponent implements OnInit {
     }
 
     ngOnInit() {
-        console.log(this.data);
     }
 
     /**
@@ -72,15 +71,16 @@ export class ContractMgtDialogComponent implements OnInit {
     }
 
     /**
-     * Nominates the examiner used by course convener
+     * Nominates the examiner used by contract supervisor and course convener
      *
      * @param contract - Contract object
      */
     async nominateExaminer(contract: any) {
         if (confirm('Are you sure?')) {
-            // Nominate the examiner
+            let promiseAssessment: any;
+            // Creates the examiner relation when they have never gone to the 'Nominated' stage
             if (contract.status !== 'Nominated') {
-                const promiseAssessment = async () => {
+                promiseAssessment = async () => {
                     await this.asyncForEach(contract.assessment, async (assessment) => {
                         if (this.examinerForm.value['examiner' + assessment.template]) {
                             await this.contractMgtService.addExamine(contract.contractId, assessment.id, JSON.stringify({
@@ -93,14 +93,30 @@ export class ContractMgtDialogComponent implements OnInit {
                         }
                     });
                 };
-                promiseAssessment().then(() => {
-                    if (Object.keys(this.errorMessage).length) {
-                        this.openFailDialog();
-                    } else {
-                        this.openSuccessDialog('NominateExaminer');
-                    }
-                });
+            // Updates the examiner relation when the examine request is rejected
+            } else if (contract.status === 'Nominated') {
+                promiseAssessment = async () => {
+                    await this.asyncForEach(contract.assessment, async (assessment) => {
+                        if (this.examinerForm.value['examiner' + assessment.template]) {
+                            await this.contractMgtService.updateExamine(contract.contractId, assessment.id,
+                            assessment.examineId, JSON.stringify({
+                                    examiner: this.examinerForm.value['examiner' + assessment.template],
+                                })).toPromise().catch((err: HttpErrorResponse) => {
+                                if (Math.floor(err.status / 100) === 4) {
+                                    Object.assign(this.errorMessage, err.error);
+                                }
+                            });
+                        }
+                    });
+                };
             }
+            promiseAssessment().then(() => {
+                if (Object.keys(this.errorMessage).length) {
+                    this.openFailDialog();
+                } else {
+                    this.openSuccessDialog('NominateExaminer');
+                }
+            });
         }
     }
 
@@ -148,7 +164,7 @@ export class ContractMgtDialogComponent implements OnInit {
             Promise.race([this.contractMgtService.approveContract(contract.contractId, contract.contractObj.supervise[0].id,
                 JSON.stringify({
                     approve: false,
-                    message: String(message),
+                    message,
                 }))
                 .toPromise()]).catch((err: HttpErrorResponse) => {
                 if (Math.floor(err.status / 100) === 4) {
@@ -172,28 +188,39 @@ export class ContractMgtDialogComponent implements OnInit {
      */
     async rejectExamine(contract: any, message: any) {
         if (confirm('Are you sure?')) {
-            let assessmentId: number;
-            let examineId: number;
-            assessmentId = 0;
-            examineId = 0;
-            const promiseAssessments = contract.assessment.map(assessment => {
-                if (this.route === '/examine') {
+            if (this.route === '/examine') {
+                let assessmentId: number;
+                let examineId: number;
+                assessmentId = 0;
+                examineId = 0;
+                const promiseAssessments = contract.assessment.map(assessment => {
                     if (assessment.examiner === JSON.parse(localStorage.getItem('srpmsUser')).id) {
                         assessmentId = assessment.id;
                         examineId = assessment.examineId;
                     }
-                } else if (this.route === '/convene' && contract.status === 'Approved') {
-                    if (assessment.template === 1) {
-                        assessmentId = assessment.id;
-                        examineId = assessment.examineId;
-                    }
-                }
-            });
-            await Promise.all(promiseAssessments).then(async () => {
-                await this.contractMgtService.confirmExamine(contract.contractId, assessmentId, examineId,
+                });
+                await Promise.all(promiseAssessments).then(async () => {
+                    await this.contractMgtService.confirmExamine(contract.contractId, assessmentId, examineId,
+                        JSON.stringify({
+                            approve: false,
+                            message,
+                        })).toPromise().catch((err: HttpErrorResponse) => {
+                        if (Math.floor(err.status / 100) === 4) {
+                            Object.assign(this.errorMessage, err.error);
+                        }
+                    }).then(() => {
+                        if (Object.keys(this.errorMessage).length) {
+                            this.openFailDialog();
+                        } else {
+                            this.openSuccessDialog('RejectExamine');
+                        }
+                    });
+                });
+            } else if (this.route === '/convene' && contract.action === 'rejectExamine') {
+                await this.contractMgtService.confirmExamine(contract.contract, contract.id, contract.examineId,
                     JSON.stringify({
                         approve: false,
-                        message: String(message),
+                        message,
                     })).toPromise().catch((err: HttpErrorResponse) => {
                     if (Math.floor(err.status / 100) === 4) {
                         Object.assign(this.errorMessage, err.error);
@@ -205,7 +232,7 @@ export class ContractMgtDialogComponent implements OnInit {
                         this.openSuccessDialog('RejectExamine');
                     }
                 });
-            });
+            }
         }
     }
 
@@ -229,6 +256,28 @@ export class ContractMgtDialogComponent implements OnInit {
             } else {
                 this.openSuccessDialog('NominateNonformalSupervisor');
             }
+        }
+    }
+
+    disapproveConvene(contract: Contract, message: string) {
+        if (confirm('Are you sure?')) {
+            // Disapprove the contract
+            Promise.race([this.contractMgtService.approveConvene(contract.contractId,
+                JSON.stringify({
+                    approve: false,
+                    message,
+                }))
+                .toPromise()]).catch((err: HttpErrorResponse) => {
+                if (Math.floor(err.status / 100) === 4) {
+                    Object.assign(this.errorMessage, err.error);
+                }
+            }).then(() => {
+                if (Object.keys(this.errorMessage).length) {
+                    this.openFailDialog();
+                } else {
+                    this.openSuccessDialog('DisapproveConvene');
+                }
+            });
         }
     }
 }

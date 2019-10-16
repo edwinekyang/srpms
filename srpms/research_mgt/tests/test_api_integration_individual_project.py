@@ -24,18 +24,24 @@ class IndividualProject(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
     def set_supervise(self) -> None:
-        """
-        Assign supervisor for the contract, note that here we deliberately assign a user
-        with no 'can_supervise' permission.
-        """
+        """Assign supervisors for the contract"""
+        req, resp = data.gen_supervise_req_resp(self.contract['id'],
+                                                self.supervisor_formal.id, True)
+        response = self.superuser.post(utils.get_supervise_url(self.contract['id']), req)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.supervise_formal_id = response.data['id']
+
+        self.formal_supervise_approve_url = utils.get_supervise_url(
+                self.contract_id, self.supervise_formal_id, approve=True)
+
         req, resp = data.gen_supervise_req_resp(self.contract['id'],
                                                 self.supervisor_non_formal.id, True)
         response = self.superuser.post(utils.get_supervise_url(self.contract['id']), req)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
-        self.supervise_id = response.data['id']
+        self.supervise_non_formal_id = response.data['id']
 
-        self.supervise_approve_url = utils.get_supervise_url(self.contract_id, self.supervise_id,
-                                                             approve=True)
+        self.non_formal_supervise_approve_url = utils.get_supervise_url(
+                self.contract_id, self.supervise_non_formal_id, approve=True)
 
     def set_examine(self) -> None:
         """Assign examiner to every assessment of the contract, examiner is user_04"""
@@ -51,21 +57,21 @@ class IndividualProject(utils.SrpmsTest):
             if assessment['template_info']['name'] == 'report':
                 self.assess_report_id = assessment['id']
                 req, _ = data.gen_examine_req_resp(self.user_04.id)
-                response = self.supervisor_non_formal.post(
+                response = self.supervisor_formal.post(
                         utils.get_examine_url(self.contract_id, self.assess_report_id), req)
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
                 self.examine_report_id = response.data['id']
             elif assessment['template_info']['name'] == 'artifact':
                 self.assess_artifact_id = assessment['id']
                 req, _ = data.gen_examine_req_resp(self.user_04.id)
-                response = self.supervisor_non_formal.post(
+                response = self.supervisor_formal.post(
                         utils.get_examine_url(self.contract_id, self.assess_artifact_id), req)
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
                 self.examine_artifact_id = response.data['id']
             elif assessment['template_info']['name'] == 'presentation':
                 self.assess_present_id = assessment['id']
                 req, _ = data.gen_examine_req_resp(self.user_04.id)
-                response = self.supervisor_non_formal.post(
+                response = self.supervisor_formal.post(
                         utils.get_examine_url(self.contract_id, self.assess_present_id), req)
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
                 self.examine_present_id = response.data['id']
@@ -76,9 +82,15 @@ class IndividualProject(utils.SrpmsTest):
         self.assertTrue(self.examine_artifact_id)
         self.assertTrue(self.examine_present_id)
 
-    def set_supervise_approve(self) -> None:
+    def set_formal_supervise_approve(self) -> None:
         """Set supervisor approval for the contract"""
-        response = self.supervisor_non_formal.put(self.supervise_approve_url,
+        response = self.supervisor_formal.put(self.formal_supervise_approve_url,
+                                              data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def set_non_formal_supervise_approve(self) -> None:
+        """Set supervisor approval for the contract"""
+        response = self.supervisor_non_formal.put(self.non_formal_supervise_approve_url,
                                                   data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -211,11 +223,13 @@ class IndividualProject(utils.SrpmsTest):
         self.set_examine()
 
         # No POST
-        response = self.superuser.post(self.supervise_approve_url, data.get_approve_data(True))
+        response = self.superuser.post(self.formal_supervise_approve_url,
+                                       data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED, response.content)
 
         # No DELETE
-        response = self.superuser.delete(self.supervise_approve_url, data.get_approve_data(True))
+        response = self.superuser.delete(self.formal_supervise_approve_url,
+                                         data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED, response.content)
 
     def test_supervise_approve_legal_01(self):
@@ -224,7 +238,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_examine()
 
         # Allow PUT
-        response = self.superuser.put(self.supervise_approve_url, data.get_approve_data(True))
+        response = self.superuser.put(self.formal_supervise_approve_url,
+                                      data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
     def test_supervise_approve_legal_02(self):
@@ -233,7 +248,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_examine()
 
         # Allow PATCH
-        response = self.superuser.patch(self.supervise_approve_url, data.get_approve_data(True))
+        response = self.superuser.patch(self.formal_supervise_approve_url,
+                                        data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
     def test_supervise_reapprove(self):
@@ -241,29 +257,29 @@ class IndividualProject(utils.SrpmsTest):
         self.set_submit()
         self.set_examine()
 
-        response = self.supervisor_non_formal.put(self.supervise_approve_url,
-                                                  data.get_approve_data(True))
+        response = self.supervisor_formal.put(self.formal_supervise_approve_url,
+                                              data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         # Forbid re-approval
-        response = self.supervisor_non_formal.put(self.supervise_approve_url,
-                                                  data.get_approve_data(True))
+        response = self.supervisor_formal.put(self.formal_supervise_approve_url,
+                                              data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
     def test_supervise_approve_without_examiner(self):
         self.set_supervise()
         self.set_submit()
 
-        response = self.supervisor_non_formal.put(self.supervise_approve_url,
-                                                  data.get_approve_data(True))
+        response = self.supervisor_formal.put(self.formal_supervise_approve_url,
+                                              data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_supervise_approve_non_submitted_contract(self):
         self.set_supervise()
 
         # Un-submitted contract is not allowed to be approved
-        response = self.supervisor_non_formal.put(self.supervise_approve_url,
-                                                  data.get_approve_data(True))
+        response = self.supervisor_formal.put(self.formal_supervise_approve_url,
+                                              data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
     def test_supervise_approve_submitted_contract(self):
@@ -272,8 +288,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_examine()
 
         # Submitted contract is allowed to be approved
-        response = self.supervisor_non_formal.put(self.supervise_approve_url,
-                                                  data.get_approve_data(True))
+        response = self.supervisor_formal.put(self.formal_supervise_approve_url,
+                                              data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
     def test_supervise_disapprove_submitted_contract(self):
@@ -281,8 +297,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_submit()
 
         # Submitted contract is allowed to be disapproved
-        response = self.supervisor_non_formal.put(self.supervise_approve_url,
-                                                  data.get_approve_data(False))
+        response = self.supervisor_formal.put(self.formal_supervise_approve_url,
+                                              data.get_approve_data(False))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         # Owner should be able to submit again
@@ -292,8 +308,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
 
         # Un-submitted contract is not allowed to be disapproved
-        response = self.supervisor_non_formal.put(self.supervise_approve_url,
-                                                  data.get_approve_data(False))
+        response = self.supervisor_formal.put(self.formal_supervise_approve_url,
+                                              data.get_approve_data(False))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
         # Owner should be able to submit again
@@ -305,20 +321,24 @@ class IndividualProject(utils.SrpmsTest):
         self.set_examine()
 
         # Forbid other user
-        response = self.user_02.put(self.supervise_approve_url, data.get_approve_data(True))
+        response = self.user_02.put(self.formal_supervise_approve_url, data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
         # Forbid can_supervise but unrelated supervisor
-        response = self.supervisor_formal.put(self.supervise_approve_url,
+        response = self.supervisor_formal.put(self.non_formal_supervise_approve_url,
                                               data.get_approve_data(True))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+        response = self.supervisor_non_formal.put(self.formal_supervise_approve_url,
+                                                  data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
         # Allow convener
-        response = self.convener.put(self.supervise_approve_url, data.get_approve_data(True))
+        response = self.convener.put(self.formal_supervise_approve_url, data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         # Allow superuser
-        response = self.superuser.put(self.supervise_approve_url, data.get_approve_data(True))
+        response = self.superuser.put(self.formal_supervise_approve_url,
+                                      data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
     def test_other_users_disapprove_supervisor(self):
@@ -326,21 +346,26 @@ class IndividualProject(utils.SrpmsTest):
         self.set_submit()
 
         # Forbid other user
-        response = self.user_02.put(self.supervise_approve_url, data.get_approve_data(False))
+        response = self.user_02.put(self.formal_supervise_approve_url, data.get_approve_data(False))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
         # Forbid can_supervise but unrelated supervisor
-        response = self.supervisor_formal.put(self.supervise_approve_url,
+        response = self.supervisor_formal.put(self.non_formal_supervise_approve_url,
                                               data.get_approve_data(False))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+        response = self.supervisor_non_formal.put(self.formal_supervise_approve_url,
+                                                  data.get_approve_data(False))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
         # Allow convener
-        response = self.convener.put(self.supervise_approve_url, data.get_approve_data(False))
+        response = self.convener.put(self.formal_supervise_approve_url,
+                                     data.get_approve_data(False))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         # Allow superuser
         self.set_submit()
-        response = self.superuser.put(self.supervise_approve_url, data.get_approve_data(False))
+        response = self.superuser.put(self.formal_supervise_approve_url,
+                                      data.get_approve_data(False))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
     ########################################
@@ -350,7 +375,7 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
 
         response = self.superuser.post(utils.get_examine_url(self.contract_id,
                                                              self.assess_report_id,
@@ -368,7 +393,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
 
         response = self.user_04.put(utils.get_examine_url(self.contract_id,
                                                           self.assess_report_id,
@@ -380,7 +406,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
 
         response = self.user_04.patch(utils.get_examine_url(self.contract_id,
                                                             self.assess_artifact_id,
@@ -392,7 +419,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
 
         response = self.user_04.put(utils.get_examine_url(self.contract_id,
                                                           self.assess_report_id,
@@ -410,7 +438,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
 
         response = self.user_04.put(utils.get_examine_url(self.contract_id,
                                                           self.assess_report_id,
@@ -422,7 +451,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
 
         examine_url = utils.get_examine_url(self.contract_id, self.assess_report_id,
                                             self.examine_report_id, approve=True)
@@ -450,7 +480,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
 
         examine_url = utils.get_examine_url(self.contract_id, self.assess_report_id,
                                             self.examine_report_id, approve=True)
@@ -478,7 +509,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
         self.set_examiner_approve()
 
         response = self.superuser.post(utils.get_contract_url(self.contract_id, approve=True),
@@ -493,7 +525,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
         self.set_examiner_approve()
 
         response = self.superuser.put(utils.get_contract_url(self.contract_id, approve=True),
@@ -504,7 +537,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
         self.set_examiner_approve()
 
         response = self.superuser.patch(utils.get_contract_url(self.contract_id, approve=True),
@@ -515,7 +549,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
         self.set_examiner_approve()
 
         response = self.convener.put(utils.get_contract_url(self.contract_id, approve=True),
@@ -554,7 +589,7 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
 
         response = self.convener.put(utils.get_contract_url(self.contract_id, approve=True),
                                      data.get_approve_data(True))
@@ -565,7 +600,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
         self.set_examiner_approve()
 
         response = self.convener.put(utils.get_contract_url(self.contract_id, approve=True),
@@ -576,7 +612,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
         self.set_examiner_approve()
 
         response = self.convener.put(utils.get_contract_url(self.contract_id, approve=True),
@@ -587,7 +624,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
         self.set_examiner_approve()
 
         response = self.convener.put(utils.get_contract_url(self.contract_id, approve=True),
@@ -603,7 +641,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
         self.set_examiner_approve()
 
         # Contract owner
@@ -636,7 +675,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
         self.set_examiner_approve()
 
         response = self.superuser.get(utils.ApiUrls.mgt_user)
@@ -647,7 +687,8 @@ class IndividualProject(utils.SrpmsTest):
         self.set_supervise()
         self.set_submit()
         self.set_examine()
-        self.set_supervise_approve()
+        self.set_formal_supervise_approve()
+        self.set_non_formal_supervise_approve()
         self.set_examiner_approve()
         self.set_convener_approve()
 

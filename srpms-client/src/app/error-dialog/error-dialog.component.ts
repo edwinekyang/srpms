@@ -20,7 +20,6 @@ export class ErrorDialogComponent implements OnInit {
       @Inject(MAT_DIALOG_DATA) public data: any,
       private router: Router,
   ) {
-    console.log(data);
     this.errorTitles = Object.keys(data);
     this.route = this.router.url;
   }
