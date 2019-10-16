@@ -7,8 +7,6 @@ import { RadioBoxElement } from './element-radiobox';
 import { TextareaElement } from './element-textarea';
 import { ContractService } from './contract.service';
 import { Course } from './reseach_mgt-objects';
-import { catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
 import { UserElement } from './element-user';
 import { AccountsService, SrpmsUser } from './accounts.service';
 
@@ -35,29 +33,25 @@ export class ElementService {
             flag: (course.course_number === 'COMP2710' || course.course_number === 'COMP3710') ? 'special' :
               'project'
           }));
-      },
-      catchError(err => throwError(err))
+      }
     );
 
     this.accountsService.getAllUsers().subscribe(
       users => {
         users.forEach((user: SrpmsUser) => this.allUsers.push(user));
-      },
-      catchError(err => throwError(err))
+      }
     );
 
     this.accountsService.getFormalSupervisors().subscribe(
       users => {
         users.forEach((user: SrpmsUser) => this.formalSupervisors.push(user));
-      },
-      catchError(err => throwError(err))
+      }
     );
 
     this.accountsService.getCourseConveners().subscribe(
       users => {
         users.forEach((user: SrpmsUser) => this.courseConveners.push(user));
-      },
-      catchError(err => throwError(err))
+      }
     );
 
     let elements: ElementBase<any>[];

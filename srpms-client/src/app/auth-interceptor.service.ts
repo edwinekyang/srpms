@@ -4,8 +4,7 @@ import { Observable, throwError, BehaviorSubject } from 'rxjs';
 
 import { ACC_SIG, AccountsService } from './accounts.service';
 import { catchError, filter, switchMap, take } from 'rxjs/operators';
-import { MatDialog, MatDialogConfig } from '@angular/material';
-import { LoginDialogComponent } from './login-dialog/login-dialog.component';
+import { MatDialogConfig } from '@angular/material';
 
 export interface APIErrorResponse extends HttpErrorResponse {
   error: {
@@ -22,7 +21,7 @@ export interface APIErrorResponse extends HttpErrorResponse {
 export class AuthInterceptor implements HttpInterceptor {
 
 
-  constructor(public accountService: AccountsService, public dialog: MatDialog) {
+  constructor(public accountService: AccountsService) {
   }
 
   private refreshTokenInProgress = false;
@@ -95,7 +94,7 @@ export class AuthInterceptor implements HttpInterceptor {
                 } else {
                   dialogConfig.data = 'Authentication required';
                 }
-                this.dialog.open(LoginDialogComponent, dialogConfig);
+                this.accountService.openLoginDialog(dialogConfig);
                 return throwError(err);
               })
             );

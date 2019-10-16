@@ -14,7 +14,7 @@ export class HeaderComponent implements OnInit {
   displayName: string;
   userInfo: string[];
 
-  constructor(public dialog: MatDialog, public accountService: AccountsService) {
+  constructor(public accountService: AccountsService) {
   }
 
   ngOnInit() {
@@ -41,7 +41,7 @@ export class HeaderComponent implements OnInit {
   }
 
   openLoginDialog(): void {
-    this.dialog.open(LoginDialogComponent);
+    this.accountService.openLoginDialog();
   }
 
   clearInfo(): void {

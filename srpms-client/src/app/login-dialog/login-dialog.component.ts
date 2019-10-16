@@ -10,6 +10,8 @@ import { HttpErrorResponse } from '@angular/common/http';
  * Login dialog logic, control login progress bar, send login request to API, show
  * error messages (if any).
  *
+ * TODO: Solve circular dependency problem between this dialog and account service
+ *
  * @author Dajie Yang (u6513788)
  */
 @Component({

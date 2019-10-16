@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { API_URL } from './api-url';
+import { MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material';
+import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 
 export const ACC_SIG = {
   LOGIN: 'login',
@@ -51,8 +53,11 @@ export interface SrpmsUser {
 })
 export class AccountsService {
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private dialog: MatDialog) {
   }
+
+  // Prevent open multiple login dialog
+  private loginDialogRef: MatDialogRef<LoginDialogComponent>;
 
   private API_URL = API_URL;
 
@@ -71,6 +76,8 @@ export class AccountsService {
 
   /**
    * Decode the token to read the username and expiration timestamp
+   *
+   * @param token: an authentication token return by server
    */
   static decodeToken(token: string): [ number, Date ] {
     const tokenParts = token.split(/\./);
@@ -191,22 +198,44 @@ export class AccountsService {
       );
   }
 
+  /**
+   * Open login dialog, control the instance of login dialog to be one.
+   */
+  openLoginDialog(dialogConfig?: MatDialogConfig): void {
+    if (!this.loginDialogRef) {
+      this.loginDialogRef = this.dialog.open(LoginDialogComponent, dialogConfig);
+      this.loginDialogRef.afterClosed().subscribe(() => this.loginDialogRef = null);
+    }
+  }
+
+  /**
+   * Return a single user object given its id.
+   */
   getUser(id: number): Observable<SrpmsUser> {
     const url = `${this.API_URL}research_mgt/users/${id}/`;
     return this.http.get<SrpmsUser>(url, this.httpOptions)
       .pipe(catchError(this.handleError<SrpmsUser>(`updateDate id=${id}`)));
   }
 
+  /**
+   * Return users that can act as formal supervisor.
+   */
   getFormalSupervisors(): Observable<SrpmsUser[]> {
     const url = `${this.API_URL}research_mgt/users/?is_approved_supervisor=true`;
     return this.http.get<SrpmsUser[]>(url, this.httpOptions);
   }
 
+  /**
+   * Return users that can act as course convener.
+   */
   getCourseConveners(): Observable<SrpmsUser[]> {
     const url = `${this.API_URL}research_mgt/users/?is_course_convener=true`;
     return this.http.get<SrpmsUser[]>(url, this.httpOptions);
   }
 
+  /**
+   * Return all users.
+   */
   getAllUsers() {
     const url = `${this.API_URL}research_mgt/users/`;
     return this.http.get<SrpmsUser[]>(url, this.httpOptions);
