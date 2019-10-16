@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
-import {ContractService, Course} from '../contract.service';
+import {ContractService} from '../contract.service';
+import { Assessment, Course } from '../reseach_mgt-objects';
 import {ContractMgtService} from '../contract-mgt.service';
 import {AccountsService, SrpmsUser} from '../accounts.service';
 import {Router} from '@angular/router';
@@ -10,7 +11,7 @@ import {FormControl, FormGroup} from '@angular/forms';
 import {ErrorDialogComponent} from '../error-dialog/error-dialog.component';
 
 export interface ContractList<T> {
-    contractId: string;
+    contractId: number;
     studentName: string;
     studentId: string;
     title: string;
@@ -23,7 +24,7 @@ export interface ContractList<T> {
 
 export interface AssessmentList<T> {
     id: any;
-    examineId: any;
+    examineId: number;
     template: number;
     assessmentName: string;
     contract: number;
@@ -450,8 +451,8 @@ export class ContractMgtComponent implements OnInit {
                                             contractId: contract.id,
                                             studentId: student.uni_id,
                                             studentName: student.first_name + ' ' + student.last_name,
-                                            title: contract.special_topics ?
-                                                contract.special_topics.title :
+                                            title: contract.special_topic ?
+                                                contract.special_topic.title :
                                                 contract.individual_project.title,
                                             contractObj: contract,
                                             assessment: assessmentList,
@@ -470,8 +471,8 @@ export class ContractMgtComponent implements OnInit {
                                             contractId: contract.id,
                                             studentId: student.uni_id,
                                             studentName: student.first_name + ' ' + student.last_name,
-                                            title: contract.special_topics ?
-                                                contract.special_topics.title :
+                                            title: contract.special_topic ?
+                                                contract.special_topic.title :
                                                 contract.individual_project.title,
                                             contractObj: contract,
                                             assessment: assessmentList,
@@ -508,7 +509,7 @@ export class ContractMgtComponent implements OnInit {
         const promiseContractIdList = contractIdList.map(async id => {
             await this.contractMgtService.getAssessments(id).toPromise()
                 .then(async assessments => {
-                    const promiseAssessments = assessments.map(async assessment => {
+                    const promiseAssessments = assessments.map(async (assessment: Assessment) => {
                         let examinerName: any;
                         examinerName = '';
                         if (assessment.assessment_examine[0]) {
@@ -521,14 +522,14 @@ export class ContractMgtComponent implements OnInit {
                             this.preAssessmentList.push({
                                 id: assessment.id,
                                 examineId: assessment.assessment_examine[0] ?
-                                    assessment.assessment_examine[0].id : '',
+                                    assessment.assessment_examine[0].id : null,
                                 template: assessment.template,
                                 assessmentName: assessment.template_info.name,
                                 contract: assessment.contract,
                                 due: assessment.due,
                                 weight: assessment.weight,
                                 examiner: assessment.assessment_examine[0] ?
-                                    assessment.assessment_examine[0].examiner : '',
+                                    assessment.assessment_examine[0].examiner : null,
                                 isAllExaminersApproved: assessment.is_all_examiners_approved,
                                 examinerApprovalDate: assessment.assessment_examine[0] ?
                                     assessment.assessment_examine[0].examiner_approval_date : '',
@@ -539,14 +540,14 @@ export class ContractMgtComponent implements OnInit {
                             this.postAssessmentList.push({
                                 id: assessment.id,
                                 examineId: assessment.assessment_examine[0] ?
-                                    assessment.assessment_examine[0].id : '',
+                                    assessment.assessment_examine[0].id : null,
                                 template: assessment.template,
                                 assessmentName: assessment.template_info.name,
                                 contract: assessment.contract,
                                 due: assessment.due,
                                 weight: assessment.weight,
                                 examiner: assessment.assessment_examine[0] ?
-                                    assessment.assessment_examine[0].examiner : '',
+                                    assessment.assessment_examine[0].examiner : null,
                                 isAllExaminersApproved: assessment.is_all_examiners_approved,
                                 examinerApprovalDate: assessment.assessment_examine[0] ?
                                     assessment.assessment_examine[0].examiner_approval_date : '',
