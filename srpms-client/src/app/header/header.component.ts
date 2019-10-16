@@ -7,7 +7,7 @@ import { AccountsService, SrpmsUser, ACC_SIG } from '../accounts.service';
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss']
+  styleUrls: [ './header.component.scss' ]
 })
 export class HeaderComponent implements OnInit {
   localUser: SrpmsUser;
@@ -22,11 +22,7 @@ export class HeaderComponent implements OnInit {
     this.accountService.getLocalUser().subscribe(user => {
       if (user) {
         this.localUser = user;
-        if (user.first_name || user.last_name) {
-          this.displayName = [user.first_name, user.last_name].join(' ');
-        } else {
-          this.displayName = user.username;
-        }
+        this.displayName = user.display_name;
         this.userInfo = [];
         if (user.uni_id) {
           this.userInfo.push(user.uni_id);
@@ -34,9 +30,10 @@ export class HeaderComponent implements OnInit {
         if (user.email) {
           this.userInfo.push(user.email);
         }
-        if (user.expire_date) {
-          this.userInfo.push('Expire on: ' + new Date(user.expire_date).getDate());
-        }
+        // TODO: Support expire date in release 02
+        // if (user.expire_date) {
+        //   this.userInfo.push('Expire on: ' + new Date(user.expire_date).getDate());
+        // }
       } else {
         this.clearInfo();
       }

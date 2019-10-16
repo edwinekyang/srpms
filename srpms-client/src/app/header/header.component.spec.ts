@@ -16,9 +16,9 @@ describe('HeaderComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [MatMenuModule, MatIconModule, MatButtonModule, MatDialogModule, HttpClientTestingModule],
-      declarations: [HeaderComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
+      imports: [ MatMenuModule, MatIconModule, MatButtonModule, MatDialogModule, HttpClientTestingModule ],
+      declarations: [ HeaderComponent ],
+      schemas: [ CUSTOM_ELEMENTS_SCHEMA ]
     })
       .compileComponents();
 

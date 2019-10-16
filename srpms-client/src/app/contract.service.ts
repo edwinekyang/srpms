@@ -8,6 +8,7 @@ export interface Course {
   id: number;
   course_number: string;
   name: string;
+  units: number;
 }
 
 @Injectable({

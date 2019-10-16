@@ -15,6 +15,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -26,7 +32,6 @@ import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 import { AuthInterceptor } from './auth-interceptor.service';
 import { ContractFormComponent } from './contract-form/contract-form.component';
 import { ContractFormElementComponent } from './contract-form-element/contract-form-element.component';
-import {MatCheckboxModule, MatExpansionModule, MatRadioModule, MatSelectModule} from '@angular/material';
 import { ContractMgtComponent } from './contract-mgt/contract-mgt.component';
 import { ContractViewerComponent } from './contract-viewer/contract-viewer.component';
 import { ContractDialogComponent } from './contract-dialog/contract-dialog.component';
@@ -47,29 +52,30 @@ import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
     ContractDialogComponent,
     ErrorDialogComponent,
   ],
-    imports: [
-        BrowserModule,
-        BrowserAnimationsModule,
-        ReactiveFormsModule,
-        AppRoutingModule,
-        FormsModule,
-        HttpClientModule,
-        MatGridListModule,
-        MatSidenavModule,
-        MatButtonModule,
-        MatIconModule,
-        MatListModule,
-        MatCardModule,
-        MatDialogModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatMenuModule,
-        MatProgressBarModule,
-        MatSelectModule,
-        MatCheckboxModule,
-        MatRadioModule,
-        MatExpansionModule,
-    ],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    ReactiveFormsModule,
+    AppRoutingModule,
+    FormsModule,
+    HttpClientModule,
+    MatGridListModule,
+    MatSidenavModule,
+    MatButtonModule,
+    MatIconModule,
+    MatListModule,
+    MatCardModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatMenuModule,
+    MatProgressBarModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatRadioModule,
+    MatExpansionModule,
+    MatAutocompleteModule,
+  ],
   entryComponents: [
     LoginDialogComponent,
     ContractDialogComponent,
@@ -83,7 +89,7 @@ import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
       multi: true
     }
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [ AppComponent ]
 })
 export class AppModule {
 }
