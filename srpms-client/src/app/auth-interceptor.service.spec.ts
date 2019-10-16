@@ -13,7 +13,7 @@ describe('AuthInterceptor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, MatDialogModule],
+      imports: [ HttpClientTestingModule, MatDialogModule ],
       providers: [
         AuthInterceptor,
         { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }

@@ -12,7 +12,7 @@ describe('AccountsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule]
+      imports: [ HttpClientTestingModule ]
     });
 
     // Inject the http service and test controller for each test

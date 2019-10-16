@@ -6,6 +6,12 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { APIErrorResponse } from '../auth-interceptor.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
+/**
+ * Login dialog logic, control login progress bar, send login request to API, show
+ * error messages (if any).
+ *
+ * @author Dajie Yang (u6513788)
+ */
 @Component({
   selector: 'app-login-dialog',
   templateUrl: './login-dialog.component.html',

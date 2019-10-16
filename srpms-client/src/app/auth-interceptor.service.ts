@@ -15,6 +15,8 @@ export interface APIErrorResponse extends HttpErrorResponse {
 
 /**
  * Intercept HTTP request to implement token authorization and token auto-refresh.
+ *
+ * @author Dajie Yang
  */
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {

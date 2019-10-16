@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
-import { BehaviorSubject, Observable, of, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { API_URL } from './api-url';
 
 export const ACC_SIG = {
@@ -23,8 +23,14 @@ export interface SrpmsUser {
   first_name: string;
   last_name: string;
   email: string;
-  expire_date: string;
+  display_name: string;
   uni_id: string;
+  is_approved_supervisor: boolean;
+  is_course_convener: boolean;
+  own: number[];
+  convene: number[];
+  supervise: number[];
+  examine: number[];
 }
 
 /* tslint:enable:variable-name */
@@ -37,6 +43,8 @@ export interface SrpmsUser {
  * checking, and make the return value meaning less. As such, please use the `getLocalUser`
  * function for this purpose. In the case that token expire, the back-end would not authorize
  * anyway, and the auth-interceptor service would log the current user out.
+ *
+ * @author Dajie Yang
  */
 @Injectable({
   providedIn: 'root'
@@ -64,12 +72,12 @@ export class AccountsService {
   /**
    * Decode the token to read the username and expiration timestamp
    */
-  static decodeToken(token: string): [number, Date] {
+  static decodeToken(token: string): [ number, Date ] {
     const tokenParts = token.split(/\./);
     const tokenDecoded = JSON.parse(window.atob(tokenParts[1]));
     const tokenExpireDate = new Date(tokenDecoded.exp * 1000);
     const userID = tokenDecoded.user_id;
-    return [userID, new Date(tokenExpireDate)];
+    return [ userID, new Date(tokenExpireDate) ];
   }
 
   private static log(message: string) {
@@ -112,7 +120,7 @@ export class AccountsService {
    * Update local storage to store authentication information
    */
   private updateData(token: JWToken): void {
-    const [userID, ] = AccountsService.decodeToken(token.access);
+    const [ userID, ] = AccountsService.decodeToken(token.access);
 
     if (token.access) {
       localStorage.setItem('srpmsAccessToken', JSON.stringify(token.access));
@@ -141,7 +149,7 @@ export class AccountsService {
     const refreshToken: string = JSON.parse(localStorage.getItem('srpmsRefreshToken'));
 
     if (refreshToken) {
-      const [, refreshExpire] = AccountsService.decodeToken(refreshToken);
+      const [ , refreshExpire ] = AccountsService.decodeToken(refreshToken);
       if (new Date() < refreshExpire) {
         return this.http.post<JWToken>(this.API_URL + 'accounts/token/refresh/', { refresh: refreshToken }, this.httpOptions)
           .pipe(map(token => {
@@ -184,8 +192,23 @@ export class AccountsService {
   }
 
   getUser(id: number): Observable<SrpmsUser> {
-    const url = `${this.API_URL}accounts/user/${id}/`;
+    const url = `${this.API_URL}research_mgt/users/${id}/`;
     return this.http.get<SrpmsUser>(url, this.httpOptions)
       .pipe(catchError(this.handleError<SrpmsUser>(`updateDate id=${id}`)));
+  }
+
+  getFormalSupervisors(): Observable<SrpmsUser[]> {
+    const url = `${this.API_URL}research_mgt/users/?is_approved_supervisor=true`;
+    return this.http.get<SrpmsUser[]>(url, this.httpOptions);
+  }
+
+  getCourseConveners(): Observable<SrpmsUser[]> {
+    const url = `${this.API_URL}research_mgt/users/?is_course_convener=true`;
+    return this.http.get<SrpmsUser[]>(url, this.httpOptions);
+  }
+
+  getAllUsers() {
+    const url = `${this.API_URL}research_mgt/users/`;
+    return this.http.get<SrpmsUser[]>(url, this.httpOptions);
   }
 }
