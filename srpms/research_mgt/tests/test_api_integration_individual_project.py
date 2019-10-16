@@ -707,7 +707,7 @@ class IndividualProject(utils.SrpmsTest):
         self.set_examiner_approve()
         self.set_convener_approve()
 
-        response = self.convener.get(utils.get_contract_url(self.contract_id, export=True),
+        response = self.convener.get(utils.get_contract_url(export=True),
                                      data.get_approve_data(False))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.get('content-type'), 'text/csv')

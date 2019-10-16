@@ -49,7 +49,7 @@ def get_contract_url(contract_id: int = None, submit: bool = False, approve: boo
 
     if not contract_id:
         if export:
-            return '{}/export_csv/'.format(ApiUrls.contract)
+            return '{}export_csv/'.format(ApiUrls.contract)
         else:
             return ApiUrls.contract
     else:
