@@ -1,3 +1,10 @@
+# Docker image for GitLab CI runner, with docker-compose support added, in order to run
+# docker within the container (or parallel, to be specific). The runner is run with root
+# to access the docker unix socket.
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
+
 FROM gitlab/gitlab-runner:alpine
 
 # Copy docker and docker-compose binary

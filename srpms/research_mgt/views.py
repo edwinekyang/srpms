@@ -10,7 +10,8 @@ __credits__ = ['Dajie Yang', 'Euikyum Yang']
 __maintainer__ = 'Dajie (Cooper) Yang'
 __email__ = "dajie.yang@anu.edu.au"
 
-from io import BytesIO
+from io import BytesIO, StringIO
+from typing import List
 from django.http import HttpResponse
 from django.db import transaction
 from django.db.models import QuerySet
@@ -42,6 +43,8 @@ from .permissions import (AllowSafeMethods, AllowPOST,
                           ContractSubmitted, ContractNotSubmitted,
                           ContractApprovedBySupervisor,
                           ContractNotFinalApproved, ContractFinalApproved)
+from .print import print_individual_project_contract
+from .csv_export import contract_csv_export
 from .serializer_utils import SubmitSerializer, ApproveSerializer
 from .filters import UserFilter
 from .signals import (CONTRACT_SUBMIT, CONTRACT_APPROVE, SUPERVISE_APPROVE, EXAMINER_APPROVE,
@@ -146,7 +149,7 @@ class ContractViewSet(ModelViewSet):
     @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=SubmitSerializer,
             permission_classes=default_perms + [IsSuperuser | (IsContractOwner &
                                                                ContractNotSubmitted), ])
-    def submit(self, request, pk=None):
+    def submit(self, request, pk=None) -> HttpResponse:
         """The submit action for contract owner to submit their contract."""
 
         serializer: SubmitSerializer = self.get_serializer(data=request.data)
@@ -174,7 +177,7 @@ class ContractViewSet(ModelViewSet):
     @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=ApproveSerializer,
             permission_classes=default_perms + [IsSuperuser | (IsConvener &
                                                                ContractNotFinalApproved), ])
-    def approve(self, request, pk=None):
+    def approve(self, request, pk=None) -> HttpResponse:
         """
         The approve action for course convener to approve contract. Disapprove would cause
         all supervisor's approval be cleared.
@@ -220,6 +223,58 @@ class ContractViewSet(ModelViewSet):
         else:
             raise ValidationError(serializer.errors)
 
+    # noinspection PyUnusedLocal
+    @action(methods=['GET'], detail=True,
+            permission_classes=default_perms + [ContractFinalApproved, ])
+    def print(self, request, pk=None) -> HttpResponse:
+        """
+        Return PDF version of given contract, generate one if does not exist.
+
+        TODO: Ideally the file should be upload to somewhere else after generation, rather than
+              save to the server's file system. Though be sure to consider concurrent problem in
+              that case.
+        """
+        contract = self.get_object()
+        if hasattr(contract, 'individual_project'):
+            file_object = None
+            try:
+                file_object = BytesIO()
+                print_individual_project_contract(contract, file_object,
+                                                  base_url=request.build_absolute_uri())
+                response = HttpResponse(file_object.getvalue(),
+                                        content_type='application/pdf')
+                response['Content-Disposition'] = 'inline; filename=contract.pdf'
+                return response
+            except Exception as exc:
+                raise exc
+            finally:
+                file_object.close() if file_object else None
+        else:
+            return Response('This contract type does not support printing service',
+                            status=HTTP_400_BAD_REQUEST)
+
+    # noinspection PyUnusedLocal
+    @action(methods=['GET'], detail=False,
+            permission_classes=default_perms + [IsSuperuser | IsConvener, ],
+            filterset_fields=('year', 'semester', 'course'))
+    def export_csv(self, request) -> HttpResponse:
+        """
+        Return csv export for selected contracts.
+        """
+        contract_list: List[Contract] = self.get_queryset()
+
+        file_object = None
+        try:
+            file_object = StringIO()
+            contract_csv_export(contract_list, file_object)
+            response = HttpResponse(file_object.getvalue(), content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename=contract_list.csv'
+            return response
+        except Exception as exc:
+            raise exc
+        finally:
+            file_object.close() if file_object else None
+
 
 class AssessmentExamineViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
                                DestroyModelMixin, ListModelMixin, NestedGenericViewSet):
@@ -260,7 +315,8 @@ class AssessmentExamineViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModel
                                                 (IsContractAssessmentExaminer &
                                                  ContractApprovedBySupervisor &
                                                  ContractNotFinalApproved), ])
-    def approve(self, request, pk=None, parent_lookup_contract=None, parent_lookup_assessment=None):
+    def approve(self, request, pk=None, parent_lookup_contract=None,
+                parent_lookup_assessment=None) -> HttpResponse:
         """Allow examiners to approve assessments"""
 
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
@@ -390,7 +446,7 @@ class SuperviseViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
             permission_classes=default_perms + [IsSuperuser |
                                                 (IsConvener & ContractSubmitted) |
                                                 (IsContractSuperviseOwner & ContractSubmitted), ])
-    def approve(self, request, pk=None, parent_lookup_contract=None):
+    def approve(self, request, pk=None, parent_lookup_contract=None) -> HttpResponse:
         """Allow supervisor to approve supervise relation"""
         serializer: ApproveSerializer = self.get_serializer(data=request.data)
         if serializer.is_valid():

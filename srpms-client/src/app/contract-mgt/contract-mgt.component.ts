@@ -1,10 +1,11 @@
 /**
  * @fileoverview This file draws the contract management page.
- * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ * @author euikyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
  */
 import {Component, OnInit} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
-import {ContractService, Course} from '../contract.service';
+import {ContractService} from '../contract.service';
+import { Assessment, Contract, Course } from '../reseach_mgt-objects';
 import {ContractMgtService} from '../contract-mgt.service';
 import {AccountsService, SrpmsUser} from '../accounts.service';
 import {Router} from '@angular/router';
@@ -16,7 +17,7 @@ import {ContractMgtDialogComponent} from '../contract-mgt-dialog/contract-mgt-di
 
 export interface ContractList<T> {
     supervisorName?: Array<T>;
-    contractId: string;
+    contractId: number;
     studentName: string;
     studentId: string;
     title: string;
@@ -29,7 +30,7 @@ export interface ContractList<T> {
 
 export interface AssessmentList<T> {
     id: any;
-    examineId: any;
+    examineId: number;
     template: number;
     assessmentName: string;
     contract: number;
@@ -394,7 +395,7 @@ export class ContractMgtComponent implements OnInit {
         let assessmentList: any;
         const promiseContractIdList = contractIdList.map(async (contractId: number) => {
             await this.contractMgtService.getContract(contractId).toPromise()
-                .then(async contract => {
+                .then(async (contract: Contract) => {
                     await this.accountService.getUser(contract.owner).toPromise()
                         .then(async (student: SrpmsUser) => {
                             const supervisorName = [];
@@ -494,7 +495,7 @@ export class ContractMgtComponent implements OnInit {
         const promiseContractIdList = contractIdList.map(async id => {
             await this.contractMgtService.getAssessments(id).toPromise()
                 .then(async assessments => {
-                    const promiseAssessments = assessments.map(async assessment => {
+                    const promiseAssessments = assessments.map(async (assessment: Assessment) => {
                         let examinerName: any;
                         examinerName = '';
                         if (assessment.assessment_examine[0]) {
@@ -507,14 +508,14 @@ export class ContractMgtComponent implements OnInit {
                             this.preAssessmentList.push({
                                 id: assessment.id,
                                 examineId: assessment.assessment_examine[0] ?
-                                    assessment.assessment_examine[0].id : '',
+                                    assessment.assessment_examine[0].id : null,
                                 template: assessment.template,
                                 assessmentName: assessment.template_info.name,
                                 contract: assessment.contract,
                                 due: assessment.due,
                                 weight: assessment.weight,
                                 examiner: assessment.assessment_examine[0] ?
-                                    assessment.assessment_examine[0].examiner : '',
+                                    assessment.assessment_examine[0].examiner : null,
                                 isAllExaminersApproved: assessment.is_all_examiners_approved,
                                 examinerApprovalDate: assessment.assessment_examine[0] ?
                                     assessment.assessment_examine[0].examiner_approval_date : '',
@@ -525,14 +526,14 @@ export class ContractMgtComponent implements OnInit {
                             this.postAssessmentList.push({
                                 id: assessment.id,
                                 examineId: assessment.assessment_examine[0] ?
-                                    assessment.assessment_examine[0].id : '',
+                                    assessment.assessment_examine[0].id : null,
                                 template: assessment.template,
                                 assessmentName: assessment.template_info.name,
                                 contract: assessment.contract,
                                 due: assessment.due,
                                 weight: assessment.weight,
                                 examiner: assessment.assessment_examine[0] ?
-                                    assessment.assessment_examine[0].examiner : '',
+                                    assessment.assessment_examine[0].examiner : null,
                                 isAllExaminersApproved: assessment.is_all_examiners_approved,
                                 examinerApprovalDate: assessment.assessment_examine[0] ?
                                     assessment.assessment_examine[0].examiner_approval_date : '',

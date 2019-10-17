@@ -6,19 +6,27 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { APIErrorResponse } from '../auth-interceptor.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
+/**
+ * Login dialog logic, control login progress bar, send login request to API, show
+ * error messages (if any).
+ *
+ * TODO: Solve circular dependency problem between this dialog and account service
+ *
+ * @author Dajie Yang (u6513788)
+ */
 @Component({
   selector: 'app-login-dialog',
   templateUrl: './login-dialog.component.html',
-  styleUrls: ['./login-dialog.component.scss']
+  styleUrls: [ './login-dialog.component.scss' ]
 })
 export class LoginDialogComponent implements OnInit {
-  errorMessage: string;
-  loginInProgress: boolean;
+  errorMessage: string;  // For displaying login error
+  loginInProgress: boolean;  // Control whether to display login progress bar
 
   loginForm = new FormGroup({
     username: new FormControl(''),
     password: new FormControl(''),
-  }, [Validators.required, Validators.required]);
+  }, [ Validators.required, Validators.required ]);
 
   constructor(
     public dialogRef: MatDialogRef<LoginDialogComponent>,
@@ -36,11 +44,16 @@ export class LoginDialogComponent implements OnInit {
     this.loginInProgress = true;
     this.accountService.login(this.loginForm.value)
       .subscribe(() => {
-        this.close();
+        this.close();  // Close dialog on success
       }, (error1: APIErrorResponse) => {
         if (error1 instanceof HttpErrorResponse) {
           if (Math.floor(error1.status / 100) === 4) {
-            this.errorMessage = error1.error.detail;
+            // Display error message to dialog
+            if (error1.error.detail) {
+              this.errorMessage = error1.error.detail;
+            } else {
+              this.errorMessage = error1.statusText;
+            }
           } else {
             this.errorMessage = error1.statusText;
           }

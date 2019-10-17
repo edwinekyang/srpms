@@ -1,6 +1,6 @@
 /**
  * @fileoverview This file draws the contract form.
- * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ * @author euikyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
  */
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import { FormGroup } from '@angular/forms';
@@ -14,6 +14,7 @@ import {MatDialog} from '@angular/material';
 import {ContractDialogComponent} from '../contract-dialog/contract-dialog.component';
 import {map} from 'rxjs/operators';
 import {ErrorDialogComponent} from '../error-dialog/error-dialog.component';
+import { Contract } from '../reseach_mgt-objects';
 
 @Component({
     selector: 'app-contract-form',
@@ -196,7 +197,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
                     if (Math.floor(err.status / 100) === 4) {
                         Object.assign(this.errorMessage, err.error);
                     }}).then(async (res) => {
-                    this.contractId = res.id;
+                    this.contractId = res ? res.id : null;
                     await this.addAssessmentMethod();
                     await this.addSupervise();
                 });
@@ -229,7 +230,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
             Object.assign(this.assessment1, {due: this.transformDue(this.form.value.assessment1Due), });
         }
         if (this.form.value.assessment1Examiner) {
-            Object.assign(this.assessment1, {examiner: this.form.value.assessment1Examiner, });
+            Object.assign(this.assessment1, {examiner: this.form.value.assessment1Examiner.id, });
         }
 
         this.assessment2 = {
@@ -242,7 +243,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
             Object.assign(this.assessment2, {due: this.transformDue(this.form.value.assessment2Due), });
         }
         if (this.form.value.assessment2Examiner) {
-            Object.assign(this.assessment2, {examiner: this.form.value.assessment2Examiner, });
+            Object.assign(this.assessment2, {examiner: this.form.value.assessment2Examiner.id, });
         }
 
         this.assessment3 = {
@@ -255,7 +256,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
             Object.assign(this.assessment3, {due: this.transformDue(this.form.value.assessment3Due), });
         }
         if (this.form.value.assessment3Examiner) {
-            Object.assign(this.assessment3, {examiner: this.form.value.assessment3Examiner, });
+            Object.assign(this.assessment3, {examiner: this.form.value.assessment3Examiner.id, });
         }
         this.assessment.push(this.assessment1, this.assessment2, this.assessment3);
         let flag: string;
@@ -362,7 +363,7 @@ export class ContractFormComponent implements OnInit, OnChanges {
      */
     async addSupervise() {
         this.supervise = {
-            supervisor: this.form.value.projectSupervisor,
+            supervisor: this.form.value.projectSupervisor.id,
             contract: this.contractId,
             is_formal: true
         };

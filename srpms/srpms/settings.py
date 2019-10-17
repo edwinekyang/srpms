@@ -221,6 +221,7 @@ REST_FRAMEWORK = {
 # FIXME: Disable browsable API in production. Browsable API is current enable even for production
 #        settings, however this would hamper the database performance, as browsable API does a lot
 #        of query to allow auto complete.
+# Reference: http://masnun.com/2016/04/20/django-rest-framework-remember-to-disable-web-browsable-api-in-production.html
 # if not DEBUG:
 #     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = ('rest_framework.renderers.JSONRenderer',)
 

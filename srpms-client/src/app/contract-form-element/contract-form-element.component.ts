@@ -1,16 +1,19 @@
 /**
  * @fileoverview This file draws each element of the form.
- * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ * @author euikyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
  */
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 import { ElementBase } from '../element-base';
+import { SrpmsUser } from '../accounts.service';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'app-contract-form-element',
   templateUrl: './contract-form-element.component.html',
-  styleUrls: ['./contract-form-element.component.scss']
+  styleUrls: [ './contract-form-element.component.scss' ]
 })
 export class ContractFormElementComponent implements OnInit {
 
@@ -21,6 +24,7 @@ export class ContractFormElementComponent implements OnInit {
   formFlag: string;
   courseValue: number;
   message = {};
+  filteredOptions: Observable<SrpmsUser[]>;
 
   @Output() formFlagEvent = new EventEmitter<any>();
 
@@ -29,6 +33,14 @@ export class ContractFormElementComponent implements OnInit {
 
   ngOnInit(): void {
     this.order = this.element.order;
+    if (this.element.controlType === 'users') {
+      this.filteredOptions = this.form.controls[this.element.key].valueChanges
+        .pipe(
+          startWith(''),
+          map(value => typeof value === 'string' ? value : value.display_name),
+          map(name => name ? this._filter(name) : this.element.choices.slice())
+        );
+    }
   }
 
   /**
@@ -56,5 +68,14 @@ export class ContractFormElementComponent implements OnInit {
         this.formFlagEvent.emit(this.message);
       }
     });
+  }
+
+  userDisplayFn(user?: SrpmsUser): string | undefined {
+    return user ? user.display_name + ' (' + user.uni_id + ')' : undefined;
+  }
+
+  private _filter(name: string): SrpmsUser[] {
+    const filterValue = name.toLocaleLowerCase();
+    return this.element.choices.filter(option => option.display_name.toLowerCase().indexOf(filterValue) === 0);
   }
 }

@@ -1,6 +1,6 @@
 /**
  * @fileoverview This file wraps the contract form and draws the contract page.
- * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ * @author euikyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
  */
 import {Component, OnInit} from '@angular/core';
 import { ContractService } from '../contract.service';

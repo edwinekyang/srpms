@@ -34,7 +34,7 @@ class ApiUrls(object):
 
 
 def get_contract_url(contract_id: int = None, submit: bool = False, approve: bool = False,
-                     print: bool = False) -> str:
+                     print: bool = False, export: bool = False) -> str:
     """
     Return contract list url, or contract detail url, depending on whether the contract_id
     is specified. Note that 'submit' and 'approve' are only valid when contract_id is given.
@@ -43,10 +43,15 @@ def get_contract_url(contract_id: int = None, submit: bool = False, approve: boo
         contract_id: for generating contract detail url
         submit: for generating submission url given a contract
         approve: for generating approval url given a contract
+        print: for generating PDF export url given a contract
+        export: for generating csv export url given a contract
     """
 
     if not contract_id:
-        return ApiUrls.contract
+        if export:
+            return '{}export_csv/'.format(ApiUrls.contract)
+        else:
+            return ApiUrls.contract
     else:
         if submit:
             return '{}{}/submit/'.format(ApiUrls.contract, contract_id)

@@ -1,8 +1,8 @@
-# First time configuration
+# Deploy - Production
 
-**NOTICE: If you are doing this on your own machine, please start from [Database migration](#database-migration)**
+**NOTE: Make sure the production machine have a public IP**
 
-## VM Clean up
+## CECS VM Clean up
 
 ```bash
 # For srpms.cecs.anu.edu.au only
@@ -14,7 +14,7 @@ sudo systemctl stop postgresql.service
 sudo pkill -U tomcat8
 ```
 
-TODO: The VM currently has too many unrelated packages installed, need to further clean up the environment.
+Note that the provided VM currently has many unrelated packages installed, we're NOT going to clean them all, but just free up ports as much as possible.
 
 ## Install docker
 
@@ -32,8 +32,7 @@ sudo apt-get install \
 # Add Docker’s official GPG key
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
 
-
-# Setup the stable repository
+# Setup the stable source for docker binary
 sudo add-apt-repository \
    "deb [arch=amd64] https://download.docker.com/linux/debian \
    $(lsb_release -cs) \
@@ -42,17 +41,24 @@ sudo add-apt-repository \
 # Update apt and install docker
 sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io
+
+# At this stage, you might want to push you user inside the 'docker' group, otherwise sudo privilege is required for using docker command
+
+# Enter swarm mode since we need to user docker secrets
+docker swarm init
 ```
 
 ## Configure iptable
 
+**Please refer to [Server iptables rule](#server-iptables-rule) section at the bottom of this file for iptable rules**
+
 ```bash
 sudo apt-get install iptables-persistent
 
-# Put the iptables rule under corresponding folder
+# Put the iptables rule given in following section under corresponding folder
 #mv iptable-rules /etc/iptables/rules.v4
 
-# Let docker reload its iptables rules
+# Reload docker's its iptables rules
 sudo systemctl restart docker.service
 
 # Reload the configuration
@@ -60,6 +66,8 @@ sudo systemctl restart netfilter-persistent
 ```
 
 ## Configure repository for group access
+
+Sometimes CI runner cannot take care of all the situations, and you need to do things manually. This section is for this purpose.
 
 ```bash
 # Create folder at root for group access
@@ -83,6 +91,8 @@ find -type d -exec chmod g+s {} +
 
 ## Secrets
 
+Docker secrets provide a convenient way for providing sensitive information (e.g. username, password of the database). You don't want to include these information inside the git repository. 
+
 ```bash
 # Create directory for storing secrets, and give group access
 sudo mkdir /srpms-secrets
@@ -91,22 +101,29 @@ sudo chmod 750 /srpms-secrets
 sudo chmod g+s /srpms-secrets
 
 # Create secrets
-# NOTE: DO NOT USE "echo" AS IT WOULD SUFFIX NEW LINE
+# NOTE: DO NOT USE "echo" AS IT WOULD SUFFIX NEW LINE CHARACTER
+
+# The below information would be used to initializa postgres database (if the database does not exist), and would be used by Django to access the database
+
+# Database name
 sudo printf '<secret content>' > /srpms-secrets/postgres-db.txt
+# Database username
 sudo printf '<secret content>' > /srpms-secrets/postgres-user.txt
+# Database password
 sudo printf '<secret content>' > /srpms-secrets/postgres-passwd.txt
 
 # "--" would prevent "--" raise error when its at the start of the content string
 sudo printf -- '<secret content>' > /srpms-secrets/postgres-init-args.txt
 
+# Django secret key is used for various purpose, for example, hashing user's password so that they won't store in plain text, exposure of this secret key would result all user's password being compromised.
 sudo printf '<secret content>' > /srpms-secrets/django_secret_key.txt
 ```
 
-**NOTE: secrets still works even if inside a container with socket passing, and does not require any special configuration**
+**NOTE: secrets still works even if you configure this on the local machine, and use docker inside a container through socket passing, and does not require any special configuration**
 
 ## CI/CD Setup
 
-We'll GitLab's shell executor with docker runner for this purpose, for reason why we don't use docker executor, refer to the [CI/CD](#ci/cd) section.
+We'll use GitLab's shell executor with docker runner for this purpose, for reason why we don't use docker executor, refer to the [CI/CD](#ci/cd) section.
 
 ```bash
 # cd to the runner image dir
@@ -138,134 +155,9 @@ sudo printf '<secret content>' > /srpms-secrets-test/django_test_ldap_password.t
 
 **NOTE**: If your test machine is outside ANU network, you'll need to set up a ssh tunnel, refer to [Access ANU LDAP outside campus](#Access-ANU-LDAP-outside-campus) for instructions.
 
-## Database migration
+## Manually start the service
 
-**WARNING: Please make sure there is no database under the same name before operate**
-
-- If you already have a database dump named `<db_dump>`, you can import it to the database container by
-  1. Copy to the database container
-     `docker cp <db_dump> srpms_db-postgres:/`
-  2. Import to the database (make sure the database container is running first)
-     `docker-compose -f <compose file> exec db-postgres psql -U <db_name> < /<db_dump>`
-- If you want to initialize a new database
-  `docker-compose -f <compose file> run django-gunicorn python manage.py migrate`
-
-# Deploy - Development
-
-## Through docker
-
-```mermaid
-graph TB
-	subgraph Docker
-	A[Nginx]
-	B[Django+Gunicorn]
-	C[Angular]
-	D[PostgreSQL]
-	A --> B
-	A -.- C
-	B --- D
-	end
-	
-	E[Request]
-	E --> A
-```
-
-Summary of development environment:
-
-- <u>Nginx container</u>: use as a reverse proxy to redirect request, also serve front-end code
-- <u>Angular container</u>: running `ng build --watch` to produce front-end code, only communicate with nginx through shared volume
-- <u>Django+Gunicorn container</u>: running `gunicorn --reload --bind :8000` to serve back-end content (including back-end static files)
-- Both the angular and django container would auto detect change of file to auto-reload content, thus convenient for development
-
-**Please make sure you are under the project directory when using following commands**
-
-```bash
-# Build images if this is your first run
-docker-compose -f docker-compose.dev.yml build
-
-# Start, will run in background
-docker-compose -f docker-compose.dev.yml up -d
-
-# To preven undesire behavior during development, the database is not initialized by default, so we need to initialize manually
-docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py makemigrations accounts research_mgt
-docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py migrate --fake-initial
-docker-compose -f docker-compose.dev.yml exec django-gunicorn python manage.py migrate
-
-# To apply changes of Dockerfile and compose file to running containers, use the following command (remove --build if you did not change any Dockerfile)
-docker-compose -f docker-compose.dev.yml up -d --build
-
-# Stop containers
-docker-compose -f docker-compose.dev.yml stop
-
-# This command will remove container, network, and volumes, which means the database would be removed as well
-docker-compose -f docker-compose.dev.yml down --rmi 'local' -v --remove-orphans
-```
-
-- The about command would
-  - Listen at `localhost:8000` for HTTP
-  - Listen at `localhost:8001` for HTTPS
-  - `/media/`, `/static/`, `/api/` would be directed to Django container
-  - All other requests would request file in nginx, including front-end code
-- To attach to a running container, use `docker exec -it <service_name> <command>`
-  - For example, to attach to the Django container for debugging, use command
-    `docker exec -it django-gunicorn_1 /bin/sh`
-- To run a single container with some command, use `docker-compose -f <compose file> run <service_name> <command>`
-  - Using this command has the advantage over regular `docker run`, as it will apply settings specified in the docker-compose file
-
-## On local machine
-
-Running only inside docker can sometime make debugging very painful, as you won't have the support from IDE debugging tools. 
-
-To run django on local machine:
-
-```bash
-export DEBUG=True
-
-# Run the database
-docker-compose -f docker-compose.dev.yml up -d db-postgres
-
-cd srpms
-
-# Activate your conda environment as appropriate
-
-# Migrate if you haven't migrate yet
-python manage.py makemigrations accounts research_mgt
-python manage.py migrate --fake-initial
-python manage.py migrate
-
-python manage.py runserver
-```
-
-
-
-## Access ANU LDAP outside campus
-
-- ```bash
-  DOCKER_GATEWAY="$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
-  export LDAP_ADDR="ldap://$DOCKER_GATEWAY"
-  
-  # Make sure your ssh connection is alive when the container is running
-  # Port 389 is in the range of 1~1024, as such we need sudo privilege.
-  sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
-  ```
-  
-- You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked and won't reach the ssh tunnel.
-  
-  - For Linux:
-    
-    ```bash
-    sudo iptables -A INPUT -d $(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}') -p tcp -m tcp --dport 389 -j ACCEPT
-    ```
-    
-  - For Mac:
-  
-    ```bash
-    # TBD
-    ```
-  
-    
-
-# Deploy - Production
+The below diagram shows how containers in production mode connected (if the diagram cannot render, open this markdown file with Typora).
 
 ```mermaid
 graph TB
@@ -310,9 +202,262 @@ docker-compose -f docker-compose.prod.yml logs
 docker-compose -f docker-compose.prod.yml down
 ```
 
-## Behavior
+# Deploy - Development
 
-### SSL initial setup
+## Through docker
+
+The below diagram shows how containers in development mode connected (if the diagram cannot render, open this markdown file with Typora).
+
+```mermaid
+graph TB
+	subgraph Docker
+	A[Nginx]
+	B[Django+Gunicorn]
+	C[Angular]
+	D[PostgreSQL]
+	A --> B
+	A -.- C
+	B --- D
+	end
+	
+	E[Request]
+	E --> A
+```
+
+Summary of development environment:
+
+- <u>Nginx container</u>: use as a reverse proxy to redirect request, also serve front-end code
+- <u>Angular container</u>: running `ng build --watch` to produce front-end code, only communicate with nginx through shared volume
+- <u>Django+Gunicorn container</u>: running `gunicorn --reload --bind :8000` to serve back-end content (including back-end static files)
+- Both the angular and django container would auto detect change of file to auto-reload content, thus convenient for development
+
+**Please make sure you are under the project root directory when using following commands**
+
+```bash
+# Build images if this is your first run
+docker-compose -f docker-compose.dev.yml build
+
+# Start, will run in background
+docker-compose -f docker-compose.dev.yml up -d
+
+# To apply changes of Dockerfile and compose file to running containers, use the following command (remove --build if you did not change any Dockerfile)
+docker-compose -f docker-compose.dev.yml up -d --build
+
+# Stop containers
+docker-compose -f docker-compose.dev.yml stop
+
+# This command will remove container, network, and volumes, which means the database would be removed as well
+docker-compose -f docker-compose.dev.yml down --rmi 'local' -v --remove-orphans
+```
+
+- The about command would let the service
+  - Listen at `localhost:8000` for HTTP
+  - Listen at `localhost:8001` for HTTPS
+  - Url of pattern`/media/*`, `/static/*`, `/api/*` would be directed to Django container
+  - All other requests would request file in nginx, including front-end code
+- To attach to a running container, use `docker-compose -f docker-compose.dev.yml exec <service_name> <command>`
+  - For example, to attach to the Django container for trouble shooting, use command
+    `docker-compose -f docker-compose.dev.yml exec django-gunicorn /bin/bash`
+- To run a single container, use `docker-compose -f <compose file> run <service_name> <command>`
+- **NOTE**: docker-compose file contains variables required to run the docker container, regular `docker run` does not. Please don't start these docker containers with plain `docker` command.
+
+## On local machine
+
+Having everything running inside docker can sometime make debugging very painful, as you won't have IDE debugging tools support, e.g. breakpoint. As such we sometimes need to run code outside container.
+
+- To run Django on local machine:
+
+  ```bash
+  export DEBUG=True
+  
+  # NOTE: Activate your conda environment first
+  
+  # Run the database
+  docker-compose -f docker-compose.dev.yml up -d db-postgres
+  
+  cd srpms
+  python manage.py runserver
+  ```
+
+  - Please note that HTTPS settings are defined in a way that would not be applied if you run Django in local machine.
+
+- To run Angular on local machine, with everything else running inside docker
+
+  ```bash
+  export DEBUG=True
+  
+  # NOTE: Activate your conda environment first
+  
+  # Run the database
+  docker-compose -f docker-compose.dev.yml up -d
+  docker-compose -f docker-compose.dev.yml stop angular-client
+  
+  cd srpms-client
+  ng serve
+  ```
+
+- To run both Angular and Django on local machine
+
+  ```bash
+  export DEBUG=True
+  
+  # NOTE: Activate your conda environment first
+  
+  # Run the database
+  docker-compose -f docker-compose.dev.yml up -d db-postgres
+  
+  # Run Django
+  cd srpms
+  python manage.py runserver
+  
+  # Please do this in a separate terminal, remember to `export DEBUG=True`
+  cd srpms-client
+  ng serve
+  ```
+
+### Front-end Back-end communication
+
+The API URL by default is set to `/api/` in Angular client code. However:
+
+- When you run angular outside of docker container, `ng server` would normally runs on `localhost:4200`, while the docker-compose service is configured to run at `localhost:8000` (HTTP) and `localhost:8001` (HTTPS).
+- You'll need to change `API_URL` temporarily in order to point to correct API url, `localhost:8001/api/` in this case. 
+- `API_URL` variable is defined in `srpms-client/src/app/api-url.ts`
+  - **NOTE:** Please change the variable back before you commit!
+- If you are running Django locally, the address is normally `localhost:8000/api/`
+
+# Database migration
+
+**NOTE: Make sure you have already deployed before reading this section.**
+
+**NOTE: All command in this section, unless otherwise specified, should be run under the `srpms` directory, where the django code resides.**
+
+## Import existing database dump
+
+If you already have a database dump named `<db_dump>`, you can import it to the database container by
+
+1. Copy to the database container
+   `docker cp <db_dump> srpms_db-postgres:/`
+2. Import to the database (make sure the database container is running first)
+   `docker-compose -f <compose file> exec db-postgres psql -U <db_name> < /<db_dump>`
+
+## Initialize new database schema
+
+```bash
+docker-compose -f <compose file> run django-gunicorn python manage.py migrate
+```
+
+## Reverse migration
+
+- If you have data inside the database
+
+  - You might run into trouble if you already have data (e.g. `Contract`, `ActionLog`, ...) in the database, and this is the expected behavior to prevent accidental mis-operation. In this case, you need to first clear all existing data.
+
+    ```python
+    from research_mgt.models import Contract, ActivityLog
+    Contract.objects.all().delete()
+    ActivityLog.objects.all().delete()
+    ```
+
+  - NOTE: while it is specified in Django ORM that `IndividualProject` would be CASCADE if the `Contract` it refers to is being deleted, this constraint exist solely on Django ORM. Attempt to delete `Contract` through database shell would not result its related `IndividualProject` being deleted.
+
+  - Follow the normal reverse steps
+
+- Normal reverse steps:
+
+  - ```shell
+    # To reset all migration given an app (e.g. accounts, research_mgt)
+    python manage.py migrate <app_name> zero
+    
+    # To reverse migrations to certain step, migrate_num can be 0001, 0002, 
+    # according to the migrates created for the app.
+    # For example, research_mgt has a total of 5 migrations, then 
+    # 'migrate research_mgt 0004' would migrate it to a stage where 0001-0004
+    # have been migrated, but 0005 hasn't
+    python manage.py migrate <app_name> <migrate_num>
+    ```
+
+## Modify existing schema
+
+- At the time you are reading this documentation, the database schema should be matured, and it is very likely that there are already some data in the database
+- **CAUTION**: Please note that modifying database schema would affect all existing data
+- **CAUTION**: Any modification to the database schema should be done through Django ORM, i.e. change the `models.py` file, modify the database schema directly using database shell should be avoided in most circumstance.
+- Steps:
+  - After you modify the `models.py` file, run `python manage.py makemigrations`, which would automatically detects any change in models file, an generate new migration in `migrations` directory.
+  - Issue `python manage.py migrate` to apply new migrations
+    - You might be asked to provide input for default values based on your change
+
+## Manually clear database
+
+- When switching between different branches, you might run in to trouble that the migrations in the current branch does not match the migrations you applied for the database. In this case, you'll likely to run into situation that all migration attempt would failed.
+
+- Below is an example of how to manually clear migrations related to `research_mgt`
+
+  1. Run `python manage.py shell`, and then
+
+     ```python
+     # Clear data through django ORM
+     from research_mgt.models import ActivityLog, Contract
+     ActivityLog.objects.all().delete()
+     Contract.objects.all().delete()
+     ```
+
+  2. Run `python manage.py migrate --fake research_mgt zero` to reset the migration record
+
+  3. Run `python manage.py dbshell` to manually clear schema:
+
+     ```sql
+     -- Order is important
+     DROP TABLE research_mgt_activitylog;
+     DROP TABLE research_mgt_activityaction;
+     DROP TABLE research_mgt_individualproject;             
+     DROP TABLE research_mgt_specialtopic;
+     DROP TABLE research_mgt_assessmentexamine;
+     DROP TABLE research_mgt_examine;
+     DROP TABLE research_mgt_assessment;                         
+     DROP TABLE research_mgt_assessmenttemplate;       
+     DROP TABLE research_mgt_supervise;
+     DROP TABLE research_mgt_contract;           
+     DROP TABLE research_mgt_course;
+     ```
+
+  4. Because `research_mgt`'s migration include `Permissions` and `Group` objects, we need to clear these two schema as well:
+
+     ```python
+     # This would also have the side effect of removing all existing users
+     python manage.py migrate auth zero
+     ```
+
+  5. Reapply all migration
+
+     ```python
+     python manage.py migrate
+     ```
+
+# Access ANU LDAP outside campus
+
+If you're not using the `ANU-Secure` WIFI (or any other network provided by ANU), the ANU LDAP server would be invisible for you. In this case, you'll need to configure the connection to ANU LDAP server yourself. Here we give an example of connection ANU LDAP server from the outside through an SSH Tunnel that connect to a machine located inside ANU network.
+
+- ```bash
+  DOCKER_GATEWAY="$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
+  export LDAP_ADDR="ldap://$DOCKER_GATEWAY"
+  
+  # Make sure your ssh connection is alive when the container is running
+  # Port 389 is in the range of 1~1024, as such we need sudo privilege.
+  sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
+  ```
+  
+- You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked and won't reach the ssh tunnel.
+  
+  - For Linux:
+    
+    ```bash
+    sudo iptables -A INPUT -d $(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}') -p tcp -m tcp --dport 389 -j ACCEPT
+    ```
+    
+
+# Behaviors
+
+## SSL initial setup
 
 The deployment would perform the following action on first-time-run:
 
@@ -323,22 +468,7 @@ The deployment would perform the following action on first-time-run:
   - In order to reload nginx, source code is mapped inside certbot container, as well as the docker socket. As such certbot is not part of the srpms_network, and can only communicate to nginx through their share volume (i.e. the challenge file directory and letsencrypt certificate directory).
   - For preventing unwanted behavior on docker socket passing, the certbot container is configured to use host network
 
-## Caveats
-
-### Disable the REST browsable API on production
-
-Simple add the following to the `settings.py`
-```python
-REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-    )
-}
-```
-
-[Refer here](http://masnun.com/2016/04/20/django-rest-framework-remember-to-disable-web-browsable-api-in-production.html) for the reason of doing so.
-
-# CI/CD
+# CI/CD and Kubernete
 
 - Since deploying a Kubernete for this project is a bit over kill for the current phase, we only use `.gitlab-ci.yml` for CI/CD, and manually set the DevOps job inside in.
 - In fact, GitLab's Auto DevOps also just another `.gitlab-ci.yml`, but with pre-defined content inside, [see here for more details](https://docs.gitlab.com/ee/topics/autodevops/#using-components-of-auto-devops)

@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Angular startup script, define start up behavior according to the environment.
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
 
 pid=1
 
@@ -21,7 +25,7 @@ if [ "$DEBUG" == "True" ]; then
     pid="${!}"
     wait "$pid"
 else
-    # Clean up and copy file to volume
+    # Clean up and copy file to Nginx
     rm -rf /dist/*
     cp -r ./dist/* /dist/
     exit 0

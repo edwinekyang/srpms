@@ -44,11 +44,12 @@ class UserContractSerializer(serializers.ModelSerializer):
     examine = serializers.SerializerMethodField(read_only=True)
     convene = serializers.SerializerMethodField(read_only=True)
     is_approved_supervisor = serializers.SerializerMethodField(read_only=True)
+    is_course_convener = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SrpmsUser
-        fields = ['id', 'username', 'first_name', 'last_name', 'email',
-                  'is_approved_supervisor',
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'display_name', 'uni_id',
+                  'is_approved_supervisor', 'is_course_convener',
                   'own', 'convene', 'supervise', 'examine']
 
     # noinspection PyMethodMayBeStatic
@@ -103,6 +104,16 @@ class UserContractSerializer(serializers.ModelSerializer):
             obj: the user that is being serialized currently
         """
         return obj.has_perm('research_mgt.can_supervise')
+
+    # noinspection PyMethodMayBeStatic
+    def get_is_course_convener(self, obj: SrpmsUser) -> bool:
+        """
+        Show whether the current user have 'can_convene' permission
+
+        Args:
+            obj: the user that is being serialized currently
+        """
+        return obj.has_perm('research_mgt.can_convene')
 
 
 class SuperviseSerializer(serializers.ModelSerializer):

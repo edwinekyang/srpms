@@ -1,3 +1,8 @@
+# Deployment override, for production environment. Please do not run this in environment that
+# does not have public IP, otherwise the HTTPS certificate would not obtain successfully.
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
 version: '3.7'
 
 services:

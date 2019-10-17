@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Certbot startup file, which detect whether the current certificate is self-signed or expired,
+# and obtain a new certificate if true.
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
 
 pid=1
 

@@ -3,6 +3,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ContractComponent } from './contract.component';
 import { HttpClient } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { MatDialog } from '@angular/material';
 
 describe('ContractComponent', () => {
   let component: ContractComponent;
@@ -12,11 +13,14 @@ describe('ContractComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [ HttpClientTestingModule ],
       declarations: [ ContractComponent ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
+      schemas: [ CUSTOM_ELEMENTS_SCHEMA ],
+      providers: [
+        { provide: MatDialog, useValue: {} }
+      ]
     })
-        .compileComponents();
+      .compileComponents();
 
     // Inject the http service and test controller for each test
     httpClient = TestBed.get(HttpClient);
