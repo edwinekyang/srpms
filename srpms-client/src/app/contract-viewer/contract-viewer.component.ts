@@ -1,6 +1,6 @@
 /**
  * @fileoverview This file draws the contract edit page for the contract owner.
- * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ * @author euikyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
  */
 import {Component, OnInit} from '@angular/core';
 import {ContractMgtService} from '../contract-mgt.service';

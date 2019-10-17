@@ -1,6 +1,6 @@
 /**
  * @fileoverview This file contains the services relevant to ContractFormComponent.
- * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ * @author euikyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
  */
 import { Injectable } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';

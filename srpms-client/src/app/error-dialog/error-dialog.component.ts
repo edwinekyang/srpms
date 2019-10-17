@@ -1,6 +1,6 @@
 /**
  * @fileoverview This file draws the error dialog from 4XX HTTP responds.
- * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ * @author euikyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
  */
 import {Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';

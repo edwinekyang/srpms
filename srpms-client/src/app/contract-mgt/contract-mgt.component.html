@@ -117,12 +117,12 @@
                                 <h3 mat-line>{{contract.contractObj['submit_date'].slice(0, 10)}}</h3>
                             </mat-list-item>
                         </mat-grid-tile>
-                        <mat-grid-tile colspan="2" *ngIf="contract.contractObj['supervise'][0]['supervisor_approval_date']">
+                        <mat-grid-tile colspan="2" *ngIf="contract.contractObj['is_all_supervisors_approved']">
                             <mat-list-item>
                                 <h3 mat-line class="project-header">Supervise</h3>
                             </mat-list-item>
                         </mat-grid-tile>
-                        <mat-grid-tile colspan="2" *ngIf="contract.contractObj['supervise'][0]['supervisor_approval_date']">
+                        <mat-grid-tile colspan="2" *ngIf="contract.contractObj['is_all_supervisors_approved']">
                             <mat-list-item>
                                 <h3 mat-line>{{contract.contractObj['supervise'][0]['supervisor_approval_date'].slice(0, 10)}}</h3>
                             </mat-list-item>

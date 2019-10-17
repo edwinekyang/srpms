@@ -1,6 +1,6 @@
 /**
  * @fileoverview This file does actions requested from contract-mgt component.
- * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ * @author euikyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
  */
 import {Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';

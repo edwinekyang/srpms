@@ -1,6 +1,6 @@
 /**
  * @fileoverview This file draws the successful dialog from the actions.
- * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ * @author euikyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
  */
 import {Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';

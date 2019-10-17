@@ -1,6 +1,6 @@
 /**
  * @fileoverview This file contains each element of the form.
- * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ * @author euikyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
  * @author Dajie Yang (u6513788) <dajie.yang@anu.edu.au>
  */
 import { Injectable } from '@angular/core';
