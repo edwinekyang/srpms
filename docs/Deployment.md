@@ -234,6 +234,9 @@ Summary of development environment:
 **Please make sure you are under the project root directory when using following commands**
 
 ```bash
+# If your machine is inside campus, use ldap://ldap.anu.edu.au
+export LDAP_ADDR='<ANU_LDAP_ADDR>'
+
 # Build images if this is your first run
 docker-compose -f docker-compose.dev.yml build
 
@@ -324,6 +327,27 @@ The API URL by default is set to `/api/` in Angular client code. However:
 - `API_URL` variable is defined in `srpms-client/src/app/api-url.ts`
   - **NOTE:** Please change the variable back before you commit!
 - If you are running Django locally, the address is normally `localhost:8000/api/`
+
+# Access ANU LDAP outside campus
+
+If you're not using the `ANU-Secure` WIFI (or any other network provided by ANU), the ANU LDAP server would be invisible for you. In this case, you'll need to configure the connection to ANU LDAP server yourself. Here we give an example of connection ANU LDAP server from the outside through an SSH Tunnel that connect to a machine located inside ANU network.
+
+- ```bash
+  DOCKER_GATEWAY="$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
+  export LDAP_ADDR="ldap://$DOCKER_GATEWAY"
+  
+  # Make sure your ssh connection is alive when the container is running
+  # Port 389 is in the range of 1~1024, as such we need sudo privilege.
+  sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
+  ```
+
+- You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked and won't reach the ssh tunnel.
+
+  - For Linux:
+
+    ```bash
+    sudo iptables -A INPUT -d $(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}') -p tcp -m tcp --dport 389 -j ACCEPT
+    ```
 
 # Database migration
 
@@ -432,28 +456,6 @@ docker-compose -f <compose file> run django-gunicorn python manage.py migrate
      ```python
      python manage.py migrate
      ```
-
-# Access ANU LDAP outside campus
-
-If you're not using the `ANU-Secure` WIFI (or any other network provided by ANU), the ANU LDAP server would be invisible for you. In this case, you'll need to configure the connection to ANU LDAP server yourself. Here we give an example of connection ANU LDAP server from the outside through an SSH Tunnel that connect to a machine located inside ANU network.
-
-- ```bash
-  DOCKER_GATEWAY="$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"
-  export LDAP_ADDR="ldap://$DOCKER_GATEWAY"
-  
-  # Make sure your ssh connection is alive when the container is running
-  # Port 389 is in the range of 1~1024, as such we need sudo privilege.
-  sudo ssh -L "$DOCKER_GATEWAY":389:ldap.anu.edu.au:389 <UniID>@srpms.cecs.anu.edu.au
-  ```
-  
-- You also need to make sure your iptables allow incoming traffic from the srpms network subnet, otherwise connections from the container would be blocked and won't reach the ssh tunnel.
-  
-  - For Linux:
-    
-    ```bash
-    sudo iptables -A INPUT -d $(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}') -p tcp -m tcp --dport 389 -j ACCEPT
-    ```
-    
 
 # Behaviors
 
