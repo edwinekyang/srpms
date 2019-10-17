@@ -106,6 +106,13 @@ class Contract(models.Model):
         return not bool(SrpmsUser.objects.filter(supervise__contract=self,
                                                  supervise__supervisor_approval_date__isnull=True))
 
+    def is_examiner_nominated(self) -> bool:
+        """Check if all assessments have at least one examiner"""
+        for assessment in self.assessment.all():
+            if not AssessmentExamine.objects.filter(assessment=assessment):
+                return False
+        return True
+
     def is_convener_approved(self) -> bool:
         """No one should be allowed to change after convener approved"""
         return bool(self.convener_approval_date)
@@ -244,12 +251,6 @@ class Supervise(models.Model):
             # The contract need to be submitted before approval
             if not self.contract.is_submitted():
                 errors['contract'] = 'Un-submitted contract is not allowed to be approved.'
-
-            for assessment in self.contract.assessment.all():
-                if len(assessment.assessment_examine.all()) < 1:
-                    errors['assessments'] = 'Please make sure you\'ve assigned at least one ' \
-                                            'examiner for each assessment.'
-                    break
 
         if self.contract.convener_approval_date:
             errors['convener_approve'] = 'convener approved contract is not allowed to modify.'

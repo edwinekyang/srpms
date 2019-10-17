@@ -24,6 +24,7 @@ def assert_contract_response(test_case: TestCase, response, true_data) -> None:
     test_case.assertTrue(response.data.pop('supervise') is not None)
     test_case.assertTrue(response.data.pop('assessment') is not None)
     test_case.assertTrue(response.data.pop('was_submitted') is not None)
+    test_case.assertTrue(response.data.pop('is_examiner_nominated') is not None)
 
     # Contract should at least have one supervisor, otherwise is_all_supervisors_approved
     # would be false. Contract test also does not approve any supervise relation, as such

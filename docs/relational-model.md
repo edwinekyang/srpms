@@ -1,42 +1,91 @@
 # Relational Model
-## Contract
-```
-Contract(id, year, semester, duration, resource, convener_approval_date, convener, create_date, owner, course  
-PK: {id}
-FK: [convener] -> SRPMS_USER, [owner] -> SRPMS_USER, [course] -> Course
-```
-## Supervise
-```
-Supervise(supervisor, contract, is_formal, approval_date)
-FK: supervisor -> SRPMS_USER, contract -> CONTRACT
-```
-- Since we might have more than 1 supervisor
 
-## Individual Project
+This file exist solely for simple reference, it does not include data types and constraints, please read documentations in code for more details.
+
+![1571158767695](imgs/EER_model.png)
+
+## Accounts
+
+Refer to `srpms/accounts/models.py` for details, especially the reason why we need `AssessmentExamine` relation.
+
+### SrpmsUser
+
 ```
-Individual_Project(contract, title, objectives, description)
-Special_Topics(contract, title, objectives, description)
+SrpmsUser(id, username, password, first_name, last_name, email, uni_id, is_staff, nominator, expire_date)
+```
+
+## Research_mgt
+
+Refer to `srpms/research_mgt/models.py` for details
+
+### Course
+
+```
+Course(id, course_number, name, units)
+unique: [course_number]
+PK: {id}
+```
+
+### Contract
+
+```
+Contract(id, year, semester, duration, resources, course, convener, convener_approval_date, owner, create_date, submit_date, was_submitted)
+PK: {id}
+FK: [convener] -> SrpmsUser, [owner] -> SrpmsUser, [course] -> Course
+```
+### Individual Project
+```
+IndividualProject(contract, title, objectives, description)
 PK: {contract}
-FK: [contract] -> CONTRACT
+FK: [contract] -> Contract
 ```
 
-## Course
+### Special Topic
+
 ```
-Course(id, course_number, name)
+SpecialTopics(contract, title, objectives, description)
+PK: {contract}
+FK: [contract] -> Contract
+```
+
+### Supervise
+
+```
+Supervise(supervisor, contract, is_formal, supervisor_approval_date)
+unique: [supervisor, contract]
+FK: [supervisor] -> SrpmsUser, [contract] -> Contract
+```
+
+### Assessment Template
+
+```
+AssessmentTemplate(id, name, description, max_weight, min_weight, default_weight)
+unique: [name]
 PK: {id}
 ```
 
-## Assessment Method
-```
-Assessment_Method(id, template, contract, additional_description, due, max_mark, examiner, examiner_approval_date)
-PK: {id}
-unique_together(assessment, contract, examiner)
-FK: [template] -> ASSESSMENT_TEMPLATE, [examiner] -> SRPMS_USER, [contract] -> CONTRACT
-```
-- Since we might have multiple examiner woking on the same assessment
+### Assessment
 
-## Assessment Template
 ```
-Assessment_Template(id, name, description, min_mark, max_mark)
+Assessment(id, template, contract, additional_description, due, weight)
 PK: {id}
+FK: [template] -> AssessmentTemplate, [contract] -> Contract
 ```
+### Examine
+
+```
+Examine(id, contract, examiner, nominator)
+PK: {id}
+unique: [contract, examiner]
+FK: [contract] -> Contract, [examiner] -> SrpmsUser, [nominator] -> SrpmsUser
+```
+
+### Assessment Examine
+
+```
+AssessmentExamine(id, contract, assessment, examine, examiner_approval_date)
+PK: {id}
+unique: [assessment, examine]
+FK: [contract] -> Contract, [examine] -> Examine
+```
+

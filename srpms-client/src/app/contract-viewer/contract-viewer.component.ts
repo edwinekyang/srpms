@@ -1,14 +1,21 @@
+/**
+ * @fileoverview This file draws the contract edit page for the contract owner.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import {Component, OnInit} from '@angular/core';
 import {ContractMgtService} from '../contract-mgt.service';
 import {ElementService} from '../element.service';
 import {ElementBase} from '../element-base';
 import {FormGroup} from '@angular/forms';
 import {ContractFormControlService} from '../contract-form-control.service';
-import {Observable} from 'rxjs';
+import {forkJoin, Observable, of} from 'rxjs';
 import {ActivatedRoute, Router} from '@angular/router';
-import {map} from 'rxjs/operators';
+import {catchError, map} from 'rxjs/operators';
 import {ContractDialogComponent} from '../contract-dialog/contract-dialog.component';
 import {MatDialog} from '@angular/material';
+import {HttpErrorResponse} from '@angular/common/http';
+import {ErrorDialogComponent} from '../error-dialog/error-dialog.component';
+import {ContractService} from '../contract.service';
 
 
 @Component({
@@ -17,11 +24,13 @@ import {MatDialog} from '@angular/material';
   styleUrls: ['./contract-viewer.component.scss'],
   providers: [
     ElementService,
+    ContractService,
     ContractMgtService,
     ContractFormControlService,
   ]
 })
 export class ContractViewerComponent implements OnInit {
+  public errorMessage = {};
   private state$: Observable<object>;
   private message: any;
   public contractViewer: any = {};
@@ -33,6 +42,7 @@ export class ContractViewerComponent implements OnInit {
   public isContractChanged: boolean;
 
   constructor(
+      private contractService: ContractService,
       private contractMgtService: ContractMgtService,
       public elementService: ElementService,
       private cfcs: ContractFormControlService,
@@ -77,8 +87,10 @@ export class ContractViewerComponent implements OnInit {
     // (e.g. [value]="contractViewer[element.key]")
     this.contractMgtService.getSupervise(this.message.contractId).toPromise()
         .then(supervise => {
-          Object.assign(this.contractViewer, {projectSupervisor: supervise[0].supervisor});
-          this.form.controls.projectSupervisor.setValue(this.contractViewer.projectSupervisor);
+          if (supervise[0]) {
+            Object.assign(this.contractViewer, {projectSupervisor: supervise[0].supervisor});
+            this.form.controls.projectSupervisor.setValue(this.contractViewer.projectSupervisor);
+          }
           this.onFormChanges();
         });
     Object.assign(this.contractViewer, {
@@ -166,83 +178,203 @@ export class ContractViewerComponent implements OnInit {
    * 6. Opens the dialog
    */
   async onSubmit() {
-    let payLoad: any;
-    payLoad = {
-      year: this.form.value.year,
-      semester: this.form.value.semester,
-      duration: this.form.value.duration,
-    };
-    if (this.message.contractObj.special_topics) {
-      let specialTopics: any;
-      specialTopics = {
-        special_topics: {
-          title: this.form.value.title,
-          objectives: this.form.value.objectives,
-          description: this.form.value.description
-        },
+    if (confirm('Are you sure?')) {
+      let payLoad: any;
+      payLoad = {
+        year: this.form.value.year,
+        semester: this.form.value.semester,
+        duration: this.form.value.duration,
       };
-      Object.assign(payLoad, specialTopics);
-    } else {
-      let individualProject: any;
-      individualProject = {
-        individual_project: {
-          title: this.form.value.title,
-          objectives: this.form.value.objectives,
-          description: this.form.value.description
-        },
-      };
-      Object.assign(payLoad, individualProject);
-    }
-    await this.contractMgtService.updateContract(this.message.contractId, payLoad).toPromise();
-
-    await this.contractMgtService.updateSupervise(this.message.contractId, this.message.contractObj.supervise[0].id,
-        JSON.stringify({
-              supervisor: this.form.value.projectSupervisor,
-            }
-        )).toPromise();
-
-    const promiseAssessments = this.message.contractObj.assessment.map(assessment => {
-      if (assessment.template === this.form.controls.assessment1.value) {
-        this.contractMgtService.updateAssessment(this.message.contractId, assessment.id, JSON.stringify({
-          additional_description: this.form.value.assessment1Description,
-          due: this.form.value.assessment1Due,
-          weight: this.form.value.assessment1Mark,
-        })).toPromise();
-        if (assessment.assessment_examine[0]) {
-          this.contractMgtService.updateExamine(this.message.contractId, assessment.id, assessment.assessment_examine[0].id,
-              JSON.stringify({
-                examiner: this.form.value.assessment1Examiner,
-              })).toPromise();
-        }
-      } else if (assessment.template === this.form.controls.assessment2.value) {
-        this.contractMgtService.updateAssessment(this.message.contractId, assessment.id, JSON.stringify({
-          additional_description: this.form.value.assessment2Description,
-          due: this.form.value.assessment2Due,
-          weight: this.form.value.assessment2Mark,
-        })).toPromise();
-        if (assessment.assessment_examine[0]) {
-          this.contractMgtService.updateExamine(this.message.contractId, assessment.id, assessment.assessment_examine[0].id,
-              JSON.stringify({
-                examiner: this.form.value.assessment2Examiner,
-              })).toPromise();
-        }
-      } else if (assessment.template === this.form.controls.assessment3.value) {
-        this.contractMgtService.updateAssessment(this.message.contractId, assessment.id, JSON.stringify({
-          additional_description: this.form.value.assessment3Description,
-          due: this.form.value.assessment3Due,
-          weight: this.form.value.assessment3Mark,
-        })).toPromise();
-        if (assessment.assessment_examine[0]) {
-          this.contractMgtService.updateExamine(this.message.contractId, assessment.id, assessment.assessment_examine[0].id,
-              JSON.stringify({
-                examiner: this.form.value.assessment3Examiner,
-              })).toPromise();
-        }
+      if (this.message.contractObj.special_topics) {
+        let specialTopics: any;
+        specialTopics = {
+          special_topics: {
+            title: this.form.value.title,
+            objectives: this.form.value.objectives,
+            description: this.form.value.description
+          },
+        };
+        Object.assign(payLoad, specialTopics);
+      } else {
+        let individualProject: any;
+        individualProject = {
+          individual_project: {
+            title: this.form.value.title,
+            objectives: this.form.value.objectives,
+            description: this.form.value.description
+          },
+        };
+        Object.assign(payLoad, individualProject);
       }
-    });
-    await Promise.all(promiseAssessments).then(() => {
-      this.openSuccessDialog();
-    });
+      await this.contractMgtService.updateContract(this.message.contractId, payLoad).toPromise();
+      if (this.message.contractObj.supervise[0]) {
+        const updateSupervise = this.contractMgtService.updateSupervise(this.message.contractId, this.message.contractObj.supervise[0].id,
+            JSON.stringify({
+                  supervisor: this.form.value.projectSupervisor,
+                }
+            )).pipe(catchError(err => of(err)));
+        const requests = await forkJoin([updateSupervise]).toPromise();
+        requests.map(request => {
+          if (request instanceof HttpErrorResponse) {
+            Object.assign(this.errorMessage, request.error);
+          }
+        });
+      } else {
+        await this.contractService.addSupervise(this.message.contractId, JSON.stringify({
+          supervisor: this.form.value.projectSupervisor,
+        })).toPromise().catch((err: HttpErrorResponse) => {
+          if (Math.floor(err.status / 100) === 4) {
+            Object.assign(this.errorMessage, err.error);
+          }
+        });
+      }
+      const updateAssessments = async () => {
+        await this.asyncForEach(this.message.contractObj.assessment, async (assessment) => {
+          if (assessment.template === this.form.controls.assessment1.value) {
+            const update = {};
+            if (this.form.value.assessment1Due) {
+              Object.assign(update, {due: this.transformDue(new Date(this.form.value.assessment1Due)), });
+            }
+            Object.assign(update, {
+              additional_description: this.form.value.assessment1Description,
+              weight: this.form.value.assessment1Mark,
+            });
+            await this.contractMgtService.updateAssessment(this.message.contractId, assessment.id,
+                JSON.stringify(update)).toPromise().catch((err: HttpErrorResponse) => {
+              if (Math.floor(err.status / 100) === 4) {
+                Object.assign(this.errorMessage, err.error);
+              }
+            });
+            if (assessment.assessment_examine[0] && this.form.value.assessment1Examiner) {
+              await this.contractMgtService.updateExamine(
+                  this.message.contractId, assessment.id, assessment.assessment_examine[0].id,
+                  JSON.stringify({
+                    examiner: this.form.value.assessment1Examiner,
+                  })).toPromise().catch((err: HttpErrorResponse) => {
+                if (Math.floor(err.status / 100) === 4) {
+                  Object.assign(this.errorMessage, err.error);
+                }
+              });
+            } else if (!assessment.assessment_examine[0] && this.form.value.assessment1Examiner) {
+              await this.contractMgtService.addExamine(this.message.contractId, assessment.id, JSON.stringify({
+                examiner: this.form.value.assessment1Examiner,
+              })).toPromise().catch((err: HttpErrorResponse) => {
+                if (Math.floor(err.status / 100) === 4) {
+                  Object.assign(this.errorMessage, err.error);
+                }
+              });
+            } else if (assessment.assessment_examine[0] && !this.form.value.assessment1Examiner) {
+              await this.contractMgtService.deleteExamine(
+                  this.message.contractId, assessment.id, assessment.assessment_examine[0].id)
+                  .toPromise().catch((err: HttpErrorResponse) => {
+                    if (Math.floor(err.status / 100) === 4) {
+                      Object.assign(this.errorMessage, err.error);
+                    }
+                  });
+            }
+          }
+          if (assessment.template === this.form.controls.assessment2.value) {
+            const update = {};
+            if (this.form.value.assessment2Due) {
+              Object.assign(update, {due: this.transformDue(new Date(this.form.value.assessment2Due)), });
+            }
+            Object.assign(update, {
+              additional_description: this.form.value.assessment2Description,
+              weight: this.form.value.assessment2Mark,
+            });
+            await this.contractMgtService.updateAssessment(this.message.contractId, assessment.id,
+                JSON.stringify(update)).toPromise().catch((err: HttpErrorResponse) => {
+              if (Math.floor(err.status / 100) === 4) {
+                Object.assign(this.errorMessage, err.error);
+              }
+            });
+            if (assessment.assessment_examine[0] && this.form.value.assessment2Examiner) {
+              await this.contractMgtService.updateExamine(
+                  this.message.contractId, assessment.id, assessment.assessment_examine[0].id,
+                  JSON.stringify({
+                    examiner: this.form.value.assessment2Examiner,
+                  })).toPromise().catch((err: HttpErrorResponse) => {
+                if (Math.floor(err.status / 100) === 4) {
+                  Object.assign(this.errorMessage, err.error);
+                }
+              });
+            } else if (!assessment.assessment_examine[0] && this.form.value.assessment2Examiner) {
+              await this.contractMgtService.addExamine(this.message.contractId, assessment.id, JSON.stringify({
+                examiner: this.form.value.assessment2Examiner,
+              })).toPromise().catch((err: HttpErrorResponse) => {
+                if (Math.floor(err.status / 100) === 4) {
+                  Object.assign(this.errorMessage, err.error);
+                }
+              });
+            } else if (assessment.assessment_examine[0] && !this.form.value.assessment2Examiner) {
+              await this.contractMgtService.deleteExamine(
+                  this.message.contractId, assessment.id, assessment.assessment_examine[0].id)
+                  .toPromise().catch((err: HttpErrorResponse) => {
+                    if (Math.floor(err.status / 100) === 4) {
+                      Object.assign(this.errorMessage, err.error);
+                    }
+                  });
+            }
+          }
+          if (assessment.template === this.form.controls.assessment3.value) {
+            const update = {};
+            if (this.form.value.assessment3Due) {
+              Object.assign(update, {due: this.transformDue(new Date(this.form.value.assessment3Due)), });
+            }
+            Object.assign(update, {
+              additional_description: this.form.value.assessment3Description,
+              weight: this.form.value.assessment3Mark,
+            });
+            await this.contractMgtService.updateAssessment(this.message.contractId, assessment.id,
+                JSON.stringify(update)).toPromise().catch((err: HttpErrorResponse) => {
+              if (Math.floor(err.status / 100) === 4) {
+                Object.assign(this.errorMessage, err.error);
+              }
+            });
+            if (assessment.assessment_examine[0] && this.form.value.assessment3Examiner) {
+              await this.contractMgtService.updateExamine(
+                  this.message.contractId, assessment.id, assessment.assessment_examine[0].id,
+                  JSON.stringify({
+                    examiner: this.form.value.assessment3Examiner,
+                  })).toPromise().catch((err: HttpErrorResponse) => {
+                if (Math.floor(err.status / 100) === 4) {
+                  Object.assign(this.errorMessage, err.error);
+                }
+              });
+            } else if (!assessment.assessment_examine[0] && this.form.value.assessment3Examiner) {
+              await this.contractMgtService.addExamine(this.message.contractId, assessment.id, JSON.stringify({
+                examiner: this.form.value.assessment3Examiner,
+              })).toPromise().catch((err: HttpErrorResponse) => {
+                if (Math.floor(err.status / 100) === 4) {
+                  Object.assign(this.errorMessage, err.error);
+                }
+              });
+            } else if (assessment.assessment_examine[0] && !this.form.value.assessment3Examiner) {
+              await this.contractMgtService.deleteExamine(
+                  this.message.contractId, assessment.id, assessment.assessment_examine[0].id)
+                  .toPromise().catch((err: HttpErrorResponse) => {
+                    if (Math.floor(err.status / 100) === 4) {
+                      Object.assign(this.errorMessage, err.error);
+                    }
+                  });
+            }
+          }
+        });
+      };
+      updateAssessments().then(() => {
+        if (Object.keys(this.errorMessage).length) {
+          this.openFailDialog();
+        } else {
+          this.openSuccessDialog();
+        }
+      });
+    }
+  }
+
+  public async asyncForEach(array, callback) {
+    for (let index = 0; index < array.length; index++) {
+      await callback(array[index], index, array);
+    }
   }
 
   /**
@@ -318,6 +450,36 @@ export class ContractViewerComponent implements OnInit {
     dialogRef.afterClosed().subscribe(() => {
       this.router.navigate(['/submit']).then(() => {});
     });
+  }
+
+  /**
+   * Opens the dialog to notify the user's action has been failed
+   * and reloads the page
+   */
+  private openFailDialog() {
+    const dialogRef = this.dialog.open(ErrorDialogComponent, {
+      width: '400px',
+      data: this.errorMessage,
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.router.navigate(['/submit']).then(() => {});
+    });
+  }
+
+  public transformDue(due: any) {
+    let date: string;
+    let month: string;
+    let year: string;
+    date = due.getDate().toString();
+    month = (due.getMonth() + 1).toString();
+    year = due.getFullYear().toString();
+    date = date.length === 1 ?
+        '0' + date : date;
+    month = month.length === 1 ?
+        '0' + month : month;
+
+    return year + '-' + month + '-' + date;
   }
 
 }

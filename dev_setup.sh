@@ -1,4 +1,9 @@
 #!/bin/bash
+# Environment setup for development, only works for Debian-based system (Debian, Ubuntu, e.g.)
+# Require conda installation for python environment management.
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
 
 set -e  # exit on error
 
@@ -12,15 +17,17 @@ echo "| onment for the SRPMS project, do NOT use this for production. |"
 echo " --------------------------------------------------------------- "
 echo
 
-# TODO: is there any way we can include this in conda?
-echo "Installing dependencies for LDAP authentication backend ..."
-sudo apt-get install -y libsasl2-dev libldap2-dev
-
 echo "Checking conda installation..."
 if ! type conda > /dev/null; then
-    echo "Please install conda first, refer https://docs.conda.io/en/latest/miniconda.html"
+    echo "Please install conda and configure \"conda activate\" first, \
+          refer https://docs.conda.io/en/latest/miniconda.html"
     exit 1
 fi
+
+# TODO: is there any way we can include this in conda? because apt-get is only available for Debian
+echo "Installing dependencies for LDAP authentication backend ..."
+sudo apt-get install -y libsasl2-dev libldap2-dev build-essential libcairo2 libpango-1.0-0 \
+     libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
 
 echo "Creating development environment for SRPMS project ..."
 echo "Please specify the name for your new conda environment:"
@@ -44,10 +51,15 @@ echo "Activating new environment..."
 conda activate ${ENV_NAME}
 
 echo "Installing Django rest framework..."
-pip install djangorestframework
-pip install markdown       # Markdown support for the browsable API.
-pip install django-filter  # Filtering support
-pip install django-auth-ldap  # LDAP authentication support
+pip install djangorestframework==3.10.*
+pip install django-auth-ldap==2.0.*               # LDAP authentication support
+pip install django-filter==2.2.*                  # Filtering support for fields
+pip install markdown==3.1.*                       # Markdown support for the browsable API.
+pip install djangorestframework_simplejwt==4.3.*  # API authentication support
+pip install django-cors-headers==3.1.*            # Prevent CORS attach
+pip install drf-extensions==0.5.*                 # Support nested API url
+pip install WeasyPrint==50.*                      # Support contract PDF export
+pip install coverage==4.5.*                       # Optional, for showing test coverage
 
 echo "Setting environment specific variables..."
 cd ${CONDA_PREFIX}

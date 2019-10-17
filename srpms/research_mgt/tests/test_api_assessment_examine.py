@@ -45,13 +45,12 @@ class IndividualProject(utils.SrpmsTest):
         self.assertTrue(assessment_report_id)
         self.assertTrue(assessment_artifact_id)
 
-        # Assign supervisor for the contract, note that here we deliberately assign a user
-        # with no 'can_supervise' permission.
+        # Assign supervisor for the contract
         req, resp = data.gen_supervise_req_resp(self.contract['id'],
-                                                self.supervisor_non_formal.id, True)
+                                                self.supervisor_formal.id, True)
         response = self.superuser.post(utils.get_supervise_url(self.contract['id']), req)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.supervise_id = response.data['id']
+        self.supervise_formal_id = response.data['id']
 
         # Let the user submit the contract, otherwise editing examiner is not allowed
         response = self.user_01.put(utils.get_contract_url(self.contract['id'], submit=True),
@@ -60,11 +59,11 @@ class IndividualProject(utils.SrpmsTest):
 
         self.examine_list_url = utils.get_examine_url(self.contract['id'], assessment_report_id)
 
-        # Pick assessment for test edit and delete
+        # Pick assessment for testing edit and delete
         req, resp = data.gen_examine_req_resp(examiner_id=self.user_04.id)
-        response = self.supervisor_non_formal.post(utils.get_examine_url(self.contract['id'],
-                                                                         assessment_artifact_id),
-                                                   req)
+        response = self.supervisor_formal.post(utils.get_examine_url(self.contract['id'],
+                                                                     assessment_artifact_id),
+                                               req)
         examine_id = response.data['id']
         self.examine_detail_url = utils.get_examine_url(self.contract['id'], assessment_artifact_id,
                                                         examine_id)
@@ -73,14 +72,14 @@ class IndividualProject(utils.SrpmsTest):
         req, resp = data.gen_examine_req_resp(examiner_id=self.user_04.id)
 
         # Supervisor should be able to assign examiner
-        response = self.supervisor_non_formal.post(self.examine_list_url, req)
+        response = self.supervisor_formal.post(self.examine_list_url, req)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response.data.pop('id')
         assert_examine_response(self, response, resp)
 
         # Individual project should not allow more than one examiner
         req, _ = data.gen_examine_req_resp(examiner_id=self.user_03.id)
-        response = self.supervisor_non_formal.post(self.examine_list_url, req)
+        response = self.supervisor_formal.post(self.examine_list_url, req)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_other_users_create_examiner(self):
@@ -91,7 +90,7 @@ class IndividualProject(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Other people should not be allowed as well
-        response = self.supervisor_formal.post(self.examine_list_url, req)
+        response = self.supervisor_non_formal.post(self.examine_list_url, req)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_convener_create_examiner(self):
@@ -125,7 +124,7 @@ class IndividualProject(utils.SrpmsTest):
         req, resp = data.gen_examine_req_resp(examiner_id=self.user_03.id)
 
         # Supervisor should be able to edit examiner
-        response = self.supervisor_non_formal.put(self.examine_detail_url, req)
+        response = self.supervisor_formal.put(self.examine_detail_url, req)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response.data.pop('id')
         assert_examine_response(self, response, resp)
@@ -138,7 +137,7 @@ class IndividualProject(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # 'can_supervise' but not supervisor not allowed
-        response = self.supervisor_formal.put(self.examine_detail_url, req)
+        response = self.supervisor_non_formal.put(self.examine_detail_url, req)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_convener_PUT_examiner(self):
@@ -163,7 +162,7 @@ class IndividualProject(utils.SrpmsTest):
         req, resp = data.gen_examine_req_resp(examiner_id=self.user_03.id)
 
         # Supervisor should be able to edit examiner
-        response = self.supervisor_non_formal.patch(self.examine_detail_url, req)
+        response = self.supervisor_formal.patch(self.examine_detail_url, req)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response.data.pop('id')
         assert_examine_response(self, response, resp)
@@ -176,7 +175,7 @@ class IndividualProject(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # 'can_supervise' but not supervisor not allowed
-        response = self.supervisor_formal.patch(self.examine_detail_url, req)
+        response = self.supervisor_non_formal.patch(self.examine_detail_url, req)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_convener_PATCH_examiner(self):
@@ -199,9 +198,9 @@ class IndividualProject(utils.SrpmsTest):
 
     def test_supervisor_delete_examiner(self):
         # Supervisor should be able to delete examiner
-        response = self.supervisor_non_formal.delete(self.examine_detail_url)
+        response = self.supervisor_formal.delete(self.examine_detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        response = self.supervisor_non_formal.get(self.examine_detail_url)
+        response = self.supervisor_formal.get(self.examine_detail_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_other_users_delete_examiner(self):
@@ -214,7 +213,7 @@ class IndividualProject(utils.SrpmsTest):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # 'can_supervise' but not supervisor not allowed
-        response = self.supervisor_formal.delete(self.examine_detail_url)
+        response = self.supervisor_non_formal.delete(self.examine_detail_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_convener_delete_examiner(self):
@@ -229,10 +228,10 @@ class IndividualProject(utils.SrpmsTest):
 
     def test_assign_examiner_for_non_submitted_contract(self):
         # Disapprove to reset the submit status
-        response = self.supervisor_non_formal.put(utils.get_supervise_url(self.contract['id'],
-                                                                          self.supervise_id,
-                                                                          approve=True),
-                                                  data.get_approve_data(False))
+        response = self.supervisor_formal.put(utils.get_supervise_url(self.contract['id'],
+                                                                      self.supervise_formal_id,
+                                                                      approve=True),
+                                              data.get_approve_data(False))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         # Try to modify examiner, should failed
@@ -242,10 +241,10 @@ class IndividualProject(utils.SrpmsTest):
 
     def test_assign_examiner_after_supervisor_approve(self):
         # Disapprove to reset the submit status
-        response = self.supervisor_non_formal.put(utils.get_supervise_url(self.contract['id'],
-                                                                          self.supervise_id,
-                                                                          approve=True),
-                                                  data.get_approve_data(True))
+        response = self.supervisor_formal.put(utils.get_supervise_url(self.contract['id'],
+                                                                      self.supervise_formal_id,
+                                                                      approve=True),
+                                              data.get_approve_data(True))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
 
 
@@ -272,13 +271,12 @@ class SpecialTopic(IndividualProject):
         response = self.user_01.post(assessment_list_url, req)
         assessment_02_id = response.data['id']
 
-        # Assign supervisor for the contract, note that here we deliberately assign a user
-        # with no 'can_supervise' permission.
+        # Assign formal supervisor for the contract
         req, resp = data.gen_supervise_req_resp(self.contract['id'],
-                                                self.supervisor_non_formal.id, True)
+                                                self.supervisor_formal.id, True)
         response = self.superuser.post(utils.get_supervise_url(self.contract['id']), req)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.supervise_id = response.data['id']
+        self.supervise_formal_id = response.data['id']
 
         # Let the user submit the contract, otherwise editing examiner is not allowed
         response = self.user_01.put(utils.get_contract_url(self.contract['id'], submit=True),
@@ -289,8 +287,8 @@ class SpecialTopic(IndividualProject):
 
         # Pick assessment for test edit and delete
         req, resp = data.gen_examine_req_resp(examiner_id=self.user_04.id)
-        response = self.supervisor_non_formal.post(utils.get_examine_url(self.contract['id'],
-                                                                         assessment_02_id), req)
+        response = self.supervisor_formal.post(utils.get_examine_url(self.contract['id'],
+                                                                     assessment_02_id), req)
         examine_id = response.data['id']
         self.examine_detail_url = utils.get_examine_url(self.contract['id'], assessment_02_id,
                                                         examine_id)

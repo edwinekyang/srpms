@@ -1,4 +1,9 @@
-# start from an official image
+# Build docker image for Django server
+# TODO: WeasyPrint take significant amount of space for this image, find some way to optimize size
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
+
 FROM python:3.7-alpine
 
 ARG DEBUG

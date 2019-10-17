@@ -34,7 +34,7 @@ class ApiUrls(object):
 
 
 def get_contract_url(contract_id: int = None, submit: bool = False, approve: bool = False,
-                     print: bool = False) -> str:
+                     print: bool = False, export: bool = False) -> str:
     """
     Return contract list url, or contract detail url, depending on whether the contract_id
     is specified. Note that 'submit' and 'approve' are only valid when contract_id is given.
@@ -43,10 +43,15 @@ def get_contract_url(contract_id: int = None, submit: bool = False, approve: boo
         contract_id: for generating contract detail url
         submit: for generating submission url given a contract
         approve: for generating approval url given a contract
+        print: for generating PDF export url given a contract
+        export: for generating csv export url given a contract
     """
 
     if not contract_id:
-        return ApiUrls.contract
+        if export:
+            return '{}export_csv/'.format(ApiUrls.contract)
+        else:
+            return ApiUrls.contract
     else:
         if submit:
             return '{}{}/submit/'.format(ApiUrls.contract, contract_id)
@@ -60,13 +65,13 @@ def get_contract_url(contract_id: int = None, submit: bool = False, approve: boo
 
 def get_supervise_url(contract_id: int, supervise_id: int = None, approve: bool = False) -> str:
     """
-    Return supervise list url, or supervise detail url, depending on whether the supervise_id
-    is specified. Note that 'approve' is only valid when supervise_id is given.
+    Return supervise list url, or supervise detail url, depending on whether the supervise_formal_id
+    is specified. Note that 'approve' is only valid when supervise_formal_id is given.
 
     Args:
         contract_id: for specifying parent url
         supervise_id: for generating supervise detail url
-        approve: for generating approval url given a supervise_id
+        approve: for generating approval url given a supervise_formal_id
     """
 
     if not supervise_id:

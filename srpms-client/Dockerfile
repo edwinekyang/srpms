@@ -1,3 +1,9 @@
+# Angular container, this container would serve the angular front-end on development mode,
+# run tests on test mode, or compile the front-end code in deployment mode.
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
+
 FROM node:10-alpine
 
 ARG DEBUG

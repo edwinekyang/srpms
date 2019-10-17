@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
-import { BehaviorSubject, Observable, of, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { API_URL } from './api-url';
+import { MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material';
+import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 
 export const ACC_SIG = {
   LOGIN: 'login',
@@ -22,8 +25,14 @@ export interface SrpmsUser {
   first_name: string;
   last_name: string;
   email: string;
-  expire_date: string;
+  display_name: string;
   uni_id: string;
+  is_approved_supervisor: boolean;
+  is_course_convener: boolean;
+  own: number[];
+  convene: number[];
+  supervise: number[];
+  examine: number[];
 }
 
 /* tslint:enable:variable-name */
@@ -36,16 +45,21 @@ export interface SrpmsUser {
  * checking, and make the return value meaning less. As such, please use the `getLocalUser`
  * function for this purpose. In the case that token expire, the back-end would not authorize
  * anyway, and the auth-interceptor service would log the current user out.
+ *
+ * @author Dajie Yang
  */
 @Injectable({
   providedIn: 'root'
 })
 export class AccountsService {
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private dialog: MatDialog) {
   }
 
-  private API_URL = '/api/';
+  // Prevent open multiple login dialog
+  private loginDialogRef: MatDialogRef<LoginDialogComponent>;
+
+  private API_URL = API_URL;
 
   // BehaviorSubject can return last time value for new subscribers, normal subject cannot
   private storageSub = new BehaviorSubject<string>(null);
@@ -62,13 +76,15 @@ export class AccountsService {
 
   /**
    * Decode the token to read the username and expiration timestamp
+   *
+   * @param token: an authentication token return by server
    */
-  static decodeToken(token: string): [number, Date] {
+  static decodeToken(token: string): [ number, Date ] {
     const tokenParts = token.split(/\./);
     const tokenDecoded = JSON.parse(window.atob(tokenParts[1]));
     const tokenExpireDate = new Date(tokenDecoded.exp * 1000);
     const userID = tokenDecoded.user_id;
-    return [userID, new Date(tokenExpireDate)];
+    return [ userID, new Date(tokenExpireDate) ];
   }
 
   private static log(message: string) {
@@ -111,7 +127,7 @@ export class AccountsService {
    * Update local storage to store authentication information
    */
   private updateData(token: JWToken): void {
-    const [userID, ] = AccountsService.decodeToken(token.access);
+    const [ userID, ] = AccountsService.decodeToken(token.access);
 
     if (token.access) {
       localStorage.setItem('srpmsAccessToken', JSON.stringify(token.access));
@@ -140,7 +156,7 @@ export class AccountsService {
     const refreshToken: string = JSON.parse(localStorage.getItem('srpmsRefreshToken'));
 
     if (refreshToken) {
-      const [, refreshExpire] = AccountsService.decodeToken(refreshToken);
+      const [ , refreshExpire ] = AccountsService.decodeToken(refreshToken);
       if (new Date() < refreshExpire) {
         return this.http.post<JWToken>(this.API_URL + 'accounts/token/refresh/', { refresh: refreshToken }, this.httpOptions)
           .pipe(map(token => {
@@ -182,9 +198,46 @@ export class AccountsService {
       );
   }
 
+  /**
+   * Open login dialog, control the instance of login dialog to be one.
+   */
+  openLoginDialog(dialogConfig?: MatDialogConfig): void {
+    if (!this.loginDialogRef) {
+      this.loginDialogRef = this.dialog.open(LoginDialogComponent, dialogConfig);
+      this.loginDialogRef.afterClosed().subscribe(() => this.loginDialogRef = null);
+    }
+  }
+
+  /**
+   * Return a single user object given its id.
+   */
   getUser(id: number): Observable<SrpmsUser> {
-    const url = `${this.API_URL}accounts/user/${id}/`;
+    const url = `${this.API_URL}research_mgt/users/${id}/`;
     return this.http.get<SrpmsUser>(url, this.httpOptions)
       .pipe(catchError(this.handleError<SrpmsUser>(`updateDate id=${id}`)));
+  }
+
+  /**
+   * Return users that can act as formal supervisor.
+   */
+  getFormalSupervisors(): Observable<SrpmsUser[]> {
+    const url = `${this.API_URL}research_mgt/users/?is_approved_supervisor=true`;
+    return this.http.get<SrpmsUser[]>(url, this.httpOptions);
+  }
+
+  /**
+   * Return users that can act as course convener.
+   */
+  getCourseConveners(): Observable<SrpmsUser[]> {
+    const url = `${this.API_URL}research_mgt/users/?is_course_convener=true`;
+    return this.http.get<SrpmsUser[]>(url, this.httpOptions);
+  }
+
+  /**
+   * Return all users.
+   */
+  getAllUsers() {
+    const url = `${this.API_URL}research_mgt/users/`;
+    return this.http.get<SrpmsUser[]>(url, this.httpOptions);
   }
 }

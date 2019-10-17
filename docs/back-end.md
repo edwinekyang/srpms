@@ -1,3 +1,83 @@
+# File Structure
+
+```
+srpms/
+├── accounts                 # Account app
+│   ├── migrations/              # Database migration for this app
+│   ├── __init__.py
+│   ├── admin.py                 # Django admin page configuration
+│   ├── apps.py                  # App config and initialization
+│   ├── authentication.py        # ANU LDAP Authentication backend
+│   ├── models.py                # Database schema for this app
+│   ├── serializers.py           # Data serializers for encode/decode JSON for API
+│   ├── tests.py                 # Tests for this app
+│   ├── urls.py                  # How this app locate itself in url
+│   └── views.py                 # Views handle requests and generate response
+├── research_mgt             # Research management system app
+│   ├── migrations/              # Database migration for this app
+│   ├── static/                  # Static resources for generate contract PDF
+│   │   └── research_mgt/
+│   ├── templates/               # HTML templates for generate contract PDF
+│   │   └── research_mgt/
+│   ├── tests/                   # Tests for this app
+│   ├── __init__.py
+│   ├── admin.py                 # Django admin page configuration
+│   ├── apps.py                  # App config and initialization
+│   ├── filters.py               # Filters that enable url query, e.g. '?key=value'
+│   ├── mixins.py                # Custom mixins to support nested url
+│   ├── models.py                # Database schema for this app
+│   ├── permissions.py           # Permission control for request sender
+│   ├── print.py                 # Print contract to PDF
+│   ├── serializers.py           # Data serializers for encode/decode JSON for API
+│   ├── serializer_utils.py      # Custom serializer field
+│   ├── signals.py               # Define signals, and send notifications on signal
+│   ├── urls.py                  # How this app locate itself in url
+│   └── views.py                 # Views handle requests and generate response
+├── srpms                    # System configuration
+│   ├── __init__.py
+│   ├── settings.py          # System settings
+│   ├── urls.py              # Root url
+│   ├── utils.py             # Custom exception handler for server error
+│   └── wsgi.py
+├── Dockerfile               # Dockerfile for building the django image
+├── manage.py
+└── start.sh                 # Start up script (only for docker use)
+```
+
+# Apps in Django Project
+
+A Django project consists of one or more app, each app represents a distinct set of functionalities you want to deliver to user.
+
+In this project, our main goal is to provide the research contract management system, and all functionalities regarding this goal would provided through the `research_mgt` app.
+
+We also have a separate app `accounts` providing user management and authentication functionalities. This set of functionalities is separated from `research_mgt` for the consideration that user management and authentication is not app specific, and might be used for other apps (in the case that we have other apps in the future).
+
+## General Structure of a Django App
+
+The typical structure of a Django app is as follow:
+
+```
+app-name/
+├── migrations/
+├── __init__.py
+├── admin.py
+├── apps.py
+├── authentication.py
+├── models.py
+├── serializers.py
+├── tests.py
+├── urls.py
+└── views.py
+```
+
+## Django REST framework
+
+# Authentication
+
+## ANU LDAP Authentication
+
+
+
 # Models, serializers and their validation
 
 - Validation for business logic and database model should be separated clearly, business logic should be validated by serializers, and database model should not touch these

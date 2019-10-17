@@ -15,6 +15,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -26,10 +33,11 @@ import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 import { AuthInterceptor } from './auth-interceptor.service';
 import { ContractFormComponent } from './contract-form/contract-form.component';
 import { ContractFormElementComponent } from './contract-form-element/contract-form-element.component';
-import {MatCheckboxModule, MatExpansionModule, MatRadioModule, MatSelectModule} from '@angular/material';
 import { ContractMgtComponent } from './contract-mgt/contract-mgt.component';
 import { ContractViewerComponent } from './contract-viewer/contract-viewer.component';
 import { ContractDialogComponent } from './contract-dialog/contract-dialog.component';
+import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
+import { ContractMgtDialogComponent } from './contract-mgt-dialog/contract-mgt-dialog.component';
 
 @NgModule({
   declarations: [
@@ -44,33 +52,40 @@ import { ContractDialogComponent } from './contract-dialog/contract-dialog.compo
     ContractMgtComponent,
     ContractViewerComponent,
     ContractDialogComponent,
+    ErrorDialogComponent,
+    ContractMgtDialogComponent,
   ],
-    imports: [
-        BrowserModule,
-        BrowserAnimationsModule,
-        ReactiveFormsModule,
-        AppRoutingModule,
-        FormsModule,
-        HttpClientModule,
-        MatGridListModule,
-        MatSidenavModule,
-        MatButtonModule,
-        MatIconModule,
-        MatListModule,
-        MatCardModule,
-        MatDialogModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatMenuModule,
-        MatProgressBarModule,
-        MatSelectModule,
-        MatCheckboxModule,
-        MatRadioModule,
-        MatExpansionModule,
-    ],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    ReactiveFormsModule,
+    AppRoutingModule,
+    FormsModule,
+    HttpClientModule,
+    MatGridListModule,
+    MatSidenavModule,
+    MatButtonModule,
+    MatIconModule,
+    MatListModule,
+    MatCardModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatMenuModule,
+    MatProgressBarModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatRadioModule,
+    MatExpansionModule,
+    MatAutocompleteModule,
+    MatNativeDateModule,
+    MatDatepickerModule,
+  ],
   entryComponents: [
     LoginDialogComponent,
     ContractDialogComponent,
+    ErrorDialogComponent,
+    ContractMgtDialogComponent,
   ],
   providers: [
     HttpClientModule,
@@ -78,9 +93,11 @@ import { ContractDialogComponent } from './contract-dialog/contract-dialog.compo
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
       multi: true
-    }
+    }, {
+      provide: MAT_DATE_LOCALE, useValue: 'en-au'
+    },
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [ AppComponent ]
 })
 export class AppModule {
 }

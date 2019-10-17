@@ -1,3 +1,7 @@
+/**
+ * @fileoverview This file draws the side navigation bar based on the user's related contracts.
+ * @author euiyum.yang@anu.edu.au (Euikyum (Edwin) Yang)
+ */
 import { Component, OnInit } from '@angular/core';
 import {ContractMgtService} from '../contract-mgt.service';
 
@@ -18,17 +22,19 @@ export class SidenavComponent implements OnInit {
   constructor(
       public contractMgtService: ContractMgtService,
   ) {
-    this.userID = JSON.parse(localStorage.getItem('srpmsUser')).id;
-    contractMgtService.getRelatedContracts(this.userID).subscribe(user => {
-      // @ts-ignore
-      this.haveConvene = user.convene.length > 0;
-      // @ts-ignore
-      this.haveOwn = user.own.length > 0;
-      // @ts-ignore
-      this.haveSupervise = user.supervise.length > 0;
-      // @ts-ignore
-      this.haveExamine = user.examine.length > 0;
-    });
+    if (JSON.parse(localStorage.getItem('srpmsUser'))) {
+      this.userID = JSON.parse(localStorage.getItem('srpmsUser')).id;
+      contractMgtService.getRelatedContracts(this.userID).subscribe(user => {
+        // @ts-ignore
+        this.haveConvene = user.convene.length > 0;
+        // @ts-ignore
+        this.haveOwn = user.own.length > 0;
+        // @ts-ignore
+        this.haveSupervise = user.supervise.length > 0;
+        // @ts-ignore
+        this.haveExamine = user.examine.length > 0;
+      });
+    }
   }
 
   ngOnInit() {

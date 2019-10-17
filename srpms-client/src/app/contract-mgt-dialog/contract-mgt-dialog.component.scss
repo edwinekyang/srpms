@@ -1,0 +1,8 @@
+.nomination-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.nomination-form > * {
+  width: 100%;
+}

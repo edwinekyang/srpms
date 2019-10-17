@@ -1,0 +1,71 @@
+<h1 mat-dialog-title>
+    {{data.action === 'nominateExaminer' ? 'Examiner nomination' :
+    data.action === 'disapproveSupervise' ? 'Supervise disapproval' :
+        data.action === 'disapproveConvene' ? 'Convener disapproval' :
+        data.action === 'rejectExamine' ? 'Examine rejection' :
+            data.action === 'nominateNonformalSupervisor'? 'Non-formal supervisor nomination' : ''}}
+</h1>
+<div mat-dialog-content *ngIf="this.route === '/supervise' && data.action === 'nominateExaminer' ||
+    (this.route === '/convene' && data.status === 'Submitted' && data.action === 'nominateExaminer')">
+    <form (ngSubmit)="nominateExaminer(data)" [formGroup]="examinerForm">
+        <div *ngFor="let assessment of data.assessment">
+            <div class="nomination-form" *ngIf="!assessment['examiner']">
+                <mat-form-field appearance="standard">
+                    <mat-label>{{assessment['assessmentName'].toString().toLocaleUpperCase()}} Examiner's Name</mat-label>
+                    <input matInput required formControlName="examiner{{assessment['template']}}">
+                </mat-form-field>
+            </div>
+            <div class="nomination-form" *ngIf="assessment['examiner'] && data.status === 'Nominated'">
+                <mat-form-field appearance="standard">
+                    <mat-label>{{assessment['assessmentName'].toString().toLocaleUpperCase()}} Examiner's Name</mat-label>
+                    <input matInput required formControlName="examiner{{assessment['template']}}">
+                </mat-form-field>
+            </div>
+        </div>
+        <div class="nomination-form">
+            <button mat-raised-button color="primary" type="submit" [disabled]="!examinerFormValid">
+                NOMINATE EXAMINER</button>
+        </div>
+    </form>
+</div>
+<div mat-dialog-content *ngIf="this.route === '/supervise' && data.action === 'nominateNonformalSupervisor'">
+    <form (ngSubmit)="nominateNonformalSupervisor(data)" [formGroup]="nfSupervisorForm">
+        <div class="nomination-form">
+            <mat-form-field appearance="standard">
+                <mat-label>Non-formal Supervisor's Name</mat-label>
+                <input matInput required formControlName="nfSupervisor">
+            </mat-form-field>
+        </div>
+        <div class="nomination-form">
+            <button mat-raised-button color="primary" type="submit" [disabled]="!nfSupervisorFormValid">
+                NOMINATE NON-FORMAL SUPERVISOR</button>
+        </div>
+    </form>
+</div>
+<div class="nomination-form" mat-dialog-content *ngIf="
+(this.route === '/supervise' || this.route === '/convene') && data.action === 'disapproveSupervise'">
+    <mat-form-field appearance="standard">
+        <input #message matInput placeholder="Disapproval message(optional)">
+        <mat-hint align="end">Student will see this message.</mat-hint>
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="disapproveSupervise(data, message.value)">DISAPPROVE</button>
+</div>
+<div class="nomination-form" mat-dialog-content
+     *ngIf="(this.route === '/examine' || this.route === '/convene') && data.action === 'rejectExamine'">
+    <mat-form-field appearance="standard">
+        <input #message matInput placeholder="Reject message(optional)">
+        <mat-hint align="end">Supervisor will see this message.</mat-hint>
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="rejectExamine(data, message.value)">REJECT</button>
+</div>
+<div class="nomination-form" mat-dialog-content *ngIf="
+this.route === '/convene' && data.action === 'disapproveConvene'">
+    <mat-form-field appearance="standard">
+        <input #message matInput placeholder="Disapproval message(optional)">
+        <mat-hint align="end">Student will see this message.</mat-hint>
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="disapproveConvene(data, message.value)">DISAPPROVE</button>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="onClick()">CLOSE</button>
+</div>

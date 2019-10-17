@@ -1,3 +1,8 @@
+# CI configuration, refer to https://docs.gitlab.com/ee/ci/yaml/README.html for syntax
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
+
 stages:
   - build
   - test
@@ -63,7 +68,7 @@ test-back-end:
     - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate  # Test migration
     - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate accounts zero
     - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' manage.py migrate
-    - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' --omit='*/tests*,srpms/*' manage.py test  # NOTE: Coverage is inaccurate when run in parallel
+    - $COMPOSE_TEST exec -T django-gunicorn coverage run --source='.' --omit='*/tests*,srpms/*' manage.py test --noinput  # NOTE: Coverage is inaccurate when run in parallel
     - $COMPOSE_TEST exec -T django-gunicorn coverage report
 
 clean:

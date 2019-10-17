@@ -25,7 +25,7 @@ describe('LoginDialogComponent', () => {
         { provide: MatDialogRef, useValue: {} },
         { provide: MAT_DIALOG_DATA, useValue: {} }
       ],
-      declarations: [LoginDialogComponent]
+      declarations: [ LoginDialogComponent ]
     })
       .compileComponents();
 

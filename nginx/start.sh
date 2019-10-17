@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Custom behavior on Nginx startup, i.e. configure self-signed certificate if certificate no found
+#
+# Author: Dajie Yang (u6513788)
+# Email: dajie.yang@anu.edu.au
 
 pid=1
 

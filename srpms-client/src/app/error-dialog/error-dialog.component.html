@@ -1,0 +1,9 @@
+<h1 mat-dialog-title>Your contract has following error.</h1>
+<div mat-dialog-content>
+<div *ngFor="let errorTitle of this.errorTitles">
+    <p>{{errorTitle}}: {{this.data[errorTitle]}}</p>
+</div>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="onClick()">OK</button>
+</div>
