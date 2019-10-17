@@ -250,8 +250,8 @@ SIMPLE_JWT = {
 }
 
 AUTHENTICATION_BACKENDS = [
+    'accounts.authentication.ANULDAPBackend',
     'django.contrib.auth.backends.ModelBackend',  # Django default
-    'accounts.authentication.ANULDAPBackend'
 ]
 
 # LDAP related settings
