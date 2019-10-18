@@ -14,7 +14,6 @@ __email__ = "dajie.yang@anu.edu.au"
 
 from typing import Tuple
 from django.db import transaction
-from django.db.models.query import Q
 from rest_framework import serializers
 
 from accounts.models import SrpmsUser
@@ -61,9 +60,8 @@ class UserContractSerializer(serializers.ModelSerializer):
         Args:
             obj: the user that is being serialized currently
         """
-        return tuple(Contract.objects.filter(
-                Q(submit_date__isnull=False) | Q(was_submitted=True),
-                supervise__supervisor=obj)
+        return tuple(Contract.objects.filter(submit_date__isnull=False,
+                                             supervise__supervisor=obj)
                      .values_list('pk', flat=True).distinct())
 
     # noinspection PyMethodMayBeStatic
@@ -75,8 +73,8 @@ class UserContractSerializer(serializers.ModelSerializer):
             obj: the user that is being serialized currently
         """
         return tuple(Contract.objects.filter(
-                Q(supervise__supervisor_approval_date__isnull=False) | Q(was_submitted=True),
-                assessment_examine__examine__examiner=obj)
+                assessment_examine__examine__examiner=obj,
+                supervise__supervisor_approval_date__isnull=False)
                      .values_list('pk', flat=True).distinct())
 
     # noinspection PyMethodMayBeStatic
@@ -91,7 +89,9 @@ class UserContractSerializer(serializers.ModelSerializer):
             return tuple(Contract.objects.all().values_list('pk', flat=True))
         elif obj.has_perm('research_mgt.can_convene'):
             return tuple(Contract.objects.filter(
-                    Q(submit_date__isnull=False) | Q(was_submitted=True))
+                    submit_date__isnull=False,
+                    supervise__supervisor_approval_date__isnull=False,
+                    assessment_examine__examiner_approval_date__isnull=False)
                          .values_list('pk', flat=True).distinct())
         else:
             return tuple()
