@@ -100,6 +100,15 @@ class ContractViewSet(ModelViewSet):
     Please note that the API current have two nested serializer, 'individual_project' and
     'special_topic', and only one of them is allowed, the other one should be removed or
     set to null in JSON data for POST, PUT, or PATCH methods.
+
+    ----
+
+    The ContractViewSet currently provide the following additional actions:
+
+    - `contracts/export_csv/` would return a csv file containing all current finalized contract
+    - `contracts/<id>/submit/` provide the contract submit/un-submit functionality
+    - `contracts/<id>/approve/` provide the contract approve/disapprove functionality
+    - `contracts/<id>/print/` would return a PDF contract (only if the contract finalized)
     """
     serializer_class = ContractSerializer
     permission_classes = default_perms + [AllowSafeMethods | AllowPOST | IsSuperuser |
@@ -283,6 +292,13 @@ class AssessmentExamineViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModel
     Also have approval action for examiner to approve assessments.
 
     Note that this view would be nested inside AssessmentViewSet.
+
+    ----
+
+    The AssessmentExamineViewSet currently provide the following additional actions:
+
+    - `contracts/<contract_id>/assessments/<assessment_id>/examine/<examine_id>/approve/` provides
+      the examiner approve/disapprove functionality
     """
 
     queryset = AssessmentExamine.objects.all()
@@ -409,6 +425,13 @@ class SuperviseViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
     A view the allow users to Create, Retrieve, Update, Delete contract's assessments.
 
     Note that this view would be nested inside ContractViewSet.
+
+    ----
+
+    The SuperviseViewSet currently provide the following additional actions:
+
+    - `contracts/<contract_id>/supervise/<supervise_id>/approve/` provides the supervisor
+      approve/disapprove functionality
     """
     queryset = Supervise.objects.all()
     serializer_class = SuperviseSerializer
