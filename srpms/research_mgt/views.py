@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from django.db import transaction
 from django.db.models import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth.models import Group
 from rest_framework.filters import SearchFilter
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.mixins import (CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
@@ -61,6 +62,13 @@ class UserViewSet(ReadOnlyModelViewSet):
     """
     Provides read-only user information, as well as the contract they
     involves (own, supervise, examine, convene).
+
+    ----
+
+    The UserViewSet currently provide the following additional actions:
+
+    - `users/<id>/set_formal_supervisor/` can set this user to be a approved supervisor
+    - `users/<id>/set_course_convener/` can set this user to be a course convener
     """
 
     queryset = SrpmsUser.objects.all()
@@ -70,6 +78,44 @@ class UserViewSet(ReadOnlyModelViewSet):
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['username', 'first_name', 'last_name', 'uni_id']
     filterset_class = UserFilter
+
+    # noinspection PyUnusedLocal
+    @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=SubmitSerializer,
+            permission_classes=default_perms + [IsSuperuser | IsConvener, ])
+    def set_formal_supervisor(self, request, pk=None) -> HttpResponse:
+        """Give the user formal supervisor permission"""
+        serializer: SubmitSerializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            user: SrpmsUser = self.get_object()
+
+            if serializer.validated_data['submit']:
+                user.groups.add(Group.objects.get(name='approved_supervisors'))
+            else:
+                user.groups.remove(Group.objects.get(name='approved_supervisors'))
+
+            return Response(status=HTTP_200_OK)
+        else:
+            raise ValidationError(serializer.errors)
+
+    # noinspection PyUnusedLocal
+    @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=SubmitSerializer,
+            permission_classes=default_perms + [IsSuperuser | IsConvener, ])
+    def set_course_convener(self, request, pk=None) -> HttpResponse:
+        """Give the user convener permission"""
+        serializer: SubmitSerializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            user: SrpmsUser = self.get_object()
+
+            if serializer.validated_data['submit']:
+                user.groups.add(Group.objects.get(name='course_convener'))
+            else:
+                user.groups.remove(Group.objects.get(name='course_convener'))
+
+            return Response(status=HTTP_200_OK)
+        else:
+            raise ValidationError(serializer.errors)
 
 
 class CourseViewSet(ModelViewSet):

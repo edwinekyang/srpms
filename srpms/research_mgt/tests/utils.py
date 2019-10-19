@@ -33,6 +33,18 @@ class ApiUrls(object):
     all = [mgt_user, assess_temp, course, contract]
 
 
+def get_user_url(user_id: int = None, supervisor: bool = False, convener: bool = False):
+    if user_id:
+        if supervisor:
+            return '{}{}/set_formal_supervisor/'.format(ApiUrls.mgt_user, user_id)
+        elif convener:
+            return '{}{}/set_course_convener/'.format(ApiUrls.mgt_user, user_id)
+        else:
+            return '{}{}/'.format(ApiUrls.mgt_user, user_id)
+    else:
+        return ApiUrls.mgt_user
+
+
 def get_contract_url(contract_id: int = None, submit: bool = False, approve: bool = False,
                      print: bool = False, export: bool = False) -> str:
     """

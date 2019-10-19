@@ -66,3 +66,23 @@ class APITests(utils.SrpmsTest):
         response = self.user_01.get(
                 '{}?is_course_convener=false'.format(utils.ApiUrls.mgt_user))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_set_permission(self):
+        """Test permission setting"""
+        user_id = self.user_04.id
+
+        response = self.convener.put(utils.get_user_url(user_id, supervisor=True),
+                                     {'submit': True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+
+        response = self.convener.put(utils.get_user_url(user_id, convener=True),
+                                     {'submit': True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+
+        response = self.convener.put(utils.get_user_url(user_id, supervisor=True),
+                                     {'submit': False})
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+
+        response = self.convener.put(utils.get_user_url(user_id, convener=True),
+                                     {'submit': False})
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
