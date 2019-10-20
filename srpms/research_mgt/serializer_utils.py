@@ -32,6 +32,9 @@ class DateTimeBooleanField(BooleanField):
         Return the value that would be used to update the DateTimeField. If
         True, return the current date & time, otherwise return None.
         """
+        data = super(DateTimeBooleanField, self).to_internal_value(data) \
+            if not isinstance(data, bool) else data
+
         # Only allow boolean value
         if not isinstance(data, bool):
             raise ValidationError('Should be a boolean value')
