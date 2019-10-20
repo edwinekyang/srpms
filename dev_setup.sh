@@ -42,7 +42,9 @@ conda create -y -n ${ENV_NAME} \
     psycopg2 \
     ipython \
     ldap3 \
-    nodejs=10
+    nodejs=10 \
+    cairo \
+    pango
 
 # Allow conda activate in this script
 source "$(dirname $(dirname $(which conda)))/etc/profile.d/conda.sh"

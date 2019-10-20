@@ -21,6 +21,30 @@ The project have below configurations for different deployment methods
 
 For more information, refer to [Let's Encrypt's rate limit](https://letsencrypt.org/docs/rate-limits/)
 
+# Setup local development environment
+
+We recommend using [miniconda](https://docs.conda.io/en/latest/miniconda.html) to manage your local environment.
+
+In project root directory, the `dev_setup.sh` file is provided for setting up the local environment with miniconda, but please be aware that it only supports Debian-based Linux distribution, as it relies on `apt-get` for some dependencies. 
+
+To setup environment, simply run `./dev_setup.sh`, it'll prompts you for necessary inputs.
+
+## Running tests manually
+
+To run test for back-end
+
+```bash
+cd srpms
+python manage.py test
+```
+
+To run test for front-end
+
+```bash
+cd srpms-client
+ng test
+```
+
 # Deploy - Production
 
 **NOTE: Make sure the production machine have a public IP**
@@ -130,39 +154,11 @@ chmod g-w objects/pack/*
 find -type d -exec chmod g+s {} +
 ```
 
-## Secrets
-
-Docker secrets provide a convenient way for providing sensitive information (e.g. username, password of the database). You don't want to include these information inside the git repository. 
-
-```bash
-# Create directory for storing secrets, and give group access
-sudo mkdir /srpms-secrets
-sudo chown root:srpms /srpms-secrets
-sudo chmod 750 /srpms-secrets
-sudo chmod g+s /srpms-secrets
-
-# Create secrets
-# NOTE: DO NOT USE "echo" AS IT WOULD SUFFIX NEW LINE CHARACTER
-
-# The below information would be used to initializa postgres database (if the database does not exist), and would be used by Django to access the database
-
-# Database name
-sudo printf '<secret content>' > /srpms-secrets/postgres-db.txt
-# Database username
-sudo printf '<secret content>' > /srpms-secrets/postgres-user.txt
-# Database password
-sudo printf '<secret content>' > /srpms-secrets/postgres-passwd.txt
-
-# "--" would prevent "--" raise error when its at the start of the content string
-sudo printf -- '<secret content>' > /srpms-secrets/postgres-init-args.txt
-
-# Django secret key is used for various purpose, for example, hashing user's password so that they won't store in plain text, exposure of this secret key would result all user's password being compromised.
-sudo printf '<secret content>' > /srpms-secrets/django_secret_key.txt
-```
-
-**NOTE: secrets still work even if you configure this on the local machine, and use docker inside a container through socket passing, and does not require any special configuration**
-
 ## CI/CD pipeline setup
+
+**NOTE**: secrets still work even if you configure this on the local machine, and use docker inside a container through socket passing, and does not require any special configuration
+
+### Secrets for testing
 
 **NOTE: You can do things in this section on a different machine (in the case that the production server is not suitable for running test for some reason)**
 
@@ -202,6 +198,98 @@ About `django_test_ldap_username` and `django_test_ldap_password`:
 - Every time user login using ANU credential, Django would pop user information from ANU LDAP, this test is to make sure that user info popping is working correctly.
 
 **NOTE**: If your test machine is outside ANU network, you'll need to set up a ssh tunnel, refer to [Access ANU LDAP outside campus](#Access-ANU-LDAP-outside-campus) for instructions.
+
+### Secrets for depolyment
+
+Docker secrets provide a convenient way for providing sensitive information (e.g. username, password of the database). You don't want to include these information inside the git repository. 
+
+```bash
+# Create directory for storing secrets, and give group access
+sudo mkdir /srpms-secrets
+sudo chown root:srpms /srpms-secrets
+sudo chmod 750 /srpms-secrets
+sudo chmod g+s /srpms-secrets
+
+# Create secrets
+# NOTE: DO NOT USE "echo" AS IT WOULD SUFFIX NEW LINE CHARACTER
+
+# The below information would be used to initializa postgres database (if the database does not exist), and would be used by Django to access the database
+
+# Database name
+sudo printf '<secret content>' > /srpms-secrets/postgres-db.txt
+# Database username
+sudo printf '<secret content>' > /srpms-secrets/postgres-user.txt
+# Database password
+sudo printf '<secret content>' > /srpms-secrets/postgres-passwd.txt
+
+# "--" would prevent "--" raise error when its at the start of the content string
+sudo printf -- '<secret content>' > /srpms-secrets/postgres-init-args.txt
+
+# Django secret key is used for various purpose, for example, hashing user's password so that they won't store in plain text, exposure of this secret key would result all user's password being compromised.
+sudo printf '<secret content>' > /srpms-secrets/django_secret_key.txt
+```
+
+### Setup pipeline runner
+
+**NOTE: For running testing pipeline, please follow [Access ANU LDAP outside campus](#Access-ANU-LDAP-outside-campus) to setup ssh tunnel, even if you're inside ANU network.**
+
+On the machine that you wants to run the pipeline:
+
+1. Change working directory to CI
+
+   ```bash
+   cd gitlab-ci
+   ```
+
+2. Run the register command:
+
+   ```
+   docker-compose run runner register
+   ```
+
+3. Enter GitLab instance URL:
+
+   ```
+   Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com )
+   https://gitlab.cecs.anu.edu.au
+   ```
+
+4. Enter the token you obtained to register the Runner (go to `Settings` -> `CI/CD` -> `Runner` -> `Specific Runners` to obtain the token for your repository)
+
+   ```
+   Please enter the gitlab-ci token for this runner:
+   xxx
+   ```
+
+5. Enter a description for the Runner, you can change this later in GitLab’s UI:
+
+   ```
+   Please enter the gitlab-ci description for this runner:
+   [hostname] my-runner
+   ```
+
+6. Enter the [tags associated with the Runner](https://docs.gitlab.com/ee/ci/runners/#using-tags), you can change this later in GitLab’s UI:
+
+   ```
+   Please enter the gitlab-ci tags for this runner (comma separated):
+   my-tag,another-tag
+   ```
+
+   - For production deployment, please enter `comp8755, srpms`
+   - For running test, please enter `comp8755, cooper`
+
+7. Enter the [Runner executor](https://docs.gitlab.com/runner/executors/README.html):
+
+   ```
+   Please enter the executor: ssh, docker+machine, docker-ssh+machine, kubernetes, docker, parallels, virtualbox, docker-ssh, shell:
+   shell
+   ```
+
+8. The previous step would exit after finished, then you need to start the runner manually
+
+   ```
+   docker-compose up -d
+   ```
 
 ## Manually start the service
 
@@ -372,7 +460,6 @@ If you're not using the `ANU-Secure` WIFI (or any other network provided by ANU)
   port: 389
   ```
 
-  
 
 # Attach to a running docker container
 
