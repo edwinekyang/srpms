@@ -39,8 +39,7 @@ services:
     volumes:
       - ./srpms-client:/app/srpms-client
       - angular_volume:/dist
-    networks:
-      - srpms_network
+    network_mode: none
 
   nginx:
     build: ./nginx

@@ -11,8 +11,8 @@ stages:
   - deploy
 
 variables:
-  COMPOSE_DEV: "docker-compose -p dev_$CI_COMMIT_SHORT_SHA -f docker-compose.dev.yml"
-  COMPOSE_TEST: "docker-compose -p test_$CI_COMMIT_SHORT_SHA -f docker-compose.prod.base.yml -f docker-compose.prod.test.yml"
+  COMPOSE_DEV: "docker-compose -p dev_$CI_PIPELINE_ID -f docker-compose.dev.yml"
+  COMPOSE_TEST: "docker-compose -p test_$CI_PIPELINE_ID -f docker-compose.prod.base.yml -f docker-compose.prod.test.yml"
   COMPOSE_DEPLOY: "docker-compose -f docker-compose.prod.base.yml -f docker-compose.prod.deploy.yml"
   BUILD_WAIT: "1m"
   DEPLOY_WAIT: "10s"

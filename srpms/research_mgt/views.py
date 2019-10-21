@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from django.db import transaction
 from django.db.models import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth.models import Group
 from rest_framework.filters import SearchFilter
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.mixins import (CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
@@ -61,6 +62,13 @@ class UserViewSet(ReadOnlyModelViewSet):
     """
     Provides read-only user information, as well as the contract they
     involves (own, supervise, examine, convene).
+
+    ----
+
+    The UserViewSet currently provide the following additional actions:
+
+    - `users/<id>/set_formal_supervisor/` can set this user to be a approved supervisor
+    - `users/<id>/set_course_convener/` can set this user to be a course convener
     """
 
     queryset = SrpmsUser.objects.all()
@@ -70,6 +78,44 @@ class UserViewSet(ReadOnlyModelViewSet):
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['username', 'first_name', 'last_name', 'uni_id']
     filterset_class = UserFilter
+
+    # noinspection PyUnusedLocal
+    @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=SubmitSerializer,
+            permission_classes=default_perms + [IsSuperuser | IsConvener, ])
+    def set_formal_supervisor(self, request, pk=None) -> HttpResponse:
+        """Give the user formal supervisor permission"""
+        serializer: SubmitSerializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            user: SrpmsUser = self.get_object()
+
+            if serializer.validated_data['submit']:
+                user.groups.add(Group.objects.get(name='approved_supervisors'))
+            else:
+                user.groups.remove(Group.objects.get(name='approved_supervisors'))
+
+            return Response(status=HTTP_200_OK)
+        else:
+            raise ValidationError(serializer.errors)
+
+    # noinspection PyUnusedLocal
+    @action(methods=['PUT', 'PATCH'], detail=True, serializer_class=SubmitSerializer,
+            permission_classes=default_perms + [IsSuperuser | IsConvener, ])
+    def set_course_convener(self, request, pk=None) -> HttpResponse:
+        """Give the user convener permission"""
+        serializer: SubmitSerializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            user: SrpmsUser = self.get_object()
+
+            if serializer.validated_data['submit']:
+                user.groups.add(Group.objects.get(name='course_convener'))
+            else:
+                user.groups.remove(Group.objects.get(name='course_convener'))
+
+            return Response(status=HTTP_200_OK)
+        else:
+            raise ValidationError(serializer.errors)
 
 
 class CourseViewSet(ModelViewSet):
@@ -100,6 +146,15 @@ class ContractViewSet(ModelViewSet):
     Please note that the API current have two nested serializer, 'individual_project' and
     'special_topic', and only one of them is allowed, the other one should be removed or
     set to null in JSON data for POST, PUT, or PATCH methods.
+
+    ----
+
+    The ContractViewSet currently provide the following additional actions:
+
+    - `contracts/export_csv/` would return a csv file containing all current finalized contract
+    - `contracts/<id>/submit/` provide the contract submit/un-submit functionality
+    - `contracts/<id>/approve/` provide the contract approve/disapprove functionality
+    - `contracts/<id>/print/` would return a PDF contract (only if the contract finalized)
     """
     serializer_class = ContractSerializer
     permission_classes = default_perms + [AllowSafeMethods | AllowPOST | IsSuperuser |
@@ -283,6 +338,13 @@ class AssessmentExamineViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModel
     Also have approval action for examiner to approve assessments.
 
     Note that this view would be nested inside AssessmentViewSet.
+
+    ----
+
+    The AssessmentExamineViewSet currently provide the following additional actions:
+
+    - `contracts/<contract_id>/assessments/<assessment_id>/examine/<examine_id>/approve/` provides
+      the examiner approve/disapprove functionality
     """
 
     queryset = AssessmentExamine.objects.all()
@@ -409,6 +471,13 @@ class SuperviseViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
     A view the allow users to Create, Retrieve, Update, Delete contract's assessments.
 
     Note that this view would be nested inside ContractViewSet.
+
+    ----
+
+    The SuperviseViewSet currently provide the following additional actions:
+
+    - `contracts/<contract_id>/supervise/<supervise_id>/approve/` provides the supervisor
+      approve/disapprove functionality
     """
     queryset = Supervise.objects.all()
     serializer_class = SuperviseSerializer

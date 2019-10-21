@@ -22,7 +22,6 @@ from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
 
 from .serializers import LoginSerializer, SrpmsUserSerializer
-from srpms.settings import DEBUG
 
 
 class APIRootView(APIView):
@@ -34,10 +33,9 @@ class APIRootView(APIView):
             'token/refresh': rest_reverse('accounts:token_refresh', request=request, *args,
                                           **kwargs),
             'users': rest_reverse('accounts:user-list', request=request, *args, **kwargs),
+            'login': rest_reverse('accounts:login', request=request, *args, **kwargs),
+            'logout': rest_reverse('accounts:logout', request=request, *args, **kwargs),
         }
-        if DEBUG:
-            pathes['login'] = rest_reverse('accounts:login', request=request, *args, **kwargs)
-            pathes['logout'] = rest_reverse('accounts:logout', request=request, *args, **kwargs)
         return Response(pathes)
 
 
