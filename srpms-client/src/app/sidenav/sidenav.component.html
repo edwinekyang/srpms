@@ -1,39 +1,43 @@
 <mat-nav-list class="nav-list">
   <mat-divider></mat-divider>
   <mat-divider></mat-divider>
-  <a mat-list-item routerLink="/">Home</a>
+  <a mat-list-item routerLink="/">HOME</a>
   <mat-divider></mat-divider>
   <mat-divider></mat-divider>
   <p mat-list-item><br></p>
   <mat-divider></mat-divider>
   <mat-divider></mat-divider>
-  <h1 mat-subheader>MAKE A NEW CONTRACT</h1>
-  <mat-divider></mat-divider>
-  <a mat-list-item routerLink="/contract">Contract</a>
+  <a mat-list-item routerLink="/contract">MAKE A NEW CONTRACT</a>
   <mat-divider></mat-divider>
   <mat-divider></mat-divider>
   <p mat-list-item><br></p>
-  <div *ngIf="haveExamine || haveSupervise || haveConvene || haveOwn">
+  <div *ngIf="haveExamine || haveSupervise || haveConvene || haveOwn || haveNonformal">
   <mat-divider></mat-divider>
   <mat-divider></mat-divider>
-  <h1 mat-subheader>CONTRACT MANAGEMENT</h1>
   <div *ngIf="haveOwn">
+  <a mat-list-item routerLink="/submit">STUDENT</a>
   <mat-divider></mat-divider>
-  <a mat-list-item routerLink="/submit">Submit</a>
+  <mat-divider></mat-divider>
   </div>
   <div *ngIf="haveSupervise">
+  <a mat-list-item routerLink="/supervise">SUPERVISOR</a>
   <mat-divider></mat-divider>
-  <a mat-list-item routerLink="/supervise">Supervise</a>
+  <mat-divider></mat-divider>
+  </div>
+  <div *ngIf="haveNonformal">
+  <a mat-list-item routerLink="/nonformal">SUPERVISOR</a>
+  <mat-divider></mat-divider>
+  <mat-divider></mat-divider>
   </div>
   <div *ngIf="haveExamine">
+  <a mat-list-item routerLink="/examine">EXAMINER</a>
   <mat-divider></mat-divider>
-  <a mat-list-item routerLink="/examine">Examine</a>
+  <mat-divider></mat-divider>
   </div>
   <div *ngIf="haveConvene">
+  <a mat-list-item routerLink="/convene">CONVENER</a>
   <mat-divider></mat-divider>
-  <a mat-list-item routerLink="/convene">Convene</a>
+  <mat-divider></mat-divider>
   </div>
-  <mat-divider></mat-divider>
-  <mat-divider></mat-divider>
   </div>
 </mat-nav-list>

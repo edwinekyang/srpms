@@ -19,7 +19,8 @@ export class ContractFormControlService {
             });
         } else {
             elements.forEach(element => {
-                group[element.key] = element.required ? new FormControl(element.value || '', Validators.required) :
+                group[element.key] = element.required ?
+                  new FormControl(element.value || '', Validators.required) :
                     new FormControl(element.value || '');
             });
         }

@@ -3,7 +3,7 @@
     data.action === 'disapproveSupervise' ? 'Supervise disapproval' :
         data.action === 'disapproveConvene' ? 'Convener disapproval' :
         data.action === 'rejectExamine' ? 'Examine rejection' :
-            data.action === 'nominateNonformalSupervisor'? 'Non-formal supervisor nomination' : ''}}
+            data.action === 'nominateNonformalSupervisor' ? 'Non-formal supervisor nomination' : ''}}
 </h1>
 <div mat-dialog-content *ngIf="this.route === '/supervise' && data.action === 'nominateExaminer' ||
     (this.route === '/convene' && data.status === 'Submitted' && data.action === 'nominateExaminer')">

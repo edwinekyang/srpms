@@ -185,6 +185,24 @@ export class ContractMgtComponent implements OnInit {
                         }
                     });
                 });
+        } else if (this.route === '/nonformal') {
+            await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+              .then(async (data: any) => {
+                  this.isApprovedSupervisor = data.is_approved_supervisor;
+                  // @ts-ignore
+                  const promisesPreList = data.supervise.map(async id => {
+                      await this.contractMgtService.getContract(id).toPromise().then(contract => {
+                          if (contract.is_submitted && contract.is_examiner_nominated && !contract.is_all_supervisors_approved) {
+                              this.preList.push(id);
+                          }
+                      });
+                  });
+                  await Promise.all(promisesPreList).catch((err: HttpErrorResponse) => {
+                      if (Math.floor(err.status / 100) === 4) {
+                          Object.assign(this.errorMessage, err.error);
+                      }
+                  });
+              });
         } else if (this.route === '/examine') {
             await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
                 .then(async data => {
@@ -311,6 +329,24 @@ export class ContractMgtComponent implements OnInit {
                         }
                     });
                 });
+        }  else if (this.route === '/nonformal') {
+            await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
+              .then(async (data: any) => {
+                  this.isApprovedSupervisor = data.is_approved_supervisor;
+                  // @ts-ignore
+                  const promisesPreList = data.supervise.map(async id => {
+                      await this.contractMgtService.getContract(id).toPromise().then(contract => {
+                          if (contract.is_submitted && contract.is_all_supervisors_approved) {
+                              this.postList.push(id);
+                          }
+                      });
+                  });
+                  await Promise.all(promisesPreList).catch((err: HttpErrorResponse) => {
+                      if (Math.floor(err.status / 100) === 4) {
+                          Object.assign(this.errorMessage, err.error);
+                      }
+                  });
+              });
         } else if (this.route === '/examine') {
             await this.contractMgtService.getRelatedContracts(JSON.parse(localStorage.getItem('srpmsUser')).id).toPromise()
                 .then(async data => {
@@ -588,6 +624,16 @@ export class ContractMgtComponent implements OnInit {
             const promiseApproveSupervise = async () => {
                 await this.asyncForEach(contract.contractObj.supervise, async (supervise) => {
                     if ((JSON.parse(localStorage.getItem('srpmsUser')).id === supervise.supervisor &&
+                      !supervise.is_supervisor_approved)) {
+                        await this.contractMgtService.approveContract(contract.contractId, supervise.id,
+                          JSON.stringify({
+                              approve: true,
+                          })).toPromise().catch((err: HttpErrorResponse) => {
+                            if (Math.floor(err.status / 100) === 4) {
+                                Object.assign(this.errorMessage, err.error);
+                            }
+                        });
+                    } /*else if ((JSON.parse(localStorage.getItem('srpmsUser')).id === supervise.supervisor &&
                         !supervise.is_supervisor_approved)) {
                         await this.contractMgtService.approveContract(contract.contractId, supervise.id,
                             JSON.stringify({
@@ -597,22 +643,22 @@ export class ContractMgtComponent implements OnInit {
                                 Object.assign(this.errorMessage, err.error);
                             }
                         });
-                    } else if ((JSON.parse(localStorage.getItem('srpmsUser')).id !== supervise.supervisor &&
-                        !supervise.is_supervisor_approved)) {
-                        await this.contractMgtService.approveContract(contract.contractId, supervise.id,
-                            JSON.stringify({
-                                approve: true,
-                            })).toPromise().catch((err: HttpErrorResponse) => {
-                            if (Math.floor(err.status / 100) === 4) {
-                                Object.assign(this.errorMessage, err.error);
-                            }
-                        });
-                    }
+                    }*/
                 });
             };
-            await promiseApproveSupervise();
+            await promiseApproveSupervise().then(() => {
+                if (Object.keys(this.errorMessage).length) {
+                    this.openFailDialog();
+                } else {
+                    if (this.isApprovedSupervisor) {
+                        this.openSuccessDialog('ApproveSupervise');
+                    } else {
+                        this.openSuccessDialog('ConfirmSupervise');
+                    }
+                }
+            });
             // Confirm supervisor's examiner role of the one of the assessments if any
-            const promiseConfirmExamine = async () => {
+            /*const promiseConfirmExamine = async () => {
                 await this.asyncForEach(contract.assessment, async (assessment) => {
                     if (assessment.examiner) {
                         if (assessment.examiner === contract.contractObj.supervise[0].supervisor) {
@@ -638,7 +684,7 @@ export class ContractMgtComponent implements OnInit {
                         this.openSuccessDialog('ConfirmSupervise');
                     }
                 }
-            });
+            });*/
         }
     }
 
@@ -788,7 +834,7 @@ export class ContractMgtComponent implements OnInit {
                     Object.assign(this.errorMessage, err.error);
                 }
             }).then(() => {
-                this.openSuccessDialog(contract.status);
+                this.openSuccessDialog('ApproveConvene');
             });
         }
     }

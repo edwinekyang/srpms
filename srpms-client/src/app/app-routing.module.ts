@@ -14,6 +14,7 @@ const routes: Routes = [
   { path: 'examine', component: ContractMgtComponent },
   { path: 'submit', component: ContractMgtComponent },
   { path: 'convene', component: ContractMgtComponent },
+  { path: 'nonformal', component: ContractMgtComponent },
 ];
 
 @NgModule({
