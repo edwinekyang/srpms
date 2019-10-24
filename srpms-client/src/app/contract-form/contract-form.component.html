@@ -5,17 +5,22 @@
 	  'new-line' : (isTextArea(element.controlType) ? 'textarea-new-line' :
 	  (isLastElement(element, elements) ? 'section-last-element' : (courseSelected)? 'form-element' : 'first-course'))">
           <div *ngIf="isAnotherSection(element.order); else elseBlock">
-              <h1>Section {{sectionDivider(element.order)}}: {{sectionList[sectionDivider(element.order)]}}</h1>
+              <h1>Section {{sectionDivider(element.order)}}:
+                  {{sectionList[sectionDivider(element.order)]}}</h1>
               <p>* Required</p>
             <mat-divider></mat-divider>
           </div>
           <ng-template #elseBlock>
-            <app-contract-form-element [elementFlag]="elementFlag" [element]="element" [form]="form" (formFlagEvent)="receiveFormFlag($event)"></app-contract-form-element>
+            <app-contract-form-element [elementFlag]="elementFlag"
+                                       [element]="element" [form]="form"
+                                       (formFlagEvent)="receiveFormFlag($event)">
+            </app-contract-form-element>
           </ng-template>
           </div>
       </div>
 	<div *ngIf="courseSelected" class="new-line">
-	  <button class="form-submit-button" mat-raised-button color="primary" type="submit" [disabled]="!form.valid">Save</button>
+	  <button class="form-submit-button" mat-raised-button color="primary"
+              type="submit" [disabled]="!form.valid">Save</button>
 	</div>
   </form>
 </div>

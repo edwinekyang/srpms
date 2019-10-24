@@ -1,8 +1,10 @@
 <p class="title mat-h1">INDEPENDENT STUDY CONTRACTS MANAGEMENT</p>
 <mat-card class="contract-card">
     <mat-list>
-        <h3 mat-subheader>{{(this.route === '/supervise' || this.route === '/convene')?
-            'Awaiting Contracts - ' + this.route.slice(1).toLocaleUpperCase() :(this.route === '/examine')? 'Awaiting Requests' : 'Saved Contracts'}}</h3>
+        <h3 mat-subheader>{{(this.route === '/supervise' || this.route === '/convene' || this.route === '/nonformal')?
+            'Awaiting Contracts - ' +
+            (this.route === '/supervise' ? 'Supervisor' : this.route === '/convene' ? 'Convener' : '') :
+            (this.route === '/examine') ? 'Awaiting Requests - Examiner' : 'Saved Contracts'}}</h3>
         <mat-accordion>
             <mat-expansion-panel *ngFor="let contract of preContractList">
                 <mat-expansion-panel-header>
@@ -160,9 +162,7 @@
                     (this.route === '/convene' && contract.status === 'Nominated')"
                        mat-raised-button color="primary"
                        (click)="approveSupervise(contract)">
-                        APPROVE{{this.route === '/convene' && contract.status === 'Nominated' &&
-                    contract.contractObj['special_topic']?
-                        '(This will approve all supervisors including non-formal if any)' : ''}}
+                        APPROVE
                     </a>
                     <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor) ||
                     (this.route === '/convene' && contract.status === 'Submitted') ||
@@ -171,27 +171,12 @@
                        (click)="openActionDialog(contract, 'disapproveSupervise')">
                         DISAPPROVE
                     </a>
-                    <a *ngIf="this.route === '/supervise' && !this.isApprovedSupervisor"
-                        mat-raised-button color="primary"
-                        (click)="approveSupervise(contract)">CONFIRM</a>
-                    <!--<form *ngIf="this.route === '/supervise' || (this.route === '/convene' && contract.status === 'Submitted')"
-                          (ngSubmit)="this.route === '/supervise' ? approveSupervise(contract) :
-                          nominateExaminer(contract)" [formGroup]="examinerForm">
-                        <div *ngFor="let assessment of contract.assessment">
-                            <div class="nomination-form" *ngIf="!assessment['examiner']">
-                        <mat-form-field appearance="standard">
-                            <mat-label>{{assessment['assessmentName'].toString().toLocaleUpperCase()}} Examiner's Name</mat-label>
-                            <input matInput required formControlName="examiner{{assessment['template']}}">
-                        </mat-form-field>
-                            </div>
-                        </div>
-                        <div class="nomination-form">
-                        <button mat-raised-button color="primary" type="submit" [disabled]="!examinerFormValid">
-                            {{(this.route === '/supervise') ? 'NOMINATE EXAMINER AND APPROVE' :
-                            'NOMINATE EXAMINER'}}</button>
-                        </div>
-                    </form>-->
-                    <!--<a *ngIf="this.route === '/supervise'" mat-raised-button color="primary" routerLink="/approve">APPROVE</a>-->
+                    <a *ngIf="this.route === '/nonformal' && !this.isApprovedSupervisor"
+                       mat-raised-button color="primary"
+                       (click)="approveSupervise(contract)">CONFIRM</a>
+                    <!--<a *ngIf="this.route === '/nonformal' && !this.isApprovedSupervisor"
+                       mat-raised-button color="primary"
+                       (click)="openActionDialog(contract, 'disapproveSupervise')">REJECT</a>-->
                     <a *ngIf="this.route === '/examine'" mat-raised-button color="primary"
                        (click)="confirmExamine(contract, contract.assessment)"
                         [disabled]="contract.status !== 'Approved'">CONFIRM
@@ -216,7 +201,6 @@
                     </div>
                     </div>
                     <p class="mat-small" *ngIf="this.route === '/examine' && contract.status !== 'Approved'">
-                        {{contract.status}}
                         *You will be able to confirm the request once all supervisors of this contract has approved the contract.
                     </p>
                     <a *ngIf="this.route === '/convene' && contract.status === 'Confirmed'" mat-raised-button color="primary"
@@ -233,9 +217,10 @@
         </mat-accordion>
         <br>
         <mat-divider></mat-divider>
-        <h3 mat-subheader>{{(this.route === '/supervise' || this.route === '/convene')?
-            'Approved Contracts - ' + this.route.slice(1).toLocaleUpperCase() :
-            (this.route === '/examine') ? 'Confirmed Requests' : 'Submitted Contracts'}}</h3>
+        <h3 mat-subheader>{{(this.route === '/supervise' || this.route === '/convene' || this.route === '/nonformal')?
+            'Approved Contracts - ' +
+            (this.route === '/supervise' ? 'Supervisor' : this.route === '/convene' ? 'Convener' : '') :
+            (this.route === '/examine') ? 'Confirmed Requests - Examiner' : 'Submitted Contracts'}}</h3>
         <mat-accordion>
             <mat-expansion-panel *ngFor="let contract of postContractList">
                 <mat-expansion-panel-header>

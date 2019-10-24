@@ -18,6 +18,7 @@ export class SidenavComponent implements OnInit {
   public haveConvene: boolean;
   public haveSupervise: boolean;
   public haveExamine: boolean;
+  public haveNonformal: boolean;
 
   constructor(
       public contractMgtService: ContractMgtService,

@@ -4,12 +4,19 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ## Angular Component Structure
 ```
-Components \
-├── header      # Top bar of the application
-├── sidenav     # Side bar of the application
-├── home        # Index page
-├── contract    # Contract form
-└── footer      # Bottom bar of the application
+src/app/
+├── contract                # Contract
+├── contract-dialog         # Contract Dialog
+├── contract-form           # Contract form
+├── contract-form-element   # Contract form element
+├── contract-mgt            # Contract MGT
+├── contract-mgt-dialog     # Contract MGT dialog
+├── contract-viewer         # Contract edit page for the contract owner
+├── error-dialog            # Error dialog
+├── header                  # Top bar of the application
+├── home                    # Index page
+├── login-dialog            # Login dialog
+└── sidenav                 # Side bar of the application
 ``` 
 
 ## Development server
