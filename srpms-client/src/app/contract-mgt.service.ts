@@ -223,7 +223,7 @@ export class ContractMgtService {
    * @param s - JSON string object that approves the examine relation of the corresponding assessment
    */
   updateExamine(contractId: number, assessmentId: number, examineId: number, s: string): Observable<AssessmentExamine> {
-    return this.http.patch<AssessmentExamine>(
+    return this.http.put<AssessmentExamine>(
       this.API_URL + `research_mgt/contracts/${contractId}/assessments/${assessmentId}/examine/${examineId}/`,
       s, this.httpOptions);
     // .pipe(

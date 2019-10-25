@@ -208,7 +208,8 @@
                     <a *ngIf="this.route === '/convene' && contract.status === 'Confirmed'" mat-raised-button color="primary"
                        (click)="openActionDialog(contract, 'disapproveConvene')">DISAPPROVE</a>
                     <p class="mat-small" *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor &&
-                    contract.status === 'Submitted') ||
+                    (contract.status === 'Submitted' ||
+                    (contract.status === 'Confirmed' && contract.contractObj['is_all_assessments_approved']))) ||
                      (this.route === '/convene' && contract.status === 'Submitted')">
                         *You will be able to approve the contract once all examiners of this contract have been nominated.
                     </p>
