@@ -149,6 +149,13 @@ class ContractViewSet(ModelViewSet):
 
     ----
 
+    The ContractViewSet currently provide the following nested views:
+
+    - `contracts/<id>/supervise/` would go to the supervise information of the contract
+    - `contracts/<id>/assessments/` would go to the assessment information of the contract
+
+    ----
+
     The ContractViewSet currently provide the following additional actions:
 
     - `contracts/export_csv/` would return a csv file containing all current finalized contract
@@ -344,7 +351,7 @@ class AssessmentExamineViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModel
     The AssessmentExamineViewSet currently provide the following additional actions:
 
     - `contracts/<contract_id>/assessments/<assessment_id>/examine/<examine_id>/approve/` provides
-      the examiner approve/disapprove functionality
+        the examiner approve/disapprove functionality
     """
 
     queryset = AssessmentExamine.objects.all()
@@ -436,6 +443,13 @@ class AssessmentViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin,
     A view the allow users to Create, Retrieve, Update, Delete contract's assessments.
 
     Note that this view would be nested inside ContractViewSet.
+
+    ----
+
+    The AssessmentViewSet currently provides the following nested view:
+
+    - `contracts/<contract_id>/assessments/<assessment_id>/examine/` would go to the examine
+        information of a assessment
     """
     queryset = Assessment.objects.all()
     serializer_class = AssessmentSerializer

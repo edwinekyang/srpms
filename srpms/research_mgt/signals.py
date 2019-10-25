@@ -211,6 +211,9 @@ def supervise_approve_notifications(supervise: Supervise, activity_log: Activity
                           'Contract "{contract_title}"\'s invites you '
                           'as the examiner for its assessment.'
                           .format(contract_title=str(supervise.contract)), EMAIL_SENDER, [address])
+
+        # Inform course convener if necessary
+        contract_finalized_ready(supervise.contract)
     # Disapprove
     elif activity_log.action == ACTION_SUPERVISE_DISAPPROVE:
         # Inform contract owner
@@ -249,6 +252,9 @@ def examiner_approve_notifications(assessment_examine: AssessmentExamine,
                               examiner_name=assessment_examine.examine.examiner.get_display_name()),
                       EMAIL_SENDER,
                       [address])
+
+        # Inform course convener if necessary
+        contract_finalized_ready(assessment_examine.contract)
     # Disapprove
     elif activity_log.action == ACTION_EXAMINER_DISAPPROVE:
         send_mail('Contract assessment disapproved by examiner',
@@ -265,10 +271,28 @@ def examiner_approve_notifications(assessment_examine: AssessmentExamine,
         # TODO: ? Inform contract owner
 
 
+def contract_finalized_ready(contract: Contract) -> None:
+    """
+    Inform course convener if the contract is ready for final approval, i.e. all supervisor
+    approved and all assessments approved.
+
+    Args:
+        contract: the contract this function going to check
+    """
+    if contract.convener and contract.is_all_supervisors_approved() and \
+            contract.is_all_assessments_approved():
+        send_mail('Contract awaiting for approval',
+                  'Contract "{contract_title}" has been approved by all its supervisor and '
+                  'examiners, and its now awaiting for your final approval.'
+                  .format(contract_title=str(contract)),
+                  EMAIL_SENDER,
+                  [contract.convener.email])
+
+
 # noinspection PyUnusedLocal
 @receiver(CONTRACT_APPROVE, dispatch_uid='contract_approve_pdf')
 def contract_approve_generate_pdf(**kwargs):
     """
-    TODO: Generate PDF version of agreement on contract final approval
+    TODO: Generate PDF version of agreement on contract final approval, and store it to Nginx
     """
     pass
