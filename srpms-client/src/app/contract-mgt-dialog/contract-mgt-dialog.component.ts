@@ -79,7 +79,8 @@ export class ContractMgtDialogComponent implements OnInit {
         if (confirm('Are you sure?')) {
             let promiseAssessment: any;
             // Creates the examiner relation when they have never gone to the 'Nominated' stage
-            if (contract.status !== 'Nominated') {
+            if (contract.status !== 'Nominated' && !contract.contractObj.is_all_supervisors_approved &&
+              !contract.contractObj.is_all_assessments_approved) {
                 promiseAssessment = async () => {
                     await this.asyncForEach(contract.assessment, async (assessment) => {
                         if (this.examinerForm.value['examiner' + assessment.template]) {
@@ -94,7 +95,7 @@ export class ContractMgtDialogComponent implements OnInit {
                     });
                 };
             // Updates the examiner relation when the examine request is rejected
-            } else if (contract.status === 'Nominated') {
+            } else if (contract.status === 'Nominated' && !contract.contractObj.is_all_supervisors_approved) {
                 promiseAssessment = async () => {
                     await this.asyncForEach(contract.assessment, async (assessment) => {
                         if (this.examinerForm.value['examiner' + assessment.template]) {
@@ -102,6 +103,21 @@ export class ContractMgtDialogComponent implements OnInit {
                             assessment.examineId, JSON.stringify({
                                     examiner: this.examinerForm.value['examiner' + assessment.template],
                                 })).toPromise().catch((err: HttpErrorResponse) => {
+                                if (Math.floor(err.status / 100) === 4) {
+                                    Object.assign(this.errorMessage, err.error);
+                                }
+                            });
+                        }
+                    });
+                };
+            } else if (contract.status === 'Confirmed' && contract.contractObj.is_all_assessments_approved) {
+                promiseAssessment = async () => {
+                    await this.asyncForEach(contract.assessment, async (assessment) => {
+                        if (this.examinerForm.value['examiner' + assessment.template]) {
+                            await this.contractMgtService.updateExamine(contract.contractId, assessment.id,
+                              assessment.examineId, JSON.stringify({
+                                  examiner: this.examinerForm.value['examiner' + assessment.template],
+                              })).toPromise().catch((err: HttpErrorResponse) => {
                                 if (Math.floor(err.status / 100) === 4) {
                                     Object.assign(this.errorMessage, err.error);
                                 }

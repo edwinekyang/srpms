@@ -9,13 +9,19 @@
     (this.route === '/convene' && data.status === 'Submitted' && data.action === 'nominateExaminer')">
     <form (ngSubmit)="nominateExaminer(data)" [formGroup]="examinerForm">
         <div *ngFor="let assessment of data.assessment">
+            <div class="nomination-form" *ngIf="data.contractObj['is_all_assessments_approved']">
+                <mat-form-field appearance="standard">
+                    <mat-label>{{assessment['assessmentName'].toString().toLocaleUpperCase()}} Examiner's Name</mat-label>
+                    <input matInput required formControlName="examiner{{assessment['template']}}">
+                </mat-form-field>
+            </div>
             <div class="nomination-form" *ngIf="!assessment['examiner']">
                 <mat-form-field appearance="standard">
                     <mat-label>{{assessment['assessmentName'].toString().toLocaleUpperCase()}} Examiner's Name</mat-label>
                     <input matInput required formControlName="examiner{{assessment['template']}}">
                 </mat-form-field>
             </div>
-            <div class="nomination-form" *ngIf="assessment['examiner'] && data.status === 'Nominated'">
+            <div class="nomination-form" *ngIf="assessment['examiner'] && data.status === 'Nominated' && !assessment['isAllExaminersApproved']">
                 <mat-form-field appearance="standard">
                     <mat-label>{{assessment['assessmentName'].toString().toLocaleUpperCase()}} Examiner's Name</mat-label>
                     <input matInput required formControlName="examiner{{assessment['template']}}">
