@@ -292,6 +292,8 @@ if not DEBUG:
     # Activate browser's XSS filtering and help prevent XSS attacks.
     SECURE_BROWSER_XSS_FILTER = True
 
+    CSRF_TRUSTED_ORIGINS = ['srpms.cecs.anu.edu.au']
+
     # Prevent iframe
     X_FRAME_OPTIONS = 'DENY'
 
