@@ -146,37 +146,83 @@
                     <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/contract-viewer" [state]="contract">EDIT</a>
                     <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" routerLink="/submit" (click)="submit(contract)">SUBMIT</a>
                     <a *ngIf="this.route === '/submit'" mat-raised-button color="primary" (click)="delete(contract)">DELETE</a>
-                    <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor) ||
+                    <div *ngIf="contract.contractObj['supervise'].length > 1 && contract.status === 'Nominated' &&
+                      !contract.contractObj['is_all_supervisors_approved'] else elseBlock">
+                        <a *ngIf="this.route === '/convene'"
+                           mat-raised-button color="primary"
+                           (click)="approveSupervise(contract)">APPROVE ALL SUPERVISORS</a>
+                        <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor && contract.status === 'Submitted') ||
                     (this.route === '/convene' && contract.status === 'Submitted')"
-                       mat-raised-button color="primary"
-                       (click)="openActionDialog(contract, 'nominateNonformalSupervisor')">
-                        NOMINATE NON-FORMAL SUPERVISOR(OPTIONAL)
-                    </a><br><br>
-                    <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor) ||
-                    (this.route === '/convene' && contract.status === 'Submitted')"
-                       mat-raised-button color="primary"
-                       (click)="openActionDialog(contract, 'nominateExaminer')">
-                        NOMINATE EXAMINER
-                    </a>
-                    <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor && contract.status === 'Nominated') ||
+                           mat-raised-button color="primary"
+                           (click)="openActionDialog(contract, 'nominateExaminer')">
+                            NOMINATE EXAMINER
+                        </a>
+                        <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor && (contract.status === 'Submitted' ||
+                    contract.status === 'Nominated')) ||
+                    (this.route === '/convene' && (contract.status === 'Submitted' ||
+                    contract.status === 'Nominated'))" mat-raised-button color="primary"
+                           (click)="openActionDialog(contract, 'deleteExamine')">
+                            DE-NOMINATE EXAMINER
+                        </a>
+                        <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor && contract.status === 'Nominated') ||
                     (this.route === '/convene' && contract.status === 'Nominated')"
-                       mat-raised-button color="primary"
-                       (click)="approveSupervise(contract)">
-                        APPROVE
-                    </a>
-                    <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor) ||
+                           mat-raised-button color="primary"
+                           (click)="approveSupervise(contract)">
+                            APPROVE
+                        </a>
+                        <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor) ||
                     (this.route === '/convene' && contract.status === 'Submitted') ||
                     (this.route === '/convene' && contract.status === 'Nominated')"
-                       mat-raised-button color="primary"
-                       (click)="openActionDialog(contract, 'disapproveSupervise')">
-                        DISAPPROVE
-                    </a>
+                           mat-raised-button color="primary"
+                           (click)="openActionDialog(contract, 'disapproveSupervise')">
+                            DISAPPROVE
+                        </a>
+                    </div>
+                    <ng-template #elseBlock>
+                        <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor) ||
+                    (this.route === '/convene' && (contract.status === 'Submitted' ||
+                    contract.status === 'Nominated')) && contract.contractObj['supervise'].length < 2"
+                           mat-raised-button color="primary"
+                           (click)="openActionDialog(contract, 'nominateNonformalSupervisor')">
+                            NOMINATE NON-FORMAL SUPERVISOR(OPTIONAL)
+                        </a>
+                        <a *ngIf="((this.route === '/supervise' && this.isApprovedSupervisor) ||
+                    (this.route === '/convene' && contract.status === 'Submitted')) &&
+                     (contract.contractObj['supervise'].length > 1)"
+                        mat-raised-button color="primary"
+                        (click)="openActionDialog(contract, 'deleteNonformalSupervisor')">
+                            DE-NOMINATE NON-FORMAL SUPERVISOR
+                        </a>
+                        <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor && contract.status === 'Submitted') ||
+                    (this.route === '/convene' && contract.status === 'Submitted')"
+                           mat-raised-button color="primary"
+                           (click)="openActionDialog(contract, 'nominateExaminer')">
+                            NOMINATE EXAMINER
+                        </a>
+                        <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor && (contract.status === 'Submitted' ||
+                    contract.status === 'Nominated')) ||
+                    (this.route === '/convene' && (contract.status === 'Submitted' ||
+                    contract.status === 'Nominated'))" mat-raised-button color="primary"
+                           (click)="openActionDialog(contract, 'deleteExamine')">
+                            DE-NOMINATE EXAMINER
+                        </a>
+                        <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor && contract.status === 'Nominated') ||
+                    (this.route === '/convene' && contract.status === 'Nominated')"
+                           mat-raised-button color="primary"
+                           (click)="approveSupervise(contract)">
+                            APPROVE
+                        </a>
+                        <a *ngIf="(this.route === '/supervise' && this.isApprovedSupervisor) ||
+                    (this.route === '/convene' && contract.status === 'Submitted') ||
+                    (this.route === '/convene' && contract.status === 'Nominated')"
+                           mat-raised-button color="primary"
+                           (click)="openActionDialog(contract, 'disapproveSupervise')">
+                            DISAPPROVE
+                        </a>
+                    </ng-template>
                     <a *ngIf="this.route === '/nonformal' && !this.isApprovedSupervisor"
                        mat-raised-button color="primary"
                        (click)="approveSupervise(contract)">CONFIRM</a>
-                    <!--<a *ngIf="this.route === '/nonformal' && !this.isApprovedSupervisor"
-                       mat-raised-button color="primary"
-                       (click)="openActionDialog(contract, 'disapproveSupervise')">REJECT</a>-->
                     <a *ngIf="this.route === '/examine'" mat-raised-button color="primary"
                        (click)="confirmExamine(contract, contract.assessment)"
                         [disabled]="contract.status !== 'Approved'">CONFIRM
@@ -197,7 +243,6 @@
                         (click)="openActionDialog(assessment, 'rejectExamine')">
                             REJECT EXAMINE: {{assessment['examinerName']}}
                         </a>
-                        <br><br>
                     </div>
                     </div>
                     <p class="mat-small" *ngIf="this.route === '/examine' && contract.status !== 'Approved'">
