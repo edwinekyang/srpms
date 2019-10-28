@@ -92,7 +92,7 @@ export class AccountsService {
   }
 
   // Used to inform component that local storage has changed.
-  private watchStorage(): Observable<string> {
+  public watchStorage(): Observable<string> {
     return this.storageSub.asObservable();
   }
 
