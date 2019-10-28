@@ -1,9 +1,11 @@
 <h1 mat-dialog-title>
     {{data.action === 'nominateExaminer' ? 'Examiner nomination' :
     data.action === 'disapproveSupervise' ? 'Supervise disapproval' :
-        data.action === 'disapproveConvene' ? 'Convener disapproval' :
-        data.action === 'rejectExamine' ? 'Examine rejection' :
-            data.action === 'nominateNonformalSupervisor' ? 'Non-formal supervisor nomination' : ''}}
+    data.action === 'disapproveConvene' ? 'Convener disapproval' :
+    data.action === 'rejectExamine' ? 'Examine rejection' :
+    data.action === 'nominateNonformalSupervisor' ? 'Non-formal supervisor nomination' :
+    data.action === 'deleteExamine' ? 'Examiner De-nomination' :
+    data.action === 'deleteNonformalSupervisor' ? 'Non-formal Supervisor De-nomination' : ''}}
 </h1>
 <div mat-dialog-content *ngIf="this.route === '/supervise' && data.action === 'nominateExaminer' ||
     (this.route === '/convene' && data.status === 'Submitted' && data.action === 'nominateExaminer')">
@@ -34,7 +36,8 @@
         </div>
     </form>
 </div>
-<div mat-dialog-content *ngIf="this.route === '/supervise' && data.action === 'nominateNonformalSupervisor'">
+<div mat-dialog-content *ngIf="(this.route === '/supervise' || this.route === '/convene') &&
+data.action === 'nominateNonformalSupervisor'">
     <form (ngSubmit)="nominateNonformalSupervisor(data)" [formGroup]="nfSupervisorForm">
         <div class="nomination-form">
             <mat-form-field appearance="standard">
@@ -72,6 +75,19 @@ this.route === '/convene' && data.action === 'disapproveConvene'">
     </mat-form-field>
     <button mat-raised-button color="primary" (click)="disapproveConvene(data, message.value)">DISAPPROVE</button>
 </div>
+<div mat-dialog-content *ngIf="(this.route === '/supervise' || this.route === '/convene') && data.action === 'deleteExamine'">
+    <div class="nomination-form" *ngFor="let assessment of data.assessment">
+        <button class="dialog-button" *ngIf="assessment['examiner']" (click)="deleteExamine(assessment)" mat-raised-button color="primary">
+            DE-NOMINATE {{assessment['assessmentName'].toString().toLocaleUpperCase()}} EXAMINER
+        </button>
+    </div>
+</div>
+<div mat-dialog-content *ngIf="(this.route === '/supervise' || this.route === '/convene') && data.action === 'deleteNonformalSupervisor'">
+    <button class="dialog-button" (click)="deleteNonformalSupervisor(data)" mat-raised-button color="primary">
+        DE-NOMINATE NON-FORMAL SUPERVISOR
+    </button>
+</div>
 <div mat-dialog-actions>
     <button mat-button (click)="onClick()">CLOSE</button>
 </div>
+

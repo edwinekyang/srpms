@@ -10,6 +10,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {ContractMgtService} from '../contract-mgt.service';
 import {ErrorDialogComponent} from '../error-dialog/error-dialog.component';
 import {ContractDialogComponent} from '../contract-dialog/contract-dialog.component';
+import {catchError} from 'rxjs/operators';
 
 export interface Contract {
     action: string;
@@ -292,6 +293,42 @@ export class ContractMgtDialogComponent implements OnInit {
                     this.openFailDialog();
                 } else {
                     this.openSuccessDialog('DisapproveConvene');
+                }
+            });
+        }
+    }
+
+    deleteExamine(assessment: object) {
+        if (confirm('Are you sure?')) {
+            // @ts-ignore
+            this.contractMgtService.deleteExamine(this.data.contractId, assessment.id, assessment.examineId)
+              .pipe(
+                catchError(err => Object.assign(this.errorMessage, err.error))
+              ).subscribe(res => {
+                if (Object.keys(this.errorMessage).length) {
+                    this.openFailDialog();
+                } else {
+                    this.openSuccessDialog('DeleteExamine');
+                }
+              }
+            );
+        }
+    }
+
+    deleteNonformalSupervisor(contract: Contract) {
+        if (confirm('Are you sure?')) {
+            contract.contractObj.supervise.forEach(supervise => {
+                if (!supervise.is_formal) {
+                    this.contractMgtService.deleteNonformalSupervisor(contract.contractId, supervise.id)
+                      .pipe(
+                        catchError(err => Object.assign(this.errorMessage, err.error))
+                      ).subscribe(res => {
+                        if (Object.keys(this.errorMessage).length) {
+                            this.openFailDialog();
+                        } else {
+                            this.openSuccessDialog('DeleteNonformalSupervisor');
+                        }
+                    });
                 }
             });
         }

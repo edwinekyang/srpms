@@ -265,4 +265,8 @@ export class ContractMgtService {
   createNonformalSupervisor(contractId: number, s: string): Observable<Supervise> {
     return this.http.post<Supervise>(this.API_URL + `research_mgt/contracts/${contractId}/supervise/`, s, this.httpOptions);
   }
+
+  deleteNonformalSupervisor(contractId: number, superviseId: any) {
+    return this.http.delete(this.API_URL + `research_mgt/contracts/${contractId}/supervise/${superviseId}/`, this.httpOptions);
+  }
 }

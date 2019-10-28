@@ -7,6 +7,8 @@
     this.route === '/supervise' && data === 'ApproveSupervise' ? 'Contract has been approved!' :
     this.route === '/supervise' && data === 'ConfirmSupervise' ? 'Supervisor request has been confirmed!' :
     this.route === '/supervise' && data === 'NominateNonformalSupervisor' ? 'Non-formal supervisor has been nominated!' :
+    this.route === '/supervise' && data === 'DeleteExamine' ? 'Selected Examiner has been denominated!' :
+    this.route === '/supervise' && data === 'DeleteNonformalSupervisor' ? 'Non-formal supervisor has been de-nominated!' :
     this.route === '/examine' && data === 'ConfirmExamine' ? 'Examiner request has been confirmed!' :
     this.route === '/examine' && data === 'RejectExamine' ? 'Examiner request has been rejected!' :
     this.route === '/convene' && data === 'RejectExamine' ? 'Examiner request has been rejected!' :
@@ -15,7 +17,11 @@
     this.route === '/convene' && data === 'ApproveSupervise' ? 'Contract has been approved!' :
     this.route === '/convene' && data === 'DisapproveSupervise' ? 'Contract has been disapproved!' :
     this.route === '/convene' && data === 'DisapproveConvene' ? 'Contract has been disapproved!' :
-    this.route === '/convene' && data === 'ConfirmExamine' ? 'Examiner request has been confirmed!' : ''}}</h1>
+    this.route === '/convene' && data === 'ConfirmExamine' ? 'Examiner request has been confirmed!' :
+    this.route === '/convene' && data === 'DeleteExamine' ? 'Selected Examiner has been denominated!' :
+    this.route === '/convene' && data === 'NominateNonformalSupervisor' ? 'Non-formal supervisor has been nominated!' :
+    this.route === '/convene' && data === 'DeleteNonformalSupervisor' ? 'Non-formal supervisor has been de-nominated!' :
+        ''}}</h1>
 <div *ngIf="this.route === '/contract'" mat-dialog-content>
     <p>Contract is now saved.</p><br>
     <p>You can either EDIT your saved contract OR SUBMIT your saved contract on the contract management page.</p><br>
@@ -55,6 +61,14 @@
     <p>Non-formal supervisor for this contract has been nominated.</p><br>
     <p>You will be redirected to the contract management page.</p>
 </div>
+<div *ngIf="this.route === '/supervise' && data === 'DeleteExamine'" mat-dialog-content>
+    <p>Selected Examiner has been de-nominated.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
+<div *ngIf="this.route === '/supervise' && data === 'DeleteNonformalSupervisor'" mat-dialog-content>
+    <p>Non-formal Supervisor for this contract has been de-nominated.</p><br>
+    <p>You will be redirected to the contract management page.</p>
+</div>
 <div *ngIf="this.route === '/examine' && data === 'ConfirmExamine'" mat-dialog-content>
     <p>The Examiner request sent by the contract supervisor has been confirmed.</p><br>
     <p>Once the course convener approves the contract, you will be approved as an examiner of this contract.</p><br>
@@ -71,6 +85,9 @@
         data === 'DisapproveSupervise' ? 'This contract has been disapproved.' :
         data === 'DisapproveConvene' ? 'This contract has been disapproved.' :
         data === 'ConfirmExamine' ? 'This examiner request has been confirmed.' :
+        data === 'DeleteExamine' ? 'This examiner has been denominated.' :
+        data === 'NominateNonformalSupervisor' ? 'This non-formal supervisor has been nominated.' :
+        data === 'DeleteNonformalSupervisor' ? 'Non-formal supervisor for this contract has been de-nominated.' :
         'This contract has been finalised.'}}</p><br>
     <p>You will be redirected to the contract management page.</p>
 </div>
