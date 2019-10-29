@@ -51,6 +51,44 @@ ng test
 
 **NOTE: Production deployment does not support server that is outside ANU network**
 
+## Setting up SMTP configuration
+
+The current setting does not have SMTP configured for sending email, please configure it in `/srpms/srpms/settings.py`, and commit you changes before deploy.
+
+You'll find the below code in that file:
+
+```python
+# /srpms/srpms/settings.py
+
+...
+
+# Email settings
+if DEBUG:
+    # Print any email send from django to STDOUT
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    # TODO: Configure the actual email account and server here. Read the docs here
+    #       https://docs.djangoproject.com/en/2.2/ref/settings/#email-host
+
+    # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    # EMAIL_HOST = 'localhost'
+    # EMAIL_PORT = 1025
+    # EMAIL_HOST_USER = ''  # Optional
+    # EMAIL_HOST_PASSWORD = ''  # Optional
+    # EMAIL_USE_TLS = False  # Optional
+    # EMAIL_USE_SSL = False  # Optional
+    # EMAIL_SSL_CERTFILE = ''  # Optional
+    # EMAIL_SSL_KEYFILE = ''  # Optional
+    # EMAIL_TIMEOUT = None
+    pass
+
+# TODO: configure a email address here that would be used for email notifications
+EMAIL_SENDER = 'srpms.no-reply@srpms.cecs.anu.edu.au'
+EMAIL_SUBJECT_PREFIX = '[SRPMS] '  # Email title prefix
+
+...
+```
+
 ## Architecture overview
 
 **NOTE**: For the below diagram, the swimlane `Services` can be regarded as `Containers`. A service defined in docker compose can have multiple container of the same docker image, however in our case each service is only configured to have one container.
